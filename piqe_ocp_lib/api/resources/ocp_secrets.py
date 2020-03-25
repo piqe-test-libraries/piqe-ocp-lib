@@ -45,6 +45,7 @@ class OcpSecret(OcpBase):
         :return: (string) secret token for specified secret
         """
         secret_token = None
+        api_response = None
         try:
             api_response = self.ocp_secret.get(name=secret_name, namespace=namespace)
         except ApiException as e:

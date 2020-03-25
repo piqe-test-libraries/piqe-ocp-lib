@@ -21,8 +21,8 @@ class TestOcpBase(object):
         base_api_obj = OcpBase(kube_config_file=get_kubeconfig)
         assert isinstance(base_api_obj.dyn_client, DynamicClient)
         assert base_api_obj.kube_config_file is not None
-        major, minor, patch = base_api_obj.version
+        major, minor, patch = base_api_obj.version()
         logger.info("The obtained version is: {}.{}.{}".format(major, minor, patch))
-        assert isinstance(base_api_obj.version, tuple)
-        assert len(base_api_obj.version) == 3
+        assert isinstance(base_api_obj.version(), tuple)
+        assert len(base_api_obj.version()) == 3
         assert isinstance(major, str) and isinstance(minor, str) and isinstance(patch, str)
