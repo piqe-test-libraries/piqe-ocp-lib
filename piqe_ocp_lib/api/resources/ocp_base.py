@@ -7,6 +7,7 @@ import logging
 import warnings
 import requests
 from piqe_ocp_lib import __loggername__
+
 warnings.simplefilter('ignore', InsecureRequestWarning)
 
 logger = logging.getLogger(__loggername__)
@@ -52,7 +53,6 @@ class OcpBase(object):
             self.k8s_client = client.ApiClient(configuration)
 
         self.dyn_client = DynamicClient(self.k8s_client)
-        self.version = self._get_ocp_version()
 
     def get_auth_token(self, host='localhost', username='admin', password='redhat'):
         """
@@ -73,6 +73,10 @@ class OcpBase(object):
             logger.exception("Exception was encountered while trying to obtain a session token: %s\n", e)
         token = p2.communicate()[0]
         return token.strip().decode('ascii')
+
+    @property
+    def version(self):
+        return self._get_ocp_version
 
     def _get_ocp_version(self):
         """
@@ -136,7 +140,7 @@ class OcpBase(object):
                     try:
                         # Perform the GET http request
                         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-                        response = requests.get(url+'/version/openshift?timeout=32s', verify=False)
+                        response = requests.get(url + '/version/openshift?timeout=32s', verify=False)
                         if response.status_code == 200:
                             # The response is in string format, so we use eval to convert it to
                             # what it looks like to be, a dictionary
