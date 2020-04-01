@@ -290,6 +290,8 @@ class TestClusterServiceVersion:
     require a source. In this test module we use an operator source as a
     source for our subscription
     """
+
+    @pytest.mark.skip(reason="Skip until MPQEENABLE-365 is resolved")
     def test_get_cluster_service_version(self, get_test_objects):
         # We create a target namespace and use 'openshift-marketplace'
         # which already contains an operator source by default. That saves
@@ -327,7 +329,7 @@ class TestInstallOperatorWorkflow:
     of an operator is implemented, and this test will be updated.
     """
 
-    @pytest.mark.skip_if_not_version('4.1')
+    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
     def test_add_operator_singlenamespace(self, get_test_objects):
         get_test_objects.project_obj.create_a_project('test-project4')
         get_test_objects.oi_obj.add_operator_to_cluster('amq-streams', target_namespaces=['test-project4'])
@@ -337,7 +339,7 @@ class TestInstallOperatorWorkflow:
         get_test_objects.project_obj.delete_a_project('test-amq-streams-singlenamespace-og-sub-project')
         get_test_objects.project_obj.delete_a_project('test-project4')
 
-    @pytest.mark.skip_if_not_version('4.1')
+    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
     def test_add_operator_multinamespace(self, get_test_objects):
         get_test_objects.project_obj.create_a_project('test-project5')
         get_test_objects.project_obj.create_a_project('test-project6')
@@ -351,7 +353,7 @@ class TestInstallOperatorWorkflow:
         get_test_objects.project_obj.delete_a_project('test-project5')
         get_test_objects.project_obj.delete_a_project('test-project6')
 
-    @pytest.mark.skip_if_not_version('4.1')
+    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
     def test_add_operator_clusterwide(self, get_test_objects):
         get_test_objects.project_obj.create_a_project('test-project7')
         get_test_objects.oi_obj.add_operator_to_cluster('amq-streams')
@@ -365,7 +367,7 @@ class TestInstallOperatorWorkflow:
         # test artifacts
         get_test_objects.project_obj.delete_a_project('openshift-operators')
 
-    @pytest.mark.skip_if_not_version('4.1')
+    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
     def test_add_operator_using_operatorsource(self, get_test_objects):
         get_test_objects.project_obj.create_a_project('test-project8')
         operator_source = {
