@@ -8,8 +8,7 @@ logger = logging.getLogger(__loggername__)
 
 @pytest.fixture(scope='class')
 def setup_params(get_kubeconfig):
-    params_dict = {}
-    params_dict['node_api_obj'] = OcpNodes(kube_config_file=get_kubeconfig)
+    params_dict = {'node_api_obj': OcpNodes(kube_config_file=get_kubeconfig)}
     return params_dict
 
 

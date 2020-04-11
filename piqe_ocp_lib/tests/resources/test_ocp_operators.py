@@ -27,7 +27,7 @@ def get_test_objects(get_kubeconfig):
             self.csv_obj = ClusterServiceVersion(kube_config_file=get_kubeconfig)
             self.project_obj = OcpProjects(kube_config_file=get_kubeconfig)
             self.oi_obj = OperatorInstaller(kube_config_file=get_kubeconfig)
-            self.ocp_version = '.'.join(self.csc_obj.version())
+            self.ocp_version = '.'.join(self.csc_obj.version)
     test_objs = TestObjects()
     return test_objs
 

@@ -12,16 +12,7 @@ class OperatorhubPackages(OcpBase):
     A class that offers the capability to query and inspect operator package manifests
     Available from the OperatorHub. The Hub provides a catalog of operators from different
     sources.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -200,16 +191,7 @@ class CatalogSourceConfig(OcpBase):
     """
     A class that provides a user the ability to create catalog source config objects whcih then can be used
     to create subscriptions to a custom list or operators available throught the operator hub.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -352,16 +334,7 @@ class OperatorSource(OcpBase):
     """
     A class that provides a user the ability to create OperatorSource objects whcih then can be used
     to create subscriptions to packages available through that source.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -443,9 +416,7 @@ class CatalogSource(OcpBase):
     """
     A class that provides a user the ability to verify the presence of
     CatalogSource objects.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file):
@@ -514,16 +485,7 @@ class Subscription(OcpBase):
     creates cluster service versions (csv) resources in a targeted set of projects/namespaces where
     they will provide the metadate necessary for creating the custom resource definitions (CRD)
     for creating operator based apps.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -643,16 +605,7 @@ class OperatorGroup(OcpBase):
     multitenant configuration to OLM installed Operators. An OperatorGroup selects a set
     of target namespaces in which to generate required CSV's necessary for deploying
     instances of the CRDs.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -737,16 +690,7 @@ class ClusterServiceVersion(OcpBase):
     Lifecycle Manager (OLM) in running the Operator in a cluster. It is the metadata
     that accompanies an operator and contains technical information needed to run
     the Operator.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):

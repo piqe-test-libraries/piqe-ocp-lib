@@ -1,4 +1,4 @@
-from css_openshift.lib.ocpmgmt.ocp_base import OcpBase
+from .ocp_base import OcpBase
 from kubernetes.client.rest import ApiException
 import logging
 from piqe_ocp_lib import __loggername__
@@ -10,20 +10,11 @@ class OcpRoutes(OcpBase):
     """
     OcpPods Class extends OcpBase and encapsulates all methods
     related to managing Openshift pods.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
-    def __init__(self, hostname='localhost', username='admin', password='redhat', kube_config_file=None):
-        super(OcpRoutes, self).__init__(hostname, username, password, kube_config_file)
+    def __init__(self, kube_config_file=None):
+        super(OcpRoutes, self).__init__(kube_config_file)
         self.api_version = 'v1'
         self.kind = 'Route'
         self.ocp_routes = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)

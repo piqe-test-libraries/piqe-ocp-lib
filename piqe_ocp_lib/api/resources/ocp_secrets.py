@@ -11,9 +11,7 @@ class OcpSecret(OcpBase):
     """
     OcpSecret Class extends OcpBase and encapsulates all methods
     related to managing Openshift secrets.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):

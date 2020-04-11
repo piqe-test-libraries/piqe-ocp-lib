@@ -11,31 +11,13 @@ class OcpApps(OcpBase):
     """
     OcpApps Class extends OcpBase and encapsulates all methods
     related to managing Openshift app deployment.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
-    def __init__(self, hostname='localhost', username='admin', password='redhat', kube_config_file=None):
-        self.hostname = hostname
-        self.username = username
-        self.password = password
+    def __init__(self, kube_config_file=None):
         self.kube_config_file = kube_config_file
-        OcpBase.__init__(self, hostname=self.hostname,
-                         username=self.username,
-                         password=self.password,
-                         kube_config_file=self.kube_config_file)
-        self.ocp_template_obj = OcpTemplates(hostname=self.hostname,
-                                             username=self.username,
-                                             password=self.password,
-                                             kube_config_file=self.kube_config_file)
+        OcpBase.__init__(self, kube_config_file=self.kube_config_file)
+        self.ocp_template_obj = OcpTemplates(kube_config_file=self.kube_config_file)
 
     def create_app_from_template(self, project, template_name, ident, app_params, template_location='openshift'):
         """
@@ -43,6 +25,7 @@ class OcpApps(OcpBase):
         processes it and uses it to deploy an app in a specified
         project. project and template_name params are of type
         string while ident is of type int
+        :param template_location: template location. Default is "openshift" namespace/project
         :param project: (required | str) The project that will host the app
         :param template_name: (required | str) The template to be used to deploy the app
         :param ident: (required | int) Unique identifier.
