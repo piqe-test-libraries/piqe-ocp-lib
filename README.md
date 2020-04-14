@@ -38,11 +38,11 @@ At this point, your environment is prepared. Verify that you can connect to your
 
 #### Try running a test
 
-The API library resides under piqe-ocp-lib/api/resources, and the corresponding tests reside under piqe-ocp-lib/tests/resources.
+The API library resides under piqe_ocp_lib/api/resources, and the corresponding tests reside under piqe_ocp_lib/tests/resources.
 
 Run the test_ocp_base tests
   
-    pytest -sv piqe-ocp-lib/tests/resources/test_ocp_base.py
+    pytest -sv piqe_ocp_lib/tests/resources/test_ocp_base.py
     
 Results similar to those shown below should be presented.
 
