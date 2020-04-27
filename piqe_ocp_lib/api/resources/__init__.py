@@ -9,6 +9,13 @@ from .ocp_apps import OcpApps
 from .ocp_deploymentconfigs import OcpDeploymentconfigs
 from .ocp_pods import OcpPods
 from .ocp_events import OcpEvents
+from .ocp_secrets import OcpSecret
+from .ocp_routes import OcpRoutes
+from .ocp_cluster_operators import OcpClusterOperator
+from .ocp_control_planes import OcpControlPlane
+from .ocp_cluster_versions import OcpClusterVersion
+from .ocp_configs import OcpConfig
 
-__all__ = ['OcpBase', 'OcpNodes', 'OcpProjects', 'OcpTemplates',
-           'OcpApps', 'OcpDeploymentconfigs', 'OcpPods', 'OcpEvents']
+__all__ = ['OcpBase', 'OcpNodes', 'OcpProjects', 'OcpTemplates', 'OcpRoutes',
+           'OcpApps', 'OcpDeploymentconfigs', 'OcpPods', 'OcpEvents', 'OcpSecret',
+           'OcpClusterOperator', 'OcpControlPlane', 'OcpClusterVersion', 'OcpConfig']

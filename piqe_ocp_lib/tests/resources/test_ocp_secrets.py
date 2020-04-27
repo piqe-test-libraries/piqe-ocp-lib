@@ -59,6 +59,18 @@ class TestOcpSecrets:
         if not secret_token == SA_TOKEN:
             assert False
 
+    def test_get_secret_names(self, ocp_secret):
+        secret_name_list = ocp_secret.get_secret_names()
+        logger.info("Secret names : %s ", secret_name_list)
+        if not secret_name_list and len(secret_name_list) == 0:
+            assert False, f"Failed to get secret name/s from {NAMESPACE} or There are no secrets available"
+
+    def test_get_long_live_bearer_token(self, ocp_secret):
+        bearer_token = ocp_secret.get_long_live_bearer_token()
+        logger.info("Bearer Token : %s", bearer_token)
+        if not bearer_token:
+            assert False, "Failed to get bearer token from openshift secret"
+
     def test_get_secret(self):
         pass
 

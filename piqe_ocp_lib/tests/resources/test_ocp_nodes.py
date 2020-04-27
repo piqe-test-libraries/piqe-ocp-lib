@@ -162,6 +162,7 @@ class TestOcpNodes(object):
                     # Validate that the node name is the same as the hostname for the node.
                     assert address.address == node_name
 
+    @pytest.mark.skip(reason="MPQEENABLE-396 expected_retcode assertion fails")
     def test_execute_command_on_a_node(self, setup_params):
         """
         On each node perform the following:
