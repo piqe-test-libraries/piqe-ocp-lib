@@ -1,4 +1,4 @@
-# PIQE Test Libraries - PIQE OCB Library
+# PIQE Test Libraries - PIQE OCP Library
 
 **This is a work in progress and not recommended for consumption at this point.**
 
