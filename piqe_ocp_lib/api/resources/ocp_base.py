@@ -1,3 +1,4 @@
+import yaml
 from urllib3.exceptions import InsecureRequestWarning
 from kubernetes import client, config
 from openshift.dynamic import DynamicClient, Resource
@@ -175,3 +176,30 @@ class OcpBase(object):
                 if not (major and minor):
                     logger.info('Failed to obtain version info from api server')
         return major, minor, z_stream
+
+    def get_data_from_kubeconfig_v4(self):
+        """
+        Get required data from kubeconfig file provided by openshift
+        - API Server URL
+        - Access Token
+        :return: (dict) Return dict in form of kubeconfig_data
+        """
+        kubeconfig_data = dict()
+        api_server_url = None
+
+        with open(self.kube_config_file) as f:
+            kcfg = yaml.load(f, Loader=yaml.FullLoader)
+
+            # Get API server URL
+            logger.info("Find API Server URL from kubeconfig file")
+            if 'clusters' in kcfg:
+                clusters = kcfg['clusters']
+                for cluster in clusters:
+                    if "server" in cluster['cluster']:
+                        api_server_url = cluster['cluster']['server']
+                    if api_server_url:
+                        break
+            logger.info("API Server URL : %s", api_server_url)
+            kubeconfig_data["api_server_url"] = api_server_url
+
+        return kubeconfig_data

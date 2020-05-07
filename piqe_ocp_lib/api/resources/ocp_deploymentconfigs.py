@@ -1,5 +1,4 @@
-from .ocp_base import OcpBase
-from .ocp_events import OcpEvents
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from kubernetes.client.rest import ApiException
 import logging
 from time import sleep, time
@@ -11,36 +10,15 @@ logger = logging.getLogger(__loggername__)
 class OcpDeploymentconfigs(OcpBase):
     """
     OcpDeploymentconfigs Class extends OcpBase and encapsulates all methods
-    related to managing Openshift deploymentconfigs.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    related to managing Openshift DeploymentConfigs/Deployments.
+    :param api_version: (str) kubernetes/openshift api version
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
-    def __init__(self, hostname='localhost', username='admin', password='redhat', kube_config_file=None):
-        self.hostname = hostname
-        self.username = username
-        self.password = password
-        self.kube_config_file = kube_config_file
-        OcpBase.__init__(self, hostname=self.hostname,
-                         username=self.username,
-                         password=self.password,
-                         kube_config_file=self.kube_config_file)
-        self.ocp_events_obj = OcpEvents(hostname=self.hostname,
-                                        username=self.username,
-                                        password=self.password,
-                                        kube_config_file=self.kube_config_file)
+    def __init__(self, kind="DeploymentConfig", kube_config_file=None):
+        super(OcpDeploymentconfigs, self).__init__(kube_config_file=kube_config_file)
         self.api_version = 'v1'
-        self.kind = 'DeploymentConfig'
-        self.ocp_dcs = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
-        self.ocp_events = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
+        self.ocp_dcs = self.dyn_client.resources.get(api_version=self.api_version, kind=kind)
 
     def check_dc_status_conditions_availability(self, namespace, dc, timeout):
         """

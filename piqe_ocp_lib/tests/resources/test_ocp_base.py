@@ -26,3 +26,11 @@ class TestOcpBase(object):
         assert isinstance(base_api_obj.version(), tuple)
         assert len(base_api_obj.version()) == 3
         assert isinstance(major, str) and isinstance(minor, str) and isinstance(patch, str)
+
+    def test_get_data_from_kubeconfig_4x(self, get_kubeconfig):
+        logger.info("Get data from kubeconfig file")
+        ocp_base = OcpBase(kube_config_file=get_kubeconfig)
+        kubeconfig_data = ocp_base.get_data_from_kubeconfig_v4()
+        for key, value in kubeconfig_data.items():
+            if not value:
+                assert False, f"Failed to get data for {key} from kubeconfig file"

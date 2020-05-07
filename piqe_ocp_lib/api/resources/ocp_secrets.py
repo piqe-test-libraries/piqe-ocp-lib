@@ -1,7 +1,7 @@
 import logging
+import base64
 from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from kubernetes.client.rest import ApiException
-
 from piqe_ocp_lib import __loggername__
 
 logger = logging.getLogger(__loggername__)
@@ -11,9 +11,7 @@ class OcpSecret(OcpBase):
     """
     OcpSecret Class extends OcpBase and encapsulates all methods
     related to managing Openshift secrets.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -51,8 +49,6 @@ class OcpSecret(OcpBase):
         except ApiException as e:
             logger.exception("Exception while getting service account : %s\n" % e)
 
-        logger.info("Secret Response = %s", api_response)
-
         if api_response and api_response["metadata"]["name"] == secret_name:
             if api_response["type"] == "kubernetes.io/service-account-token":
                 secret_token = api_response["data"]["token"]
@@ -60,6 +56,48 @@ class OcpSecret(OcpBase):
                 secret_token = api_response["data"]["saToken"]
 
         return secret_token
+
+    def get_secret_names(self, namespace="default"):
+        """
+        Get secret names from specified namespace
+        :param namespace: (string) name of namespace where secret exist
+        :return: (list) List of secret names
+        """
+        api_response = None
+        secret_name_list = list()
+        try:
+            api_response = self.ocp_secret.get(namespace=namespace)
+        except ApiException as e:
+            logger.exception("Exception while getting service account : %s\n" % e)
+
+        if api_response:
+            for secret in api_response.items:
+                secret_name_list.append(secret["metadata"]["name"])
+
+        return secret_name_list
+
+    def get_long_live_bearer_token(self, sub_string="default-token", namespace="default"):
+        """
+        Get bearer token from secrets to authorize openshift cluster
+        :param sub_string: (str) substring of secrets name to find actual secret name since openshift append random
+        5 ascii digit at the end of every secret name
+        :param namespace: (string) name of namespace where secret exist
+        :return: (string) secret token for specified secret
+        """
+        secret_name_list = self.get_secret_names(namespace=namespace)
+        try:
+            secret_name = next(name for name in secret_name_list if sub_string in name)
+        except StopIteration as e:
+            logger.exception("Specified substring %s doesn't exist in %s namespace : %s", sub_string, namespace, e)
+
+        bearer_token = self.get_secret_token(secret_name=secret_name)
+
+        # All secret token in openshift are base64 encoded. Decode base64 string into byte.
+        # Convert byte to str
+        if bearer_token:
+            bearer_token = base64.b64decode(bearer_token).decode()
+
+        return bearer_token
 
     def get_secret(self):
         pass
