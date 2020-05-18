@@ -162,6 +162,17 @@ class TestOcpNodes(object):
                     # Validate that the node name is the same as the hostname for the node.
                     assert address.address == node_name
 
+    def test_get_total_memory_in_bytes(self, setup_params):
+        """
+        Verify that method returns total memory of cluster by adding all memory from each cluster nodes
+        :return:
+        """
+        node_api_obj = setup_params['node_api_obj']
+        total_memory = node_api_obj.get_total_memory_in_bytes()
+        if not total_memory:
+            assert False, "Failed to get total memory from cluster"
+        assert isinstance(total_memory, int)
+
     @pytest.mark.skip(reason="MPQEENABLE-396 expected_retcode assertion fails")
     def test_execute_command_on_a_node(self, setup_params):
         """
