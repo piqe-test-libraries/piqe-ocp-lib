@@ -14,7 +14,7 @@ setup(
         "openshift",
         "pytest-dependency",
         "pytest-xdist",
-        "locustio",
+        "locust",
         "glusto@git+git://github.com/loadtheaccumulator/glusto.git"
         "@python3_port4#egg=glusto"
     ],
