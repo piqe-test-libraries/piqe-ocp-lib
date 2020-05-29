@@ -18,12 +18,13 @@ class OcpRoutes(OcpBase):
         self.api_version = 'v1'
         self.kind = 'Route'
         self.ocp_routes = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
-    """
-        Get route names and paths in specified namespace
-        :param namespace(str): name of namespace/project
-        :return route_names (dict): dict of app route names and their route
-    """
+
     def get_route_names_and_paths_in_namespace(self, namespace):
+        """
+        Get route names and paths in specified namespace
+        :param namespace :(str) name of namespace/project
+        :return route_names :(dict) dict of app route names and their route
+        """
         route_names = dict()
         try:
             api_response = self.ocp_routes.get(namespace=namespace)
@@ -36,13 +37,13 @@ class OcpRoutes(OcpBase):
         logger.info("Route Names : %s", route_names)
         return route_names
 
-    """
-        Get route in specified namespace for specific app route name
-        :param namespace(str): name of namespace/project
-        :param route_name(str): name of app route name
-        :return route(str): route name
-    """
     def get_route_in_namespace(self, namespace, route_name):
+        """
+        Get route in specified namespace for specific app route name
+        :param namespace :(str) name of namespace/project
+        :param route_name :(str) name of app route name
+        :return route(str): route name
+        """
         route = None
         try:
             api_response = self.ocp_routes.get(namespace=namespace, name=route_name)
@@ -54,14 +55,14 @@ class OcpRoutes(OcpBase):
         logger.info("Route :%s ", route)
         return route
 
-    """
-        Get all routes in specified namespace
-        :param namespace(str): name of namespace/project
-        :return routes(list): list of route name
-    """
     def get_all_routes_in_namespace(self, namespace):
+        """
+        Get all routes in specified namespace
+        :param namespace :(str) name of namespace/project
+        :return routes :(list) list of route name
+        """
         routes = list()
-        route_names = self.self.get_route_names_and_paths_in_namespace(namespace)
+        route_names = self.get_route_names_and_paths_in_namespace(namespace)
         for route_name_key in route_names.keys():
             routes.append(self.get_route_in_namespace(namespace, route_name_key))
         logger.info("Routes : %s", routes)

@@ -90,10 +90,10 @@ class OcpSecret(OcpBase):
         except StopIteration as e:
             logger.exception("Specified substring %s doesn't exist in %s namespace : %s", sub_string, namespace, e)
 
-        bearer_token = self.get_secret_token(secret_name=secret_name)
+        bearer_token = self.get_secret_token(secret_name=secret_name, namespace=namespace)
 
-        # All secret token in openshift are base64 encoded. Decode base64 string into byte.
-        # Convert byte to str
+        # All secret tokens in openshift are base64 encoded.
+        # Decode base64 string into byte and convert byte to str
         if bearer_token:
             bearer_token = base64.b64decode(bearer_token).decode()
 

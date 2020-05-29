@@ -1,4 +1,4 @@
-from .ocp_base import OcpBase
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from kubernetes.client.rest import ApiException
 import logging
 import subprocess
@@ -76,6 +76,24 @@ class OcpNodes(OcpBase):
         except ApiException as e:
             logger.error("Exception encountered while getting a node by name: %s\n", e)
         return node_object
+
+    def get_total_memory_in_bytes(self):
+        """
+        Get total cluster memory by adding memory from all Nodes
+        :return: (int) Total memory in byte on success OR 0 on Failure
+        """
+        total_memory_in_bytes = 0
+        node_response = self.get_all_nodes()
+        if node_response:
+            for node in node_response.items:
+                if node["status"]["capacity"]["memory"][-2:] == "Ki":
+                    total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * 1024
+                if node["status"]["capacity"]["memory"][-2:] == "Mi":
+                    total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (1024*1024)
+                if node["status"]["capacity"]["memory"][-2:] == "Gi":
+                    total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (1024*1024)
+            logger.info("Total memory in bytes : %s", total_memory_in_bytes)
+        return total_memory_in_bytes
 
     def watch_all_nodes(self):
         # We need to determine if a use case for this exists.
@@ -166,35 +184,35 @@ class OcpNodes(OcpBase):
         if ret != 0:
             # Spin a new container for the node
             container_definition = """
-{
-  "spec": {
-    "hostPID": true,
-    "hostNetwork": true,
-    "nodeSelector": { "kubernetes.io/hostname": "%s" },
-    "tolerations": [{
-      "operator": "Exists"
-    }],
-    "containers": [
-      {
-        "name": "nsenter",
-        "image": "alexeiled/nsenter:2.34",
-        "command": [
-          "/nsenter", "--all", "--target=1", "--", "su", "-"
-        ],
-        "stdin": true,
-        "tty": true,
-        "securityContext": {
-          "privileged": true
-        },
-        "resources": {
-          "requests": {
-            "cpu": "10m"
-          }
-        }
-      }
-    ]
-  }
-}""" % node_name
+                {
+                  "spec": {
+                    "hostPID": true,
+                    "hostNetwork": true,
+                    "nodeSelector": { "kubernetes.io/hostname": "%s" },
+                    "tolerations": [{
+                      "operator": "Exists"
+                    }],
+                    "containers": [
+                      {
+                        "name": "nsenter",
+                        "image": "alexeiled/nsenter:2.34",
+                        "command": [
+                          "/nsenter", "--all", "--target=1", "--", "su", "-"
+                        ],
+                        "stdin": true,
+                        "tty": true,
+                        "securityContext": {
+                          "privileged": true
+                        },
+                        "resources": {
+                          "requests": {
+                            "cpu": "10m"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }""" % node_name
             command = ("kubectl run %s --restart=Never --image "
                        "overriden --overrides '%s'" % (pod_name, container_definition))
             logger.info("Executing command : %s", command)
