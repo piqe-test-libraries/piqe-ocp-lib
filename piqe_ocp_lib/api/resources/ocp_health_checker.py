@@ -59,7 +59,7 @@ class OcpHealthChecker(OcpBase):
             - DiskPressure: All have sufficient disk space.
             - MemoryPressure: All have sufficient memory
             - PIDPressure: All have sufficient number processes are running
-            - If ALL above is False, Node is in ready(healthy) state
+            - If ALL above is False and NodeReadyStatus is True, then node is in ready(healthy) state
         :return: Return tuple of all_nodes_healthy(boolean) and node_health_info(dict of node name and failure reason)
         """
         logger.info("Checking all cluster nodes health")
@@ -73,6 +73,8 @@ class OcpHealthChecker(OcpBase):
                 for condition in node_info.status.conditions:
                     if condition["type"] == "Ready":
                         individual_node_health_status_list.append(condition["status"])
+                    if condition["type"] == "Ready" and condition["status"] != "True":
+                        temp_list.append({"NodeReadyStatus": condition["status"]})
                     elif condition["type"] == "MemoryPressure" and condition["status"] == "True":
                         temp_list.append({"MemoryPressure": "The node memory is low"})
                     elif condition["type"] == "DiskPressure" and condition["status"] == "True":
