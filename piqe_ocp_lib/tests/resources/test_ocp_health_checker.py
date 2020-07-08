@@ -31,7 +31,7 @@ class TestOcpHealthChecker:
             failure_values = list()
             for key, value in node_health_info.items():
                 failure_values.append(value)
-            assert len(value) > 0
+            assert len(failure_values) > 0
 
     def test_check_router_health(self, ocp_health):
         """
