@@ -3,6 +3,7 @@ from kubernetes.client.rest import ApiException
 import logging
 from piqe_ocp_lib import __loggername__
 from time import sleep
+from pprint import pprint
 
 logger = logging.getLogger(__loggername__)
 
@@ -69,8 +70,11 @@ class OperatorhubPackages(OcpBase):
             logger.exception("Exception when calling method get_package_manifest: %s\n" % e)
         if package_obj and len(package_obj.items) == 1:
             return package_obj.items[0]
+        elif len(package_obj.items) == 0:
+            logger.exception("The package {}, could not be detected".format(package_name))
+            return None
         else:
-            return package_obj
+            return package_obj.items
 
     def watch_package_manifest_present(self, package_name, timeout=30):
         """
@@ -99,11 +103,19 @@ class OperatorhubPackages(OcpBase):
                              the supported channels list.
         :return: A list of subscription channels.
         """
-        channels_list = []
-        try:
-            channels_list = self.get_package_manifest(package_name=package_name).status.channels
-        except ApiException as e:
-            logger.exception("Exception when calling method get_package_channels_list: %s\n" % e)
+        if not self.watch_package_manifest_present(package_name):
+            logger.error("The package {} could not be detected".format(package_name))
+        else:
+            channels_list = []
+            channels_present = False
+            while not channels_present:
+                try:
+                    resp = self.get_package_manifest(package_name=package_name)
+                    if resp.status and resp.status.channels:
+                        channels_list = resp.status.channels
+                        channels_present = True
+                except ApiException as e:
+                    logger.exception("Exception when calling method get_package_channels_list: %s\n" % e)
         return channels_list
 
     def get_package_allnamespaces_channel(self, package_name):
@@ -196,158 +208,6 @@ class OperatorhubPackages(OcpBase):
         return None
 
 
-class CatalogSourceConfig(OcpBase):
-    """
-    A class that provides a user the ability to create catalog source config objects whcih then can be used
-    to create subscriptions to a custom list or operators available throught the operator hub.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
-    :return: None
-    """
-    def __init__(self, kube_config_file=None):
-        super(CatalogSourceConfig, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'operators.coreos.com/v1'
-        self.kind = 'CatalogSourceConfig'
-        self.catalog_source_config_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
-
-    def create_catalog_source_config(self, csc_name=None,
-                                     package_list=None,
-                                     target_namespace='openshift-operators',
-                                     body=None,
-                                     cs_display_name=None,
-                                     cs_publisher=None,
-                                     labels_dict=None):
-        """
-        A method to create a CatalogSourceConfig object as described in section 2.4.1.2
-        of the downstream docs (version 4.1)
-        :param csc_name: (required | str) The name of the CatalogSourceConfig object to be created.
-        :param package_list: (required | list of strings) A list of names of operators that the
-                             user wants to install.
-        :param target_namespace: (required | list) By default, we will always create a CatalogSourceConfig
-                                 object in the 'openshfit-marketplace' namespace. When that is done, an object
-                                 of type CatalogSource is automatically created in target_namespace.
-        :param body: the request body in dict format. If specified, other optional params will be ignored.
-        :param cs_display_name: (optional | str) The display nanme for you CatalogSourceConfig
-        :param cs_publisher: (optional | str) The publisher name for you CatalogSourceConfig
-        :param labels_dict: (optional | dict) The key/val labels to be applied to the CatalogSourceConfig
-        :return: An Api response object of type CatalogSourceConfig
-        NOTE: *** This class will always create CatalogSourceConfig objects in the 'openshift-marketplace
-              namespace ***
-        """
-        if body:
-            csc_body = body
-        else:
-            if not isinstance(package_list, list):
-                logger.exception("The parameter package_list must be of type list")
-                raise ValueError("The parameter package_list must be of type list")
-            else:
-                csc_body = {
-                    "apiVersion": self.api_version,
-                    "kind": self.kind,
-                    "metadata": {
-                        "name": "{}".format(csc_name),
-                        "namespace": "openshift-marketplace",
-                    },
-                    "spec": {
-                        "csDisplayName": "PIQE Test Operators",
-                        "csPublisher": "PIQE",
-                        "targetNamespace": target_namespace,
-                        "packages": ','.join(package_list)
-                    }
-                }
-                # Add optional params to the obj body
-                if cs_display_name:
-                    csc_body['spec']['csDisplayName'] = cs_display_name
-                if cs_publisher:
-                    csc_body['spec']['csPublisher'] = cs_publisher
-                if labels_dict:
-                    csc_body['metadata']['labels'] = labels_dict
-        api_response = None
-        try:
-            api_response = self.catalog_source_config_obj.create(body=csc_body)
-        except ApiException as e:
-            logger.exception("Exception when calling method create_catalog_source_config: %s\n" % e)
-        return api_response
-
-    def delete_catalog_source_config(self, csc_name):
-        """
-        A method to delete a catalog source config resource by name.
-        :param csc_name: (required | str) The name of the csc we want to delete
-        :return: A CatalogSourceConfig object (NOTE: is it a bug? typically it's an object
-                 of type 'Status')
-        """
-        # NOTE: When a catalog source config is created in the openshift-marketplace
-        # and object of type 'CatalogSource' get automatically created in 'targetNamespace'
-        # as soon as the csc is deleted, the associated catalog source gets automatically
-        # deleted as well.
-        api_response = None
-        try:
-            api_response = self.catalog_source_config_obj.delete(name=csc_name, namespace='openshift-marketplace')
-        except ApiException as e:
-            logger.exception("Exception when calling method delete_catalog_source_config: %s\n" % e)
-        return api_response
-
-    def label_catalog_source_config(self, csc_name, labels_dict):
-        """
-        A method to lable a CatalogSourceconfig object
-        :param csc_name: (required | str) The CatalogSourceConfig obj to be labeled
-        :param labels_dict: (required | dict) The key/val labels to be applied to the CatalogSourceConfig
-        :param return: A CatalogSourceConfig object
-        NOTE: Typically we would use the dynamic client's patch functionality to achieve this.
-        However, patch is not supported on non native kubernetes resources.
-        """
-        api_response = None
-        csc_body = self.get_catalog_source_config(csc_name)
-        csc_body.metadata.update({"labels": labels_dict})
-        try:
-            api_response = self.catalog_source_config_obj.apply(body=csc_body)
-        except ApiException as e:
-            logger.exception("Exception when calling method label_catalog_source_config: %s\n" % e)
-        return api_response
-
-    def get_catalog_source_config(self, csc_name):
-        """
-        A method that retrieves a CatalogSourceConfig object by name
-        :param csc_name: (required | str) The name of the csc we want to retrieve
-        :param return: A CatalogSourceConfig object
-        """
-        api_response = None
-        try:
-            api_response = self.catalog_source_config_obj.get(name=csc_name, namespace='openshift-marketplace')
-        except ApiException as e:
-            logger.exception("Exception when calling method get_catalog_source_config: %s\n" % e)
-        return api_response
-
-    def update_catalog_source_config_packages(self, csc_name, package_list):
-        """
-        A method that updates the list of supported packages by a csc
-        :param csc_name: (required | str) The name of the csc we want to update
-        :param package_list: (required | list) The list of package names that we want to update
-        :param return: A CatalogSourceConfig object
-        """
-        if not isinstance(package_list, list):
-            logger.exception("The parameter package_list must be of type list")
-            raise ValueError("The parameter package_list must be of type list")
-        api_response = None
-        csc_body = self.get_catalog_source_config(csc_name)
-        current_packages = csc_body.spec.packages
-        updated_packages = current_packages + ',' + ','.join(package_list)
-        csc_body.spec.update({"packages": updated_packages})
-        try:
-            api_response = self.catalog_source_config_obj.apply(body=csc_body)
-        except ApiException as e:
-            logger.exception("Exception when calling method update_catalog_source_config_packages: %s\n" % e)
-        return api_response
-
-
 class OperatorSource(OcpBase):
     """
     A class that provides a user the ability to create OperatorSource objects whcih then can be used
@@ -369,7 +229,6 @@ class OperatorSource(OcpBase):
         self.api_version = 'operators.coreos.com/v1'
         self.kind = 'OperatorSource'
         self.operator_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
-        # self.catalog_source_obj = CatalogSource(kube_config_file=kube_config_file)
 
     def create_operator_source(self, os_name=None, spec_dict=None, body=None, namespace='openshift-marketplace'):
         """
@@ -532,7 +391,6 @@ class Subscription(OcpBase):
         self.kind = 'Subscription'
         self.subscription_obj = self.dyn_client.resources.get(api_version=self.api_version,
                                                               kind=self.kind)
-        self.csc_obj = CatalogSourceConfig(kube_config_file=kube_config_file)
         self.package_manifest_obj = OperatorhubPackages(kube_config_file=kube_config_file)
         self.catalog_source_obj = CatalogSource(kube_config_file=kube_config_file)
 
