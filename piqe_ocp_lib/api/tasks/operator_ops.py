@@ -1,5 +1,5 @@
 from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
-from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, CatalogSourceConfig, \
+from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, \
     Subscription, CatalogSource, OperatorSource, OperatorGroup
 from piqe_ocp_lib.api.ocp_exceptions import OcpUnsupportedVersion
 from kubernetes.client.rest import ApiException
@@ -16,7 +16,6 @@ class OperatorInstaller(OcpBase):
         self.og_obj = OperatorGroup(kube_config_file=self.kube_config_file)
         self.sub_obj = Subscription(kube_config_file=self.kube_config_file)
         self.os_obj = OperatorSource(kube_config_file=self.kube_config_file)
-        self.csc_obj = CatalogSourceConfig(kube_config_file=self.kube_config_file)
         self.cs_obj = CatalogSource(kube_config_file=self.kube_config_file)
         self.ohp_obj = OperatorhubPackages(kube_config_file=self.kube_config_file)
         self.proj_obj = OcpProjects(kube_config_file=self.kube_config_file)
@@ -24,9 +23,7 @@ class OperatorInstaller(OcpBase):
     def _source_processor(self, source):
         """
         Takes in a source as eihter a path to a JSON/YAML, or the soure in dict format.
-        Currently supported are:
-        For OCP4.1: CatalogSourceConfig and OperatorSource
-        For OCP4.2: OperatorSource
+        Currently supported source type is: OperatorSource
         """
         def _source_path_processor(source_path):
             with open(source_path, 'r') as f:
@@ -54,18 +51,10 @@ class OperatorInstaller(OcpBase):
             """
             resource_kind = source_dict['kind']
             logger.info("Operator source is of kind: {}".format(resource_kind))
-            if resource_kind == 'CatalogSourceConfig':
-                if self.version != ('4', '1'):
-                    err_msg = "Source type CatalogSourceConfig is only supported for OCP version 4.1"
-                    logger.exception(err_msg)
-                    raise OcpUnsupportedVersion(err_msg)
-                else:
-                    resp = self.csc_obj.create_catalog_source_config(body=source_dict)
-            elif resource_kind == 'OperatorSource':
-                resp = self.os_obj.create_operator_source(body=source_dict)
-            if resp.kind == 'CatalogSourceConfig':
-                cs_namespace = resp.spec.targetNamespace
+            if resource_kind != 'OperatorSource':
+                raise TypeError("The source you provided: {} is an unsupported type".format(resource_kind))
             else:
+                resp = self.os_obj.create_operator_source(body=source_dict)
                 cs_namespace = resp.metadata.namespace
             logger.info("Cheking if CatalogSource {} exists in namespace {}".format(resp.metadata.name, cs_namespace))
             assert self.cs_obj.is_catalog_source_present(resp.metadata.name, namespace=cs_namespace)
@@ -103,11 +92,8 @@ class OperatorInstaller(OcpBase):
         create a project with the following naming convention:
         test + operator name + install mode + og-sub-project
         """
-        if self.version == ('4', '1'):
-            og_namespace = 'openshift-marketplace'
-        else:
-            og_name = operator_name + '-' + install_mode.lower() + '-og'
-            og_namespace = 'test-' + operator_name + '-' + install_mode.lower() + '-og-sub-project'
+        og_name = operator_name + '-' + install_mode.lower() + '-og'
+        og_namespace = 'test-' + operator_name + '-' + install_mode.lower() + '-og-sub-project'
         logger.info("Creating Project: {} that will hold the subscription and operator group".format(og_namespace))
         assert self.proj_obj.create_a_project(og_namespace)
         assert self.og_obj.create_operator_group(og_name, og_namespace, target_namespaces)

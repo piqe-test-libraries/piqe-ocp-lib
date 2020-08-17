@@ -3,7 +3,7 @@ import pytest
 import random
 from time import sleep
 from piqe_ocp_lib.api.resources import OcpProjects
-from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, CatalogSourceConfig, \
+from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, \
     Subscription, OperatorSource, OperatorGroup, ClusterServiceVersion
 from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
 from piqe_ocp_lib import __loggername__
@@ -20,14 +20,13 @@ def get_test_objects(get_kubeconfig):
     class TestObjects:
         def __init__(self):
             self.op_hub_obj = OperatorhubPackages(kube_config_file=get_kubeconfig)
-            self.csc_obj = CatalogSourceConfig(kube_config_file=get_kubeconfig)
             self.sub_obj = Subscription(kube_config_file=get_kubeconfig)
             self.og_obj = OperatorGroup(kube_config_file=get_kubeconfig)
             self.os_obj = OperatorSource(kube_config_file=get_kubeconfig)
             self.csv_obj = ClusterServiceVersion(kube_config_file=get_kubeconfig)
             self.project_obj = OcpProjects(kube_config_file=get_kubeconfig)
             self.oi_obj = OperatorInstaller(kube_config_file=get_kubeconfig)
-            self.ocp_version = '.'.join(self.csc_obj.version())
+            self.ocp_version = '.'.join(self.op_hub_obj.version())
     test_objs = TestObjects()
     return test_objs
 
@@ -112,78 +111,6 @@ class TestOcpOperatorHub:
             assert single_namespace_channel['currentCSVDesc']['installModes'][1]['supported'] is True
         else:
             logger.warning("The randomly picked package doesn't seem to have a single namespace channel")
-
-
-@pytest.mark.skip_if_not_version('4.1')
-class TestCatalogSourceConfig:
-    """
-    CatalogSourceConfigs are supported in Openshift version 4.1. They are available
-    in version 4.2 but not supported. The schema is also slightly changed. On this note
-    CatalogSourceConfig objects will not be used as part version 4.2 testing. Instead,
-    OperatorSource objects can be used instead, which work on both version 4.1 and 4.2.
-    """
-    def test_create_catalog_source_config(self, get_test_objects):
-        # Create a test project that will contain the catalog source
-        # config. We create a csc that enables the 'etcd' operator
-        # then we check the kind of the response object as well as the
-        # name given to the csc
-        project_obj = get_test_objects.project_obj
-        project_obj.create_a_project('test-project0')
-        logger.info("Detected openshift version is: {}".format(get_test_objects.ocp_version))
-        csc_obj = get_test_objects.csc_obj
-        csc_resp_obj = csc_obj.create_catalog_source_config('test-csc',
-                                                            ['etcd'],
-                                                            target_namespace='test-project0')
-        assert csc_resp_obj.kind == 'CatalogSourceConfig' and csc_resp_obj.metadata.name == 'test-csc'
-
-    def test_label_catalog_source_config(self, get_test_objects):
-        # We check the ability to label a catalog source config after it has
-        # been created.
-        # NOTE: often we hit a race condition and the csc object is not fully formed
-        # by the time we try to label it, so we sleep to give it enough time to be ready.
-        # This is a short term fix, the right way to address this is to add a watch/polling
-        # method to the CatalogSourceConfig class
-        # TODO: Replace sleep with watch/poll mechanism
-        sleep(10)
-        csc_obj = get_test_objects.csc_obj
-        csc_resp_obj = csc_obj.label_catalog_source_config('test-csc', {'Owner': 'PIQE'})
-        assert ('Owner', 'PIQE') in csc_resp_obj.metadata.labels.viewitems()
-        assert 'etcd'
-
-    def test_update_catalog_source_config_packages(self, get_test_objects):
-        # Check that additions to the packages list is properly reflected
-        # NOTE: often we hit a race condition and the csc object is not fully formed
-        # by the time we try to update it, so we sleep to give it enough time to be ready.
-        # This is a short term fix, the right way to address this is to add a watch/polling
-        # method to the CatalogSourceConfig class
-        # TODO: Replace sleep with watch/poll mechanism
-        sleep(10)
-        csc_obj = get_test_objects.csc_obj
-        csc_resp_obj = csc_obj.update_catalog_source_config_packages('test-csc', ['nfd', 'datagrid'])
-        assert any(s in csc_resp_obj.spec.packages for s in ['nfd', 'datagrid'])
-
-    def test_get_catalog_source_config(self, get_test_objects):
-        # Check kind and name correctness. Also check that all the packages we added
-        # to the csc are present
-        csc_obj = get_test_objects.csc_obj
-        csc_resp_obj = csc_obj.get_catalog_source_config('test-csc')
-        assert csc_resp_obj.kind == 'CatalogSourceConfig' and csc_resp_obj.metadata.name == 'test-csc'
-        assert any(s in csc_resp_obj.spec.packages for s in ['etcd', 'nfd', 'datagrid'])
-
-    def test_delete_catalog_source_config(self, get_test_objects):
-        # Typically the response object is of type status, however for
-        # this resource it is a csc obj. To check proper deletion we
-        # init a response object to None, wetry to get the csc object
-        # after we delete it. The try/expect catches the exception, so
-        # the response object should still be None
-        csc_obj = get_test_objects.csc_obj
-        csc_obj.delete_catalog_source_config('test-csc')
-        get_resp = None
-        try:
-            get_resp = csc_obj.get_catalog_source_config('test-csc')
-        except ValueError:
-            assert not get_resp
-        get_test_objects.project_obj.delete_a_project('test-project0')
 
 
 class TestOperatorSource:
