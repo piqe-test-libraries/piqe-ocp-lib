@@ -14,16 +14,7 @@ class OcpEvents(OcpBase):
     """
     OcpEvents Class extends OcpBase and encapsulates all methods
     related to managing Openshift events.
-    :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                     node of the targeted OCP cluster. Defaults to
-                     localhost if unspecified.
-    :param username: (optional | str) login username. Defaults to admin
-                      if unspecified.
-    :param password: (optional | str) login password. Defaults to redhat
-                      if unspecified.
-    :param kube_config_file: A kubernetes config file. It overrides
-                             the hostname/username/password params
-                             if specified.
+    :param kube_config_file: A kubernetes config file.
     :return: None
     """
     def __init__(self, hostname='localhost', username='admin', password='redhat', kube_config_file=None):
@@ -31,14 +22,8 @@ class OcpEvents(OcpBase):
         self.username = username
         self.password = password
         self.kube_config_file = kube_config_file
-        OcpBase.__init__(self, hostname=self.hostname,
-                         username=self.username,
-                         password=self.password,
-                         kube_config_file=self.kube_config_file)
-        self.ocp_pod_obj = OcpPods(hostname=self.hostname,
-                                   username=self.username,
-                                   password=self.password,
-                                   kube_config_file=self.kube_config_file)
+        OcpBase.__init__(self, kube_config_file=self.kube_config_file)
+        self.ocp_pod_obj = OcpPods(kube_config_file=self.kube_config_file)
         self.api_version = 'v1'
         self.kind = 'Event'
         self.ocp_events = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)

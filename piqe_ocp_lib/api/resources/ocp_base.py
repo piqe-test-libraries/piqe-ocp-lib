@@ -1,12 +1,11 @@
-import yaml
 from urllib3.exceptions import InsecureRequestWarning
-from kubernetes import client, config
+from kubernetes import config
 from openshift.dynamic import DynamicClient, Resource
 from kubernetes.client.rest import ApiException
-from subprocess import PIPE, Popen
+from threading import RLock
+import yaml
 import logging
 import warnings
-import requests
 from piqe_ocp_lib import __loggername__
 
 warnings.simplefilter('ignore', InsecureRequestWarning)
@@ -15,69 +14,57 @@ logger = logging.getLogger(__loggername__)
 
 
 class OcpBase(object):
+    """
+    This dict will hold kubeconfig as key and DynamicClient object as value
+    """
+    _dyn_clients = {}
 
-    def __init__(self, hostname='localhost', username='admin', password='redhat', kube_config_file=None):
+    """
+    This dict will hold kubeconfig as key and  kubernetes object, k8_client as value
+    """
+    k8s_clients = {}
+
+    # For thread safe
+    _lock = RLock()
+
+    def __init__(self, kube_config_file=None):
         """
-        The init method for the base class creates an instace of
-        the openshift dynamic rest client based on either an
-        authentication token or kube config file.
-        :param hostname: (optional | str) The hostname/FQDN/IP of the master
-                          node of the targeted OCP cluster. Defaults to
-                          localhost if unspecified.
-        :param username: (optional | str) login username. Defaults to admin
-                          if unspecified.
-        :param password: (optional | str) login password. Defaults to redhat
-                          if unspecified.
-                          TODO: Switch to encrypted passwords? If implemented,
-                                it has to apply to all classes inheriting OcpBase.
-        :param kube_config_file: A kubernetes config file. It overrides
-                                 the hostname/username/password params
-                                 if specified.
+        The init method for the base class
         :return: None
         """
+        # Lock the thread in case of multi-threading
+        with OcpBase._lock:
+            self.kube_config_file = kube_config_file
 
-        self.kube_config_file = kube_config_file
-        self.hostname = hostname
-        self.username = username
-        self.password = password
-        self.k8s_client = None
-
-        if self.kube_config_file:
-            self.k8s_client = config.new_client_from_config(str(self.kube_config_file))
-        else:
-            self._token = self.get_auth_token(host=self.hostname, username=self.username, password=self.password)
-            configuration = client.Configuration()
-            configuration.api_key['authorization'] = self._token
-            configuration.api_key_prefix['authorization'] = 'Bearer'
-            configuration.host = 'https://%s:8443' % hostname
-            configuration.verify_ssl = False
-            self.k8s_client = client.ApiClient(configuration)
-
-        self.dyn_client = DynamicClient(self.k8s_client)
-
-    def get_auth_token(self, host='localhost', username='admin', password='redhat'):
+    @property
+    def k8s_client(self):
         """
-        Method that returns a session token to be used for REST calls
-        :param host: (optional | str) The hostname/fqdn/IP of the master node.
-        :param username: (optional | str) The login username. Defaults to admin
-        :param password: (optional | str) The login password. Defaults to redhat
-        :return: Authentication token
+        Return k8s_client instance for specific openshift cluster based on kube_config_file attribute
+        :return: Instance of K8s_client
         """
-        try:
-            p1 = Popen(["curl", "-sIk",
-                        """https://%s:8443/oauth/authorize?response_type=token"""
-                        """&client_id=openshift-challenging-client""" % host,
-                        "--user", "%s:%s" % (username, password)], stdout=PIPE)
-            p2 = Popen(["grep", "-oP", "access_token=\\K[^&]*"], stdin=p1.stdout, stdout=PIPE)
-            p1.stdout.close()
-        except ApiException as e:
-            logger.exception("Exception was encountered while trying to obtain a session token: %s\n", e)
-        token = p2.communicate()[0]
-        return token.strip().decode('ascii')
+        if self.kube_config_file and self.kube_config_file not in OcpBase.k8s_clients:
+            OcpBase.k8s_clients[self.kube_config_file] = config.new_client_from_config(str(self.kube_config_file))
+        return OcpBase.k8s_clients.get(self.kube_config_file)
+
+    @property
+    def dyn_client(self):
+        """
+        Return dyn_client instance for specific openshift cluster based on kube_config_file attribute
+        :return: Instance of DynamicClient
+        """
+        # Lock the thread in case of multi-threading
+        with OcpBase._lock:
+            if OcpBase._dyn_clients.get(self.kube_config_file) is None:
+                OcpBase._dyn_clients[self.kube_config_file] = DynamicClient(self.k8s_client)
+            return OcpBase._dyn_clients.get(self.kube_config_file)
 
     @property
     def version(self):
-        return self._get_ocp_version
+        """
+        Return tuple of cluster version in the form (major, minor, z-stream)
+        :return: (tuple) cluster version
+        """
+        return self._get_ocp_version()
 
     def _get_ocp_version(self):
         """
@@ -118,63 +105,6 @@ class OcpBase(object):
                     minor = str(version_list[1])
                     z_stream = str(version_list[2].split("-")[0])
                     break
-        # In the case of an OCP 3 cluster, the 'ClusterVersion' resource is not a thing, so our
-        # try/except block above returns an empty list. Consequently, we need to resort to performing
-        # a GET http request on the enpoint that maps to 'oc version'.
-        # That is https://<api_server>:443/version/openshift?timeout=32s. This is obtained from the
-        # output of 'oc version --loglevel=9'. The server name itself is retrieved directly from the
-        # kubeconfig file.
-        elif not api_response:
-            # Open the kubeconfig file in read mode
-            with open(self.kube_config_file, 'r') as f:
-                # Collect the server lines/entries that have the
-                # keyword 'server'
-                server_entries = [line for line in f if 'server' in line]
-                server_urls = []
-                for server in server_entries:
-                    # Separate and store just the urls
-                    server_urls.append(server.strip().split(' ')[1])
-                for url in server_urls:
-                    # Initialize to None so we have something to return
-                    # in case the procedure fails.
-                    major = minor = None
-                    try:
-                        # Perform the GET http request
-                        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-                        response = requests.get(url + '/version/openshift?timeout=32s', verify=False)
-                        if response.status_code == 200:
-                            # The response is in string format, so we use eval to convert it to
-                            # what it looks like to be, a dictionary
-                            response_dict = eval(response.content)
-                            # Retrieve the major and minor versions by key
-                            major = response_dict['major']
-                            # Minor is usually followed by a '+', as in version '3.11+'
-                            # so we only keep numerical characters in the minor string.
-                            minor = ''.join(char for char in response_dict['minor'] if char.isalnum())
-                            """
-                            Response Body: {
-                              "major": "3",
-                              "minor": "11+",
-                              "gitVersion": "v3.11.157",
-                              "gitCommit": "dfe38da0aa",
-                              "gitTreeState": "",
-                              "buildDate": "2019-12-02T08:30:15Z",
-                              "goVersion": "",
-                              "compiler": "",
-                              "platform": ""
-                            }
-                            """
-                            if response_dict["gitVersion"]:
-                                z_stream = response_dict["gitVersion"].rsplit('.', 1)[1]
-                            else:
-                                z_stream = "0"
-                            break
-                        else:
-                            continue
-                    except requests.exceptions.RequestException as e:
-                        logger.exception('Failed to perform request on {}: {}'.format(url, e))
-                if not (major and minor):
-                    logger.info('Failed to obtain version info from api server')
         return major, minor, z_stream
 
     def get_data_from_kubeconfig_v4(self):
