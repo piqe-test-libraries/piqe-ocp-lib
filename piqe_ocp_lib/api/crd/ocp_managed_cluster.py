@@ -9,7 +9,7 @@ logger = logging.getLogger(__loggername__)
 class OcpManagedCluster(OcpBase):
     """
     OcpManagedCluster Class extends OcpBase and encapsulates all methods
-    related to managing Openshift pods.
+    related to Openshift ManagedCluster.
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
