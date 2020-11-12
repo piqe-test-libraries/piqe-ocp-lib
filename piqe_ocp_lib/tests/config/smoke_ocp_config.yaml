@@ -1,0 +1,52 @@
+# The variable app_template refers to the supported built-in
+# apps that come with a standard openshift deployment.
+# Currently, the following app templates are supported:
+# - jenkins-ephemeral
+# - jenkins-persistent
+# - httpd-example
+# - cakephp-mysql-example
+# - cakephp-mysql-persistent
+# - dancer-mysql-example
+# - dancer-mysql-persistent
+# - django-psql-example
+# - django-psql-persistent
+# - nodejs-mongodb-example
+# - nodejs-mongo-persistent
+# - rails-postgresql-example
+# - rails-pgsql-persistent
+
+# more to come in the near future.
+---
+metadata:
+  prerequisites:
+    # ocp_version value is of type str as defined in schema.
+    # Please enclose it in '' if it's single decimal value
+    ocp_version: '4.5'
+    cns:
+      required: true
+      # cns:version value is of type str as defined in schema.
+      # Please enclose it in '' if it's single decimal value
+      version: 4.0.0
+      cns_nodes: 3
+    routers:
+      - cns0-router
+    heketi: deploy-heketi
+projects:
+  - project_name: project0
+    apps:
+      - app_template: jenkins-ephemeral
+        app_count: 1
+        app_replicas: 2
+        app_labels:
+          scalable: 'True'
+    project_labels:
+      deployment_phase: 'first'
+  - project_name: project1
+    apps:
+      - app_template: httpd-example
+        app_count: 1
+        app_replicas: 1
+        app_labels:
+          scalable: 'True'
+    project_labels:
+      deployment_phase: 'second'

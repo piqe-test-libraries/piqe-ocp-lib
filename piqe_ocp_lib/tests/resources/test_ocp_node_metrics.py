@@ -18,6 +18,7 @@ def ocp_node(get_kubeconfig):
     return OcpNodes(kube_config_file=get_kubeconfig)
 
 
+@pytest.mark.skip(reason="Skip until CSS-3341 is resolved")
 class TestOcpNodeMetrics:
 
     def test_get_a_node_metrics(self, ocp_node_metric, ocp_node):
