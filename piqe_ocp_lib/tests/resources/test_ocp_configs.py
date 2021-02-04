@@ -72,12 +72,11 @@ class TestOcpConfig:
             "spec": {
                 "managementState": "Removed",
                 "replicas": 1,
-                "logging": 2,
+                "logLevel": "Debug",
                 "storage": {
                     "emptyDir": {}
                 }
             }
-
         }
 
         config_response_after_update = ocp_config.update_ocp_config(config_body=config_body)

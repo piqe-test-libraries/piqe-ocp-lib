@@ -68,7 +68,7 @@ class OcpConfig(OcpBase):
             original_config_response = self.get_ocp_config(name=name)
             config_body["metadata"]["resourceVersion"] = original_config_response["metadata"]["resourceVersion"]
             config_body["spec"]["replicas"] = original_config_response["spec"]["replicas"]
-            config_body["spec"]["logging"] = original_config_response["spec"]["logging"]
+            config_body["spec"]["logLevel"] = original_config_response["spec"]["logLevel"]
 
             try:
                 config_response = self.ocp_config.replace(body=config_body)
