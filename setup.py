@@ -18,6 +18,9 @@ setup(
         "glusto@git+git://github.com/loadtheaccumulator/glusto.git"
         "@python3_port4#egg=glusto"
     ],
+    extras_require={
+        "dev": ["yamllint", "flake8"],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPLv3 License",
