@@ -20,7 +20,7 @@ class OcpClusterVersion(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpClusterVersion, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = 'config.openshift.io/v1'
         self.kind = 'ClusterVersion'
         self.ocp_cv = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
