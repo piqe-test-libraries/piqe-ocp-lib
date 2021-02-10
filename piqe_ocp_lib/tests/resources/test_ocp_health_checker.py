@@ -91,6 +91,7 @@ class TestOcpHealthChecker:
         is_web_console_healthy = ocp_health.check_web_console_health()
         assert isinstance(is_web_console_healthy, bool)
 
+    @pytest.mark.skip(reason="MPQEENABLE-433 Health checker failures - OCP 4.5.30")
     def test_check_cluster_version_operator_health(self, ocp_health):
         """
          Verify the openshift ClusterVersion operator health status (bool) is returned
