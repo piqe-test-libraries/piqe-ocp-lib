@@ -253,7 +253,7 @@ class OcpLimitRangeItem(object):
     """
 
     def __init__(self, type):
-    
+
         self._model = V1LimitRangeItem(type=type)
 
     def type(self) -> str:
@@ -261,7 +261,7 @@ class OcpLimitRangeItem(object):
        This returns the type of V1LimitRangeItem builder.
        :return: V1LimitRangeItem type
        """
-    
+
         return self._model.type
 
     def _set_properties(self, type: str, min: Union[str, None] = None, max: Union[str, None] = None,
@@ -291,7 +291,7 @@ class OcpLimitRangeItem(object):
                 self._model.max.update({type: max})
         if default:
             if self._model.default is None:
-                 self._model.default = {type: default}
+                self._model.default = {type: default}
             else:
                 self._model.default.update({type: default})
         if default_request:

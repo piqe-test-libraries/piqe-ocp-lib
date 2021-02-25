@@ -74,9 +74,9 @@ class OcpNodes(OcpBase):
                 if node["status"]["capacity"]["memory"][-2:] == "Ki":
                     total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * 1024
                 if node["status"]["capacity"]["memory"][-2:] == "Mi":
-                    total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (1024*1024)
+                    total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (1024 * 1024)
                 if node["status"]["capacity"]["memory"][-2:] == "Gi":
-                    total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (1024*1024)
+                    total_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (1024 * 1024)
             logger.info("Total memory in bytes : %s", total_memory_in_bytes)
         return total_memory_in_bytes
 

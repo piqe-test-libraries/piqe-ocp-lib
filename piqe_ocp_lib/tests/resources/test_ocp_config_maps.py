@@ -45,7 +45,7 @@ class TestOcpConfigMaps:
         logger.info("Get config maps")
         cm_response = ocp_cm.get_config_maps(namespace=NAMESPACE)
         if not cm_response and len(cm_response.items) <= 0:
-            assert False, f"Failed to get ConfigMaps"
+            assert False, "Failed to get ConfigMaps"
 
     def test_get_a_config_map(self, ocp_cm):
         logger.info(f"Get a {NAME} config map")
@@ -54,7 +54,7 @@ class TestOcpConfigMaps:
             assert False, f"Failed to get {NAME} ConfigMaps"
 
     def test_get_config_maps_names(self, ocp_cm):
-        logger.info(f"Get all config maps from specified namespace")
+        logger.info("Get all config maps from specified namespace")
         cm_names = ocp_cm.get_config_maps_names(namespace=NAMESPACE)
         if not cm_names and len(cm_names.items) <= 0:
             assert False, f"Failed to get ConfigMaps in {NAMESPACE} namespace"

@@ -16,7 +16,7 @@ class OcpConfig(OcpBase):
         :return: None
         """
 
-    def __init__(self,  kind, api_version, kube_config_file=None):
+    def __init__(self, kind, api_version, kube_config_file=None):
         super(OcpConfig, self).__init__(kube_config_file=kube_config_file)
         self.kube_config_file = kube_config_file
         self.ocp_config = self.dyn_client.resources.get(api_version=api_version, kind=kind)

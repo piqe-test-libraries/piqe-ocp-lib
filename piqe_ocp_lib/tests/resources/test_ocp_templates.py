@@ -159,7 +159,7 @@ class TestOcpTemplates(object):
         template = template_api_obj.get_a_template_in_a_namespace(setup_params['app_name'],
                                                                   project=setup_params['test_project'])
         api_response = template_api_obj.enumerate_unprocessed_template(template, setup_params['ident'])
-        assert api_response['parameters'][0]['value'] == setup_params['app_name']+'-'+str(setup_params['ident'])
+        assert api_response['parameters'][0]['value'] == setup_params['app_name'] + '-' + str(setup_params['ident'])
         logger.info("API Response : {}".format(api_response['parameters'][0]['value']))
 
         #
@@ -193,7 +193,7 @@ class TestOcpTemplates(object):
         enumrated_template = template_api_obj.enumerate_unprocessed_template(raw_template, setup_params['ident'])
         processed_template = template_api_obj.create_a_processed_template(enumrated_template)
         for resource in processed_template['objects']:
-            assert resource['metadata']['name'] == setup_params['app_name']+'-'+str(setup_params['ident'])
+            assert resource['metadata']['name'] == setup_params['app_name'] + '-' + str(setup_params['ident'])
             logger.info("Resource : {}".format(resource['metadata']['name']))
 
         #

@@ -59,7 +59,7 @@ class OcpApps(OcpBase):
                 api_response_list.append(api_response)
             except ApiException as e:
                 logger.error("Exception when calling method: "
-                             " create_app_from_template_" + str(resource['kind']).lower()+"%s\n", e)
+                             " create_app_from_template_" + str(resource['kind']).lower() + "%s\n", e)
         return api_response_list, deployment_config_names
 
     def delete_template_based_app(self, project, template_name, ident, app_params, template_location='openshift'):
@@ -93,5 +93,5 @@ class OcpApps(OcpBase):
                 api_response_list.append(api_response)
             except ApiException as e:
                 logger.error("Exception when calling method: "
-                             " delete_template_based_app_" + str(resource['kind']).lower()+"%s\n", e)
+                             " delete_template_based_app_" + str(resource['kind']).lower() + "%s\n", e)
         return api_response_list

@@ -1,7 +1,4 @@
 #!/usr/bin/python
-import os
-import logging
-from datetime import datetime
 import argparse
 import time
 import sys
