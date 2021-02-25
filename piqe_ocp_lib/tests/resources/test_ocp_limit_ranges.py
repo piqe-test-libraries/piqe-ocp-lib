@@ -8,7 +8,7 @@ logger = logging.getLogger(__loggername__)
 
 five_digit_number = ''.join(random.sample('0123456789', 5))
 NAMESPACE = "default"
-NAME = "test{five_digit_number}"
+NAME = f"test{five_digit_number}"
 
 
 @pytest.fixture(scope="session")
