@@ -1,12 +1,12 @@
-pipeline { 
+pipeline {
     agent { label 'master' }
     environment {
         KUBECONFIG = credentials('a700aafc-b29c-4052-a8f8-c93863709f25')
         PATH = "/usr/local/bin:$PATH"
-    }    
+    }
     stages {
-        stage('Setup') { 
-            steps { 
+        stage('Setup') {
+            steps {
                 sh '''#!/bin/bash -ex
                     python3 -m venv scenario
                     source scenario/bin/activate
@@ -18,16 +18,16 @@ pipeline {
                 '''
             }
         }
-        stage('Flake8') { 
-            steps { 
+        stage('Flake8') {
+            steps {
                 sh '''#!/bin/bash -ex
                     source scenario/bin/activate
-                    find . -name *.py | grep -v 'doc' | xargs -i flake8 {}  --show-source --max-line-length=120
+                    flake8 piqe_ocp_lib/* --show-source --max-line-length=120 --ignore E731
                 '''
             }
-        }         
+        }
         stage('PyTest') {
-            steps { 
+            steps {
                 sh '''#!/bin/bash -ex
                     source scenario/bin/activate
                     pytest -sv piqe_ocp_lib/tests/resources
