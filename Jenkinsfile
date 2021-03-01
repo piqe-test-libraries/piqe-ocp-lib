@@ -22,7 +22,7 @@ pipeline {
             steps {
                 sh '''#!/bin/bash -ex
                     source scenario/bin/activate
-                    flake8 piqe_ocp_lib/* --show-source --max-line-length=120 --ignore E731
+                    flake8 piqe_ocp_lib/*
                 '''
             }
         }
