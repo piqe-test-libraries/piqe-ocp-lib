@@ -1,7 +1,6 @@
 from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
 from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, \
     Subscription, CatalogSource, OperatorSource, OperatorGroup
-from piqe_ocp_lib.api.ocp_exceptions import OcpUnsupportedVersion
 from kubernetes.client.rest import ApiException
 import logging
 import yaml

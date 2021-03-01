@@ -228,6 +228,6 @@ class OcpPipelineRuns(OcpBase):
                     logger.info("Pipeline Run %s is in %s state", pipeline_run_name, pipeline_run_condition["status"])
                     pipeline_run_ready = True
                     return pipeline_run_ready
-        logger.error(f"Pipeline Run %s is in %s state. Message : %s",
+        logger.error("Pipeline Run %s is in %s state. Message : %s",
                      pipeline_run_name, pipeline_run_condition["status"], pipeline_run_condition["message"])
         return pipeline_run_ready

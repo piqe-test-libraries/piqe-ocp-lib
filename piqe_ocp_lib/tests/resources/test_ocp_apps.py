@@ -48,7 +48,7 @@ class TestOcpApps(object):
                                                       template_location=setup_params['test_project'])
 
         for resource in res:
-            assert resource.metadata.name == setup_params['template_name']+'-'+str(setup_params['ident'])
+            assert resource.metadata.name == setup_params['template_name'] + '-' + str(setup_params['ident'])
 
     def test_delete_template_based_app(self, setup_params):
         """

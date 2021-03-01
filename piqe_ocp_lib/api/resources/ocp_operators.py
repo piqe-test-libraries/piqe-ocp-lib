@@ -3,7 +3,6 @@ from kubernetes.client.rest import ApiException
 import logging
 from piqe_ocp_lib import __loggername__
 from time import sleep
-from pprint import pprint
 
 logger = logging.getLogger(__loggername__)
 

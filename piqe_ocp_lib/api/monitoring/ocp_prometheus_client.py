@@ -108,7 +108,7 @@ class OcpPrometheusClient(OcpBase):
                 # Suppress only the single warning from urllib3 needed.
                 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
                 prometheus_api_response = requests.get(final_prometheus_url, headers=headers, verify=False)
-        except (ConnectionError, HTTPError, RequestException) as e:
+        except (ConnectionError, HTTPError, RequestException):
             logger.exception("Failed to connect %s due to refused connection or unsuccessful status code",
                              final_prometheus_url)
 
