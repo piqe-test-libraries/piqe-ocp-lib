@@ -16,6 +16,7 @@ from .ocp_projects import OcpProjects
 from .ocp_routes import OcpRoutes
 from .ocp_secrets import OcpSecret
 from .ocp_templates import OcpTemplates
+from .ocp_machine_management import OcpMachineSet, OcpMachines
 
 __all__ = [
     "OcpBase",
@@ -33,4 +34,6 @@ __all__ = [
     "OcpClusterVersion",
     "OcpConfig",
     "OcpLimitRanges",
+    "OcpMachineSet",
+    "OcpMachines"
 ]
