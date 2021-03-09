@@ -13,8 +13,13 @@ TIMEOUT = 300
 class OcpMachineSet(OcpBase):
     """
     OcpMachineSet class extends OcpBase and encapsulates all methods
+<<<<<<< HEAD
     related to managing Openshift Machine Sets.
     :param kube_config_file: A kubernetes config file.
+=======
+    related to managing Openshift Machine Sets
+    :param kube_config_file: A kubernetes config file
+>>>>>>> 79d1743... [CSS-3384] Add Machine management support
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -94,7 +99,11 @@ class OcpMachineSet(OcpBase):
                 2. New nodes corresponding to the newcly created machines are created
                    and reach a ready state.
             :param machinet_set_name: (str) name of the machine set
+<<<<<<< HEAD
             :return: (bool) True if the given machine set is successfully scaled up OR False otherwise.
+=======
+            :return: (bool) True if the given machine set is successfully scaled up OR False otherwise
+>>>>>>> 79d1743... [CSS-3384] Add Machine management support
             """
             scaled_up_machines_list = self.machine.get_machines_in_machineset(machine_set_name)
             creation_phases = {'Provisioning', 'Provisioned'}
@@ -189,8 +198,13 @@ class OcpMachineSet(OcpBase):
 class OcpMachines(OcpBase):
     """
     OcpMachineSet class extends OcpBase and encapsulates all methods
+<<<<<<< HEAD
     related to managing Openshift Machine Sets.
     :param kube_config_file: A kubernetes config file.
+=======
+    related to managing Openshift Machine Sets
+    :param kube_config_file: A kubernetes config file
+>>>>>>> 79d1743... [CSS-3384] Add Machine management support
     :return: None
     """
     def __init__(self, kube_config_file=None):
@@ -289,7 +303,11 @@ class OcpMachines(OcpBase):
 
     def is_machine_created(self, machine_name: str, timeout: int = TIMEOUT) -> bool:
         """
+<<<<<<< HEAD
         Method that watches a machine resource reaches a 'Running' state.
+=======
+        Method that watches a machine resource reaches a 'Running' state
+>>>>>>> 79d1743... [CSS-3384] Add Machine management support
         :param machine_name: (str) The name of the machine resource to be watched
         :param tiemout: (int) The amount of time to poll before timing out. Defaults to 300s
         :return: bool. True on success OR False on failure
