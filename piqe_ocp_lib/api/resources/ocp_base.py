@@ -1,16 +1,25 @@
-from urllib3.exceptions import InsecureRequestWarning
-from kubernetes import config
-from openshift.dynamic import DynamicClient, Resource
-from kubernetes.client.rest import ApiException
-from threading import RLock
 import yaml
 import logging
 import warnings
+
+from collections import namedtuple
+from threading import RLock
+from urllib3.exceptions import InsecureRequestWarning
+
+import jmespath
+from kubernetes import config
+from kubernetes.client.rest import ApiException
+from openshift.dynamic import DynamicClient
+
+from piqe_ocp_lib.api.constants import CLUSTER_VERSION_OPERATOR_ID
 from piqe_ocp_lib import __loggername__
 
 warnings.simplefilter('ignore', InsecureRequestWarning)
 
 logger = logging.getLogger(__loggername__)
+
+
+Version = namedtuple("Version", ["major", "minor", "patch"])
 
 
 class OcpBase(object):
@@ -59,7 +68,7 @@ class OcpBase(object):
             return OcpBase._dyn_clients.get(self.kube_config_file)
 
     @property
-    def version(self):
+    def ocp_version(self):
         """
         Return tuple of cluster version in the form (major, minor, z-stream)
         :return: (tuple) cluster version
@@ -75,37 +84,18 @@ class OcpBase(object):
                  and z-stream version at index 2
         """
         try:
-            # Using 'search' allows to check if a type of resource exists without throwing an
-            # exception unlike using 'get'. If such resource is not found, an empty list is
-            # returned. Otherwise, a list containing the sought after resource object is returned.
-            api_response = self.dyn_client.resources.search(api_version='config.openshift.io/v1',
-                                                            kind='ClusterVersion')
-            assert isinstance(api_response, list)
+            client = self.dyn_client.resources.get(
+                api_version='config.openshift.io/v1', kind='ClusterVersion'
+            )
+
+            version = client.get(name=CLUSTER_VERSION_OPERATOR_ID)
         except ApiException as e:
-            logger.exception("Exception was encountered while trying to obtain cluster version: {}".format(e))
-        # Now that we have established that our api call returned a list, we check if we are dealing with an
-        # OCP 3 or 4 cluster. This is simply achieved by checking wether the list is empty or not. When it is not
-        # empty, we check that the resource type is 'ClusterVersion' just for good measure.
-        if api_response and isinstance(api_response[0], Resource) and api_response[0].kind == 'ClusterVersion':
-            api_response = api_response[0]
-            # We get the actual ClusterVersion object
-            cluster_version_obj = api_response.get()
-            # Version is under obj.status.history. History is a list of dict and we want
-            # to get the version with state="Completed" entry incase if there are fail entries in histories
-            version_histories = cluster_version_obj.items[0].status.history
-            # Sort the version history list by startedTime in descending order so that last update history
-            # will be the first to check
-            sorted_version_histories = sorted(version_histories, key=lambda k: k['startedTime'], reverse=True)
-            # It's in string form, so we turn it into a list so we can use indexing
-            # to easily retrieve major and minor versions
-            for history in sorted_version_histories:
-                if history.state == "Completed":
-                    version_list = history.version.split('.', 2)
-                    major = str(version_list[0])
-                    minor = str(version_list[1])
-                    z_stream = str(version_list[2].split("-")[0])
-                    break
-        return major, minor, z_stream
+            logger.exception(f"Exception was encountered while trying to obtain cluster version: {e}")
+            return None
+
+        version_query = "sort_by(status.history[?state=='Completed'], &completionTime)[::-1].version"
+        version = jmespath.search(version_query, version.to_dict())
+        return Version(*map(int, version[0].split(".")))
 
     def get_data_from_kubeconfig_v4(self):
         """

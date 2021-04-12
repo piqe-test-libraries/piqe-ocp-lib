@@ -1,8 +1,10 @@
-from piqe_ocp_lib.api.resources import OcpBase
 import logging
 from threading import Thread
 from queue import Queue
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import Version
+from piqe_ocp_lib.api.resources import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -15,11 +17,10 @@ class TestOcpBase(object):
 
     def test_version(self, get_kubeconfig):
         base_api_obj = OcpBase(kube_config_file=get_kubeconfig)
-        major, minor, patch = base_api_obj.version
-        logger.info("The obtained cluster version is: {}.{}.{}".format(major, minor, patch))
-        assert isinstance(base_api_obj.version, tuple)
-        assert len(base_api_obj.version) == 3
-        assert isinstance(major, str) and isinstance(minor, str) and isinstance(patch, str)
+
+        version = base_api_obj.ocp_version
+
+        assert isinstance(version, Version)
 
     def test_dynamic_client_singleton_for_ocp4x(self, get_kubeconfig):
         logger.info("Create two instances (ocp_base1 and ocp_base2) using kubeconfig of openshift 4x cluster")

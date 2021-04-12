@@ -15,6 +15,7 @@ pytest-dependency = "^0.5.1"
 pytest-xdist = "^2.2.1"
 locust = "^1.4.3"
 glusto = {git = "https://github.com/loadtheaccumulator/glusto.git", rev = "python3_port4"}
+jmespath = "^0.10.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.4"

@@ -1,8 +1,12 @@
+import logging
+import warnings
+
+from time import sleep
+
+
 from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from kubernetes.client.rest import ApiException
-import logging
 from piqe_ocp_lib import __loggername__
-from time import sleep
 
 logger = logging.getLogger(__loggername__)
 
@@ -205,6 +209,12 @@ class OperatorSource(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
+    warnings.warn(
+        "Removed from OpenShift >= 4.6. Deprecated for versions [4.4, 4.5]",
+        DeprecationWarning,
+    )
+
     def __init__(self, kube_config_file=None):
         super(OperatorSource, self).__init__(kube_config_file=kube_config_file)
         self.api_version = 'operators.coreos.com/v1'
@@ -288,6 +298,12 @@ class CatalogSource(OcpBase):
                              if specified.
     :return: None
     """
+
+    warnings.warn(
+        "Removed from OpenShift >= 4.5. Deprecated for version 4.4",
+        DeprecationWarning,
+    )
+
     def __init__(self, kube_config_file):
         super(CatalogSource, self).__init__(kube_config_file=kube_config_file)
         self.api_version = 'operators.coreos.com/v1alpha1'
