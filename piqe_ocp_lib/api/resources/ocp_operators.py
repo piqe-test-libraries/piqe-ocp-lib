@@ -1,12 +1,11 @@
 import logging
+from time import sleep
 import warnings
 
-from time import sleep
-
-
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -19,12 +18,12 @@ class OperatorhubPackages(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OperatorhubPackages, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'packages.operators.coreos.com/v1'
-        self.kind = 'PackageManifest'
-        self.package_manifest_obj = self.dyn_client.resources.get(api_version=self.api_version,
-                                                                  kind=self.kind)
+        self.api_version = "packages.operators.coreos.com/v1"
+        self.kind = "PackageManifest"
+        self.package_manifest_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_package_manifest_list(self, catalog=None):
         """
@@ -45,7 +44,7 @@ class OperatorhubPackages(OcpBase):
             if not catalog:
                 packages_obj_list = self.package_manifest_obj.get()
             else:
-                packages_obj_list = self.package_manifest_obj.get(label_selector='catalog={}'.format(catalog))
+                packages_obj_list = self.package_manifest_obj.get(label_selector="catalog={}".format(catalog))
         except ApiException as e:
             logger.exception("Exception when calling method get_package_manifest_list: %s\n" % e)
         return packages_obj_list
@@ -59,7 +58,7 @@ class OperatorhubPackages(OcpBase):
         """
         package_obj = None
         try:
-            package_obj = self.package_manifest_obj.get(field_selector='metadata.name={}'.format(package_name))
+            package_obj = self.package_manifest_obj.get(field_selector="metadata.name={}".format(package_name))
         except ApiException as e:
             logger.exception("Exception when calling method get_package_manifest: %s\n" % e)
         if package_obj and len(package_obj.items) == 1:
@@ -127,7 +126,7 @@ class OperatorhubPackages(OcpBase):
         for channel in channels_list:
             install_modes = channel.currentCSVDesc.installModes
             for im in install_modes:
-                if im.type == 'AllNamespaces' and im.supported is True:
+                if im.type == "AllNamespaces" and im.supported is True:
                     clusterwide_channels.append(channel)
         if len(clusterwide_channels) != 0:
             return clusterwide_channels[-1]
@@ -149,7 +148,7 @@ class OperatorhubPackages(OcpBase):
         for channel in channels_list:
             install_modes = channel.currentCSVDesc.installModes
             for im in install_modes:
-                if im.type == 'MultiNamespace' and im.supported is True:
+                if im.type == "MultiNamespace" and im.supported is True:
                     multinamespace_channels.append(channel)
         if len(multinamespace_channels) != 0:
             return multinamespace_channels[-1]
@@ -171,7 +170,7 @@ class OperatorhubPackages(OcpBase):
         for channel in channels_list:
             install_modes = channel.currentCSVDesc.installModes
             for im in install_modes:
-                if im.type == 'SingleNamespace' and im.supported is True:
+                if im.type == "SingleNamespace" and im.supported is True:
                     singlenamespace_channels.append(channel)
         if len(singlenamespace_channels) != 0:
             return singlenamespace_channels[-1]
@@ -193,7 +192,7 @@ class OperatorhubPackages(OcpBase):
         for channel in channels_list:
             install_modes = channel.currentCSVDesc.installModes
             for im in install_modes:
-                if im.type == 'OwnNamespace' and im.supported is True:
+                if im.type == "OwnNamespace" and im.supported is True:
                     ownnamespace_channels.append(channel)
         if len(ownnamespace_channels) != 0:
             return ownnamespace_channels[-1]
@@ -217,11 +216,11 @@ class OperatorSource(OcpBase):
 
     def __init__(self, kube_config_file=None):
         super(OperatorSource, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'operators.coreos.com/v1'
-        self.kind = 'OperatorSource'
+        self.api_version = "operators.coreos.com/v1"
+        self.kind = "OperatorSource"
         self.operator_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_operator_source(self, os_name=None, spec_dict=None, body=None, namespace='openshift-marketplace'):
+    def create_operator_source(self, os_name=None, spec_dict=None, body=None, namespace="openshift-marketplace"):
         """
         A method to create a resource of type OperatorSource. This is typically used when an operator
         package manifest is available through some non-standard sources. This allows for the package to be
@@ -244,11 +243,8 @@ class OperatorSource(OcpBase):
             os_body = {
                 "apiVersion": self.api_version,
                 "kind": self.kind,
-                "metadata": {
-                    "name": os_name,
-                    "namespace": namespace
-                },
-                "spec": spec_dict
+                "metadata": {"name": os_name, "namespace": namespace},
+                "spec": spec_dict,
             }
         api_response = None
         try:
@@ -257,7 +253,7 @@ class OperatorSource(OcpBase):
             logger.exception("Exception when calling method create_operator_source: %s\n" % e)
         return api_response
 
-    def get_operator_source(self, os_name, namespace='openshift-marketplace'):
+    def get_operator_source(self, os_name, namespace="openshift-marketplace"):
         """
         A method that retrieves an operator source by name from a namespace, which by default,
         will be 'openshift-marketplace'
@@ -273,7 +269,7 @@ class OperatorSource(OcpBase):
             logger.exception("Exception when calling method get_operator_source: %s\n" % e)
         return api_response
 
-    def delete_operator_source(self, os_name, namespace='openshift-marketplace'):
+    def delete_operator_source(self, os_name, namespace="openshift-marketplace"):
         """
         A method to delete an operator source by name in a namespace, which by default, will
         be 'openshift-marketplace'
@@ -306,11 +302,11 @@ class CatalogSource(OcpBase):
 
     def __init__(self, kube_config_file):
         super(CatalogSource, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'operators.coreos.com/v1alpha1'
-        self.kind = 'CatalogSource'
+        self.api_version = "operators.coreos.com/v1alpha1"
+        self.kind = "CatalogSource"
         self.catalog_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def get_catalog_source(self, cs_name, namespace='openshift-marketplace'):
+    def get_catalog_source(self, cs_name, namespace="openshift-marketplace"):
         """
         A method that retrieves a catalog source by name from a namespace, which by default,
         will be 'openshift-marketplace'
@@ -341,7 +337,7 @@ class CatalogSource(OcpBase):
             logger.exception("Exception when calling method get_all_catalog_sources: %s\n" % e)
         return api_response
 
-    def is_catalog_source_present(self, cs_name, namespace='openshift-marketplace', timeout=30):
+    def is_catalog_source_present(self, cs_name, namespace="openshift-marketplace", timeout=30):
         """
         A method that verifies that a catalog source was created in a namespace. By default it
         will be 'openshift-marketplace'
@@ -355,11 +351,13 @@ class CatalogSource(OcpBase):
         """
         field_selector = "metadata.name={}".format(cs_name)
         for event in self.catalog_source_obj.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
-            if event['object'] and event['object']['metadata']['name'] == cs_name:
+            if event["object"] and event["object"]["metadata"]["name"] == cs_name:
                 logger.info("CatalogSource {} in namescpace {} was found".format(cs_name, namespace))
                 return True
-        logger.warning("CatalogSource {} in namespace {} was not detected within a timeout interval"
-                       " of {} seconds".format(cs_name, namespace, timeout))
+        logger.warning(
+            "CatalogSource {} in namespace {} was not detected within a timeout interval"
+            " of {} seconds".format(cs_name, namespace, timeout)
+        )
         return False
 
 
@@ -373,12 +371,12 @@ class Subscription(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(Subscription, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'operators.coreos.com/v1alpha1'
-        self.kind = 'Subscription'
-        self.subscription_obj = self.dyn_client.resources.get(api_version=self.api_version,
-                                                              kind=self.kind)
+        self.api_version = "operators.coreos.com/v1alpha1"
+        self.kind = "Subscription"
+        self.subscription_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
         self.package_manifest_obj = OperatorhubPackages(kube_config_file=kube_config_file)
         self.catalog_source_obj = CatalogSource(kube_config_file=kube_config_file)
 
@@ -397,13 +395,13 @@ class Subscription(OcpBase):
         """
         # Based on the install mode chosen, we then need to fetch the corresponding subscription channel name
         # available in the package manifest for this operator.
-        if install_mode == 'SingleNamespace':
+        if install_mode == "SingleNamespace":
             channel = self.package_manifest_obj.get_package_singlenamespace_channel(operator_name)
-        elif install_mode == 'AllNamespaces':
+        elif install_mode == "AllNamespaces":
             channel = self.package_manifest_obj.get_package_allnamespaces_channel(operator_name)
-        elif install_mode == 'MultiNamespace':
+        elif install_mode == "MultiNamespace":
             channel = self.package_manifest_obj.get_package_multinamespace_channel(operator_name)
-        elif install_mode == 'OwnNamespace':
+        elif install_mode == "OwnNamespace":
             channel = self.package_manifest_obj.get_package_ownnamespace_channel(operator_name)
         else:
             channel_error_msg = "Unrecognized or unsupported install mode provided"
@@ -423,17 +421,14 @@ class Subscription(OcpBase):
         subscription_body = {
             "apiVersion": self.api_version,
             "kind": self.kind,
-            "metadata": {
-                "name": operator_name,
-                "namespace": namespace
-            },
+            "metadata": {"name": operator_name, "namespace": namespace},
             "spec": {
                 "channel": channel.name,
                 "installPlanApproval": "Automatic",
                 "name": operator_name,
                 "source": cs_name,
-                "sourceNamespace": cs_namespace
-            }
+                "sourceNamespace": cs_namespace,
+            },
         }
         try:
             api_response = self.subscription_obj.apply(body=subscription_body)
@@ -474,7 +469,7 @@ class Subscription(OcpBase):
         is_operator_ready = False
         field_selector = "metadata.name={}".format(operator_name)
         for event in self.subscription_obj.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
-            for condition in event['object']['status']['conditions']:
+            for condition in event["object"]["status"]["conditions"]:
                 if condition["message"] == "all available catalogsources are healthy":
                     logger.info("Operator %s installed successfully", operator_name)
                     is_operator_ready = True
@@ -492,10 +487,11 @@ class OperatorGroup(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OperatorGroup, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'operators.coreos.com/v1'
-        self.kind = 'OperatorGroup'
+        self.api_version = "operators.coreos.com/v1"
+        self.kind = "OperatorGroup"
         self.operator_group_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def create_operator_group(self, og_name, namespace, target_namespaces=[]):
@@ -523,10 +519,7 @@ class OperatorGroup(OcpBase):
         og_body = {
             "apiVersion": self.api_version,
             "kind": self.kind,
-            "metadata": {
-                "name": og_name,
-                "namespace": namespace
-            }
+            "metadata": {"name": og_name, "namespace": namespace},
         }
         # If target_namespaces is not the default [], added to the body as part of 'spec'
         if target_namespaces:
@@ -577,10 +570,11 @@ class ClusterServiceVersion(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(ClusterServiceVersion, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'operators.coreos.com/v1alpha1'
-        self.kind = 'ClusterServiceVersion'
+        self.api_version = "operators.coreos.com/v1alpha1"
+        self.kind = "ClusterServiceVersion"
         self.csv_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_cluster_service_version(self, csv_name, namespace):
@@ -614,9 +608,11 @@ class ClusterServiceVersion(OcpBase):
         """
         field_selector = "metadata.name={}".format(csv_name)
         for event in self.csv_obj.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
-            if event['object'] and event['object']['metadata']['name'] == csv_name:
+            if event["object"] and event["object"]["metadata"]["name"] == csv_name:
                 logger.info("ClusterServiceVersion {} in namescpace {} was found".format(csv_name, namespace))
                 return True
-        logger.warning("ClusterServiceVersion {} in namespace {} was not detected within a timeout interval"
-                       " of {} seconds".format(csv_name, namespace, timeout))
+        logger.warning(
+            "ClusterServiceVersion {} in namespace {} was not detected within a timeout interval"
+            " of {} seconds".format(csv_name, namespace, timeout)
+        )
         return False

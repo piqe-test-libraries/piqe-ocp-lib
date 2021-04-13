@@ -1,8 +1,7 @@
-import logging
-import os
 from datetime import datetime
+import logging
 from logging.handlers import RotatingFileHandler
-
+import os
 
 """
 How to use :
@@ -68,11 +67,12 @@ class piqe_api_logger(object):
 
             # Create a logging format
             log_formatter = logging.Formatter(
-                '%(asctime)s - '
-                '[%(levelname)s] - '
-                '%(name)s - '
-                '%(module)s@%(funcName)s:%(lineno)d - '
-                '%(message)s')
+                "%(asctime)s - "
+                "[%(levelname)s] - "
+                "%(name)s - "
+                "%(module)s@%(funcName)s:%(lineno)d - "
+                "%(message)s"
+            )
             file_handler.setFormatter(log_formatter)
 
             # Create a stream handler for logging level above INFO

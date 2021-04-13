@@ -1,8 +1,10 @@
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from kubernetes.client.rest import ApiException
 import logging
 from time import sleep, time
+
+from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -15,9 +17,10 @@ class OcpDeploymentconfigs(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kind="DeploymentConfig", kube_config_file=None):
         super(OcpDeploymentconfigs, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'v1'
+        self.api_version = "v1"
         self.ocp_dcs = self.dyn_client.resources.get(api_version=self.api_version, kind=kind)
 
     def check_dc_status_conditions_availability(self, namespace, dc, timeout):
@@ -61,10 +64,10 @@ class OcpDeploymentconfigs(OcpBase):
         dc_ready = False
         field_selector = "metadata.name=%s" % dc
         for event in self.ocp_dcs.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
-            status_conditions_list = event['object']['status']['conditions']
-            availability = [s for s in status_conditions_list if s.type == 'Available'][0]
-            progression = [s for s in status_conditions_list if s.type == 'Progressing'][0]
-            if availability.status == 'True' and progression.status == 'True':
+            status_conditions_list = event["object"]["status"]["conditions"]
+            availability = [s for s in status_conditions_list if s.type == "Available"][0]
+            progression = [s for s in status_conditions_list if s.type == "Progressing"][0]
+            if availability.status == "True" and progression.status == "True":
                 logger.info("Pods for deploymentconfig %s are up" % dc)
                 dc_ready = True
                 return dc_ready
@@ -96,7 +99,7 @@ class OcpDeploymentconfigs(OcpBase):
         :param labels: A dictionary containing the key,val labels
         :return: A V1DeploymentConfig object
         """
-        body = {'metadata': {'labels': labels}}
+        body = {"metadata": {"labels": labels}}
         api_response = None
         try:
             api_response = self.ocp_dcs.patch(name=dc, namespace=namespace, body=body)
@@ -149,7 +152,7 @@ class OcpDeploymentconfigs(OcpBase):
             logger.error("Exception while getting deploymentconfigs: %s\n", e)
         return api_response
 
-    def list_deployments_in_all_namespaces(self, label_selector=''):
+    def list_deployments_in_all_namespaces(self, label_selector=""):
         """
         Method that lists all deployment configs across all
         namespaces in a cluster.
@@ -175,7 +178,7 @@ class OcpDeploymentconfigs(OcpBase):
         # If neither has a False status, we treat the corresponding dc as unhealthy.
         unhealthy_dcs = []
         for dc in dc_list:
-            if dc.status.conditions[0].status == 'False' and dc.status.conditions[1].status == 'False':
+            if dc.status.conditions[0].status == "False" and dc.status.conditions[1].status == "False":
                 unhealthy_dcs.append(dc)
         return unhealthy_dcs
 
@@ -194,5 +197,5 @@ class OcpDeploymentconfigs(OcpBase):
             api_response = self.ocp_dcs.log.get(namespace=namespace, name=dc)
         except ApiException as e:
             logger.error("Exception while getting deploymentconfig log: %s\n", e)
-        dc_log = api_response.split('\n')[-tail_lines:-1]
+        dc_log = api_response.split("\n")[-tail_lines:-1]
         return dc_log

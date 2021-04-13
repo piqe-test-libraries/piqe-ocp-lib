@@ -1,12 +1,13 @@
-from typing import Dict, List, Set, Union
 from datetime import datetime, timedelta
 import logging
 import time
+from typing import Dict, List, Set, Union
 
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from piqe_ocp_lib.api.constants import CLUSTER_VERSION_OPERATOR_ID, CLUSTER_POLLING_SECONDS_INTERVAL
 from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.constants import CLUSTER_POLLING_SECONDS_INTERVAL, CLUSTER_VERSION_OPERATOR_ID
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -21,8 +22,8 @@ class OcpClusterVersion(OcpBase):
 
     def __init__(self, kube_config_file=None):
         super(OcpClusterVersion, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'config.openshift.io/v1'
-        self.kind = 'ClusterVersion'
+        self.api_version = "config.openshift.io/v1"
+        self.kind = "ClusterVersion"
         self.ocp_cv = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_cluster_version(self):
@@ -125,8 +126,7 @@ class OcpClusterVersion(OcpBase):
 
         if kind:
             available_channels = filter(
-                lambda updates: any(kind in channel for channel in updates["channels"]),
-                available_channels
+                lambda updates: any(kind in channel for channel in updates["channels"]), available_channels
             )
 
         available_channels = set().union(*[e["channels"] for e in available_channels])
@@ -188,14 +188,16 @@ class OcpClusterVersion(OcpBase):
                 # Polling exhausted
                 logger.error(f"Failed to verify cluster upgrade during {timeout} minutes.")
 
-        cv_body = self._build_spec({
-            "spec": {
-                "desiredUpdate": {
-                    "force": force,
-                    "version": version,
+        cv_body = self._build_spec(
+            {
+                "spec": {
+                    "desiredUpdate": {
+                        "force": force,
+                        "version": version,
+                    }
                 }
             }
-        })
+        )
 
         ocp_cv_upgrade_response = self.update_cluster_version(cv_body)
 

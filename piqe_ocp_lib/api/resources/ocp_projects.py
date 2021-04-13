@@ -1,7 +1,10 @@
-from .ocp_base import OcpBase
-from kubernetes.client.rest import ApiException
 import logging
+
+from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+
+from .ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -13,12 +16,13 @@ class OcpProjects(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         self.kube_config_file = kube_config_file
         OcpBase.__init__(self, kube_config_file=self.kube_config_file)
-        self.api_version = 'v1'
-        self.ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind='Namespace')
-        self.create_ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind='ProjectRequest')
+        self.api_version = "v1"
+        self.ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="Namespace")
+        self.create_ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="ProjectRequest")
 
     def create_a_project(self, project_name, labels_dict=None):
         """
@@ -65,7 +69,7 @@ class OcpProjects(OcpBase):
         :return: An object of type V1Namespace
         """
         api_response = None
-        body = {'metadata': {'labels': labels_dict}}
+        body = {"metadata": {"labels": labels_dict}}
         try:
             api_response = self.ocp_projects.patch(body=body, name=project_name)
         except ApiException as e:
@@ -146,9 +150,9 @@ class OcpProjects(OcpBase):
         :return: True if the project is Created, False if the project is not found or the
                  state cannot be determined.
         """
-        field_selector = 'status.phase=Active'
+        field_selector = "status.phase=Active"
         for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
-            logger.info("Project : {}, Creation phase : {}".format(project_name, event['object']['status']['phase']))
+            logger.info("Project : {}, Creation phase : {}".format(project_name, event["object"]["status"]["phase"]))
             if self.does_project_exist(project_name):
                 return True
         return False
@@ -161,9 +165,9 @@ class OcpProjects(OcpBase):
         :param: timeout: The timeout (in seconds) passed to the watch().
         :return: True if the project has been deleted, False if the project is not found.
         """
-        field_selector = 'status.phase=Terminating'
+        field_selector = "status.phase=Terminating"
         for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
-            logger.info("Project : {}, Deletion phase : {}".format(project_name, event['object']['status']['phase']))
+            logger.info("Project : {}, Deletion phase : {}".format(project_name, event["object"]["status"]["phase"]))
             if not self.does_project_exist(project_name):
                 return True
         return False

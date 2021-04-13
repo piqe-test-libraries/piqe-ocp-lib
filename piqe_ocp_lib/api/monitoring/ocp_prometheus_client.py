@@ -1,14 +1,16 @@
-import requests
 import logging
 import warnings
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
-from piqe_ocp_lib.api.resources.ocp_routes import OcpRoutes
-from requests.exceptions import RequestException, ConnectionError, HTTPError
-from urllib3.exceptions import InsecureRequestWarning
-from piqe_ocp_lib import __loggername__
 
-warnings.simplefilter('ignore', InsecureRequestWarning)
+import requests
+from requests.exceptions import ConnectionError, HTTPError, RequestException
+from urllib3.exceptions import InsecureRequestWarning
+
+from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
+from piqe_ocp_lib.api.resources.ocp_routes import OcpRoutes
+from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
+
+warnings.simplefilter("ignore", InsecureRequestWarning)
 
 logger = logging.getLogger(__loggername__)
 
@@ -60,8 +62,9 @@ class OcpPrometheusClient(OcpBase):
         """
         if "prometheus_url" in self._prometheus_cache:
             return self._prometheus_cache.get("prometheus_url")
-        prometheus_route = self.ocp_route.get_route_in_namespace(namespace="openshift-monitoring",
-                                                                 route_name="prometheus-k8s")
+        prometheus_route = self.ocp_route.get_route_in_namespace(
+            namespace="openshift-monitoring", route_name="prometheus-k8s"
+        )
         prometheus_url = "https://" + prometheus_route + ":443/api"
         self._prometheus_cache.update({"prometheus_url": prometheus_url})
         logger.info("Prometheus URL : %s", prometheus_url)
@@ -77,8 +80,9 @@ class OcpPrometheusClient(OcpBase):
         if "bearer_token" in self._prometheus_cache:
             return self._prometheus_cache.get("bearer_token")
 
-        bearer_token = self.ocp_secret.get_long_live_bearer_token(sub_string="prometheus-k8s-token",
-                                                                  namespace="openshift-monitoring")
+        bearer_token = self.ocp_secret.get_long_live_bearer_token(
+            sub_string="prometheus-k8s-token", namespace="openshift-monitoring"
+        )
         self._prometheus_cache.update({"bearer_token": bearer_token})
 
         return bearer_token
@@ -95,21 +99,23 @@ class OcpPrometheusClient(OcpBase):
         prometheus_api_response = None
         prometheus_url = self.get_prometheus_url()
         bearer_token = self.get_prometheus_bearer_token()
-        headers = {'Authorization': 'Bearer ' + bearer_token}
+        headers = {"Authorization": "Bearer " + bearer_token}
         final_prometheus_url = prometheus_url + api_path
         try:
             if query_param:
                 params = {"query": query_param}
                 # Suppress only the single warning from urllib3 needed.
                 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
-                prometheus_api_response = requests.get(final_prometheus_url, headers=headers, params=params,
-                                                       verify=False)
+                prometheus_api_response = requests.get(
+                    final_prometheus_url, headers=headers, params=params, verify=False
+                )
             else:
                 # Suppress only the single warning from urllib3 needed.
                 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
                 prometheus_api_response = requests.get(final_prometheus_url, headers=headers, verify=False)
         except (ConnectionError, HTTPError, RequestException):
-            logger.exception("Failed to connect %s due to refused connection or unsuccessful status code",
-                             final_prometheus_url)
+            logger.exception(
+                "Failed to connect %s due to refused connection or unsuccessful status code", final_prometheus_url
+            )
 
         return prometheus_api_response.json()

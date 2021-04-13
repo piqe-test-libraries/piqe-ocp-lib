@@ -1,9 +1,11 @@
-from piqe_ocp_lib.api.resources import OcpBase
+import logging
+
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
-import logging
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -14,12 +16,13 @@ class OcpPods(OcpBase):
     related to managing Openshift pods.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         self.kube_config_file = kube_config_file
         OcpBase.__init__(self, kube_config_file=self.kube_config_file)
         self.core_v1 = client.CoreV1Api(api_client=self.k8s_client)
-        self.api_version = 'v1'
-        self.kind = 'Pod'
+        self.api_version = "v1"
+        self.kind = "Pod"
         self.ocp_pods = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def create_a_pod_from_definition(self, definition):
@@ -35,7 +38,7 @@ class OcpPods(OcpBase):
             print("Exception while creating pods: %s\n", e)
         return api_response
 
-    def list_pods_in_a_namespace(self, namespace, label_selector=''):
+    def list_pods_in_a_namespace(self, namespace, label_selector=""):
         """
         Method to list details for all or a specific type of pod within
         a namespace. If no parameter is given, it defaults to listing
@@ -78,11 +81,14 @@ class OcpPods(OcpBase):
                 None on failure.
         """
         pods_in_dc = None
-        pods_in_namespace = self.list_pods_in_a_namespace(namespace=namespace, label_selector='deploymentconfig')
+        pods_in_namespace = self.list_pods_in_a_namespace(namespace=namespace, label_selector="deploymentconfig")
         if pods_in_namespace:
             pod_list = pods_in_namespace.items
-            pods_in_dc = [pod.metadata.name for pod in pod_list if
-                          pod.metadata.annotations['openshift.io/deployment-config.name'] == dc]
+            pods_in_dc = [
+                pod.metadata.name
+                for pod in pod_list
+                if pod.metadata.annotations["openshift.io/deployment-config.name"] == dc
+            ]
         return pods_in_dc
 
     def list_all_pods_in_all_namespaces(self):
@@ -99,7 +105,7 @@ class OcpPods(OcpBase):
             logger.error("Exception while getting pods: %s\n", e)
         return api_response
 
-    def delete_pod_in_a_namespace(self, namespace, name, label_selector=''):
+    def delete_pod_in_a_namespace(self, namespace, name, label_selector=""):
         """
         Method that deletes a specific pod in a specific namespace
         :param namespace:  The namespace where the pod is deployed
@@ -128,7 +134,7 @@ class OcpPods(OcpBase):
         pod_ready = False
         field_selector = "metadata.name={}".format(pod_name)
         for event in self.ocp_pods.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
-            for pod_condition in event['object']['status']['conditions']:
+            for pod_condition in event["object"]["status"]["conditions"]:
                 if pod_condition["status"] == "True" and pod_condition["type"] == "Ready":
                     logger.info("Pod %s is in %s state", pod_name, pod_condition["type"])
                     pod_ready = True
@@ -146,9 +152,16 @@ class OcpPods(OcpBase):
         """
         cmd_response = None
         try:
-            cmd_response = stream(self.core_v1.connect_get_namespaced_pod_exec, name=pod_name,
-                                  command=command, namespace=namespace, stderr=True, stdin=True,
-                                  stdout=True, tty=False)
+            cmd_response = stream(
+                self.core_v1.connect_get_namespaced_pod_exec,
+                name=pod_name,
+                command=command,
+                namespace=namespace,
+                stderr=True,
+                stdin=True,
+                stdout=True,
+                tty=False,
+            )
         except ApiException as e:
             logger.error("Exception while calling pod : %s\n", e)
         return cmd_response
@@ -167,6 +180,6 @@ class OcpPods(OcpBase):
         except ApiException as e:
             logger.error("Exception while getting pods: %s\n", e)
         if api_response is not None:
-            if api_response.spec['nodeName']:
-                node_name = api_response.spec['nodeName']
+            if api_response.spec["nodeName"]:
+                node_name = api_response.spec["nodeName"]
         return node_name

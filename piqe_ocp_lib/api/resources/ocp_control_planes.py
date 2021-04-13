@@ -1,23 +1,25 @@
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from kubernetes.client.rest import ApiException
 import logging
+
+from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
 
 class OcpControlPlane(OcpBase):
     """
-        OcpControlPlane class extends OcpBase and encapsulates all methods
-        related to managing Openshift Control Planes.
-        :param kube_config_file: A kubernetes config file.
-        :return: None
-        """
+    OcpControlPlane class extends OcpBase and encapsulates all methods
+    related to managing Openshift Control Planes.
+    :param kube_config_file: A kubernetes config file.
+    :return: None
+    """
 
     def __init__(self, kube_config_file=None):
         super(OcpControlPlane, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'v1'
-        self.kind = 'ComponentStatus'
+        self.api_version = "v1"
+        self.kind = "ComponentStatus"
         self.ocp_control_plane = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_control_plane_component(self, name):

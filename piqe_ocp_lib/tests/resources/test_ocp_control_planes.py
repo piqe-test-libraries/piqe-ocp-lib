@@ -1,8 +1,10 @@
 import logging
-import pytest
 import random
-from piqe_ocp_lib.api.resources.ocp_control_planes import OcpControlPlane
+
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_control_planes import OcpControlPlane
 
 logger = logging.getLogger(__loggername__)
 
@@ -16,7 +18,6 @@ def ocp_control_plane(get_kubeconfig):
 
 
 class TestOcpControlPlane:
-
     def test_get_control_plane_components_name(self, ocp_control_plane):
         """
         Verify that openshift control plane components name are returned

@@ -1,7 +1,9 @@
 import logging
+
 import pytest
-from piqe_ocp_lib.api.resources.ocp_health_checker import OcpHealthChecker
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_health_checker import OcpHealthChecker
 
 logger = logging.getLogger(__loggername__)
 
@@ -12,7 +14,6 @@ def ocp_health(get_kubeconfig):
 
 
 class TestOcpHealthChecker:
-
     def test_check_node_health(self, ocp_health):
         """
         Verify the node health status (bool) and failure nodes (dict) if any are returned

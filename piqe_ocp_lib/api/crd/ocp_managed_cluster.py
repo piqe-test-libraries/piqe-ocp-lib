@@ -1,7 +1,9 @@
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from kubernetes.client.rest import ApiException
 import logging
+
+from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -13,10 +15,11 @@ class OcpManagedCluster(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpManagedCluster, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'cluster.open-cluster-management.io/v1'
-        self.kind = 'ManagedCluster'
+        self.api_version = "cluster.open-cluster-management.io/v1"
+        self.kind = "ManagedCluster"
         self.ocp_managed_cluster = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_managed_clusters(self, namespace="default"):

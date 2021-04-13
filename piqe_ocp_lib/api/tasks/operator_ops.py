@@ -1,10 +1,10 @@
-from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
-from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, \
-    Subscription, CatalogSource, OperatorSource, OperatorGroup
-from kubernetes.client.rest import ApiException
 import logging
-import yaml
+
+from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
+from piqe_ocp_lib.api.resources.ocp_operators import OperatorGroup, OperatorhubPackages, Subscription
 
 logger = logging.getLogger(__loggername__)
 
@@ -27,11 +27,11 @@ class OperatorInstaller(OcpBase):
         """
         target_namespaces_count = len(target_namespaces)
         if target_namespaces_count == 0:
-            install_mode = 'AllNamespaces'
+            install_mode = "AllNamespaces"
         elif target_namespaces_count == 1:
-            install_mode = 'SingleNamespace'
+            install_mode = "SingleNamespace"
         elif target_namespaces_count > 1:
-            install_mode = 'MultiNamespace'
+            install_mode = "MultiNamespace"
         return install_mode
 
     def _create_og(self, operator_name, install_mode, target_namespaces):
@@ -43,8 +43,8 @@ class OperatorInstaller(OcpBase):
         create a project with the following naming convention:
         test + operator name + install mode + og-sub-project
         """
-        og_name = f'{operator_name}-{install_mode.lower()}-og'
-        og_namespace = f'test-{operator_name}-{install_mode.lower()}-og-sub-project'
+        og_name = f"{operator_name}-{install_mode.lower()}-og"
+        og_namespace = f"test-{operator_name}-{install_mode.lower()}-og-sub-project"
         logger.info(f"Creating Project: {og_namespace} that will hold the subscription and operator group")
         assert self.proj_obj.create_a_project(og_namespace)
         assert self.og_obj.create_operator_group(og_name, og_namespace, target_namespaces)

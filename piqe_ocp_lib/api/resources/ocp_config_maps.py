@@ -1,7 +1,9 @@
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from kubernetes.client.rest import ApiException
 import logging
+
+from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -13,10 +15,11 @@ class OcpConfigMaps(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpConfigMaps, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'v1'
-        self.kind = 'ConfigMap'
+        self.api_version = "v1"
+        self.kind = "ConfigMap"
         self.ocp_config_map = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def create_config_map(self, config_maps_body):

@@ -1,8 +1,10 @@
 import logging
-import pytest
 import random
-from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
+
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
 
 logger = logging.getLogger(__loggername__)
 
@@ -16,7 +18,6 @@ def ocp_co(get_kubeconfig):
 
 
 class TestOcpClusterOperator:
-
     def test_get_cluster_operators_name(self, ocp_co):
         """
         Verify that list of cluster operators names are returned

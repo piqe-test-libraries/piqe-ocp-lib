@@ -1,7 +1,9 @@
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from kubernetes.client.rest import ApiException
 import logging
+
+from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -16,8 +18,8 @@ class OcpClusterOperator(OcpBase):
 
     def __init__(self, kube_config_file=None):
         super(OcpClusterOperator, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'config.openshift.io/v1'
-        self.kind = 'ClusterOperator'
+        self.api_version = "config.openshift.io/v1"
+        self.kind = "ClusterOperator"
         self.ocp_co = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_cluster_operator(self, name):

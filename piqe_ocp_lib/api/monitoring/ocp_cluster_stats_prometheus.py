@@ -1,12 +1,12 @@
 import logging
-from piqe_ocp_lib.api.monitoring.ocp_prometheus_client import OcpPrometheusClient
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.monitoring.ocp_prometheus_client import OcpPrometheusClient
 
 logger = logging.getLogger(__loggername__)
 
 
 class OcpClusterStatsPrometheus:
-
     def __init__(self, kube_config_file=None):
         """
         This class used ocp_prometheus_client.py class to connect and collect stats from prometheus.

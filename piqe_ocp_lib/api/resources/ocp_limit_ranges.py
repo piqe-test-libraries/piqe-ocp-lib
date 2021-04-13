@@ -1,10 +1,12 @@
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from kubernetes.client.rest import ApiException
-from kubernetes.client import V1LimitRange, V1LimitRangeSpec, V1LimitRangeItem, V1ObjectMeta
-from openshift.dynamic.resource import ResourceList, ResourceInstance
-from typing import List, Union, Dict, Type
 import logging
+from typing import Dict, List, Type, Union
+
+from kubernetes.client import V1LimitRange, V1LimitRangeItem, V1LimitRangeSpec, V1ObjectMeta
+from kubernetes.client.rest import ApiException
+from openshift.dynamic.resource import ResourceInstance, ResourceList
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -16,10 +18,11 @@ class OcpLimitRanges(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpLimitRanges, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'v1'
-        self.kind = 'LimitRange'
+        self.api_version = "v1"
+        self.kind = "LimitRange"
         self.ocp_limit_range = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_limit_ranges(self, namespace: str) -> ResourceList:
@@ -131,8 +134,9 @@ class OcpLimitRanges(OcpBase):
             logger.exception(f"Exception while deleting {name} LimitRanges: {e}\n")
         return api_response
 
-    def update_a_limit_range(self, namespace: str, name: str,
-                             item_list: Union[List[Dict], List[V1LimitRangeItem]]) -> ResourceInstance:
+    def update_a_limit_range(
+        self, namespace: str, name: str, item_list: Union[List[Dict], List[V1LimitRangeItem]]
+    ) -> ResourceInstance:
         """
         Method to change the limit ranges for a deployment.
 
@@ -145,7 +149,7 @@ class OcpLimitRanges(OcpBase):
         :return: A V1LimitRange object
         """
         spec = V1LimitRangeSpec(limits=item_list)
-        body = {'spec': spec.to_dict()}
+        body = {"spec": spec.to_dict()}
         api_response = None
         try:
             api_response = self.ocp_limit_range.patch(name=name, namespace=namespace, body=body)
@@ -167,7 +171,7 @@ class OcpLimitRanges(OcpBase):
 
         return replace_lr_response
 
-    def container_limit_range_item(self) -> Union['OcpContainerLimit', V1LimitRangeItem]:
+    def container_limit_range_item(self) -> Union["OcpContainerLimit", V1LimitRangeItem]:
         """
         Build an OcpConatainterLimit object
 
@@ -179,7 +183,7 @@ class OcpLimitRanges(OcpBase):
 
         return OcpContainerLimit()
 
-    def pod_limit_range_item(self) -> Union['OcpPodLimit', V1LimitRangeItem]:
+    def pod_limit_range_item(self) -> Union["OcpPodLimit", V1LimitRangeItem]:
         """
         Build an OcpPodLimit object
 
@@ -191,7 +195,7 @@ class OcpLimitRanges(OcpBase):
 
         return OcpPodLimit()
 
-    def image_limit_range_item(self) -> Union['OcpImageLimit', V1LimitRangeItem]:
+    def image_limit_range_item(self) -> Union["OcpImageLimit", V1LimitRangeItem]:
         """
         Build an OcpImageLimit object
 
@@ -203,7 +207,7 @@ class OcpLimitRanges(OcpBase):
 
         return OcpImageLimit()
 
-    def image_stream_limit_range_item(self) -> Union['OcpImageStreamLimit', V1LimitRangeItem]:
+    def image_stream_limit_range_item(self) -> Union["OcpImageStreamLimit", V1LimitRangeItem]:
         """
         Build an OcpImageStreamLimit object
 
@@ -215,7 +219,7 @@ class OcpLimitRanges(OcpBase):
 
         return OcpImageStreamLimit()
 
-    def persistent_volume_claim_limit_range_item(self) -> Union['OcpPersistentVolumeClaimLimit', V1LimitRangeItem]:
+    def persistent_volume_claim_limit_range_item(self) -> Union["OcpPersistentVolumeClaimLimit", V1LimitRangeItem]:
         """
         Build an OcpPersistentVolumeLimit object
 
@@ -234,13 +238,12 @@ class OcpLimitRanges(OcpBase):
         """
 
         if not isinstance(item_list, list):
-            raise Exception('You must provide a list of V1LimitRangeItems')
+            raise Exception("You must provide a list of V1LimitRangeItems")
         items = [item.to_dict() for item in item_list]
         lrs = V1LimitRangeSpec(limits=items)
-        return V1LimitRange(api_version='v1',
-                            kind='LimitRange',
-                            metadata=V1ObjectMeta(name=name, namespace=namespace),
-                            spec=lrs)
+        return V1LimitRange(
+            api_version="v1", kind="LimitRange", metadata=V1ObjectMeta(name=name, namespace=namespace), spec=lrs
+        )
 
 
 class OcpLimitRangeItem(object):
@@ -258,15 +261,21 @@ class OcpLimitRangeItem(object):
 
     def type(self) -> str:
         """
-       This returns the type of V1LimitRangeItem builder.
-       :return: V1LimitRangeItem type
-       """
+        This returns the type of V1LimitRangeItem builder.
+        :return: V1LimitRangeItem type
+        """
 
         return self._model.type
 
-    def _set_properties(self, type: str, min: Union[str, None] = None, max: Union[str, None] = None,
-                        default: Union[str, None] = None, default_request: Union[str, None] = None,
-                        max_limit_ratio: Union[str, None] = None):
+    def _set_properties(
+        self,
+        type: str,
+        min: Union[str, None] = None,
+        max: Union[str, None] = None,
+        default: Union[str, None] = None,
+        default_request: Union[str, None] = None,
+        max_limit_ratio: Union[str, None] = None,
+    ):
         """
         Set the properties on the V1LimitRangeItem
         :param type: (str) the resource type to limit (cpu, memory, storage, etc.)
@@ -325,11 +334,16 @@ class OcpContainerLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpContainerLimit, self).__init__(type='Container')
+        super(OcpContainerLimit, self).__init__(type="Container")
 
-    def cpu(self, min: Union[str, None] = None, max: Union[str, None] = None,
-            default: Union[str, None] = None, default_request: Union[str, None] = None,
-            max_limit_ratio: Union[str, None] = None) -> Type['OcpContainerLimit']:
+    def cpu(
+        self,
+        min: Union[str, None] = None,
+        max: Union[str, None] = None,
+        default: Union[str, None] = None,
+        default_request: Union[str, None] = None,
+        max_limit_ratio: Union[str, None] = None,
+    ) -> Type["OcpContainerLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type Container
         :param min: (str) the minimum value to set for CPU a Container resource can request
@@ -340,13 +354,24 @@ class OcpContainerLimit(OcpLimitRangeItem):
         :param max_limit_ratio: (str)The maximum limit-to-request ratio for a Container
         :return: OcpContainerLimit object
         """
-        self._set_properties(type='cpu', min=min, max=max, default=default,
-                             default_request=default_request, max_limit_ratio=max_limit_ratio)
+        self._set_properties(
+            type="cpu",
+            min=min,
+            max=max,
+            default=default,
+            default_request=default_request,
+            max_limit_ratio=max_limit_ratio,
+        )
         return self
 
-    def memory(self, min: Union[str, None] = None, max: Union[str, None] = None,
-               default: Union[str, None] = None, default_request: Union[str, None] = None,
-               max_limit_ratio: Union[str, None] = None) -> Type['OcpContainerLimit']:
+    def memory(
+        self,
+        min: Union[str, None] = None,
+        max: Union[str, None] = None,
+        default: Union[str, None] = None,
+        default_request: Union[str, None] = None,
+        max_limit_ratio: Union[str, None] = None,
+    ) -> Type["OcpContainerLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type Container
         :param min: (str) the minimum value to set for Memory a Container resource can request
@@ -357,8 +382,14 @@ class OcpContainerLimit(OcpLimitRangeItem):
         :param max_limit_ratio: (str)The maximum limit-to-request ratio for a Container
         :return: OcpContainerLimit object
         """
-        self._set_properties(type='memory', min=min, max=max, default=default,
-                             default_request=default_request, max_limit_ratio=max_limit_ratio)
+        self._set_properties(
+            type="memory",
+            min=min,
+            max=max,
+            default=default,
+            default_request=default_request,
+            max_limit_ratio=max_limit_ratio,
+        )
         return self
 
 
@@ -371,10 +402,11 @@ class OcpPodLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpPodLimit, self).__init__(type='Pod')
+        super(OcpPodLimit, self).__init__(type="Pod")
 
-    def cpu(self, min: Union[str, None] = None, max: Union[str, None] = None,
-            max_limit_ratio: Union[str, None] = None) -> Type['OcpPodLimit']:
+    def cpu(
+        self, min: Union[str, None] = None, max: Union[str, None] = None, max_limit_ratio: Union[str, None] = None
+    ) -> Type["OcpPodLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type Pod
         :param min: (str) the minimum value to set for CPU a Pod resource can request across all containers
@@ -383,11 +415,12 @@ class OcpPodLimit(OcpLimitRangeItem):
         :return: OcpContainerLimit object
         """
 
-        self._set_properties(type='cpu', min=min, max=max, max_limit_ratio=max_limit_ratio)
+        self._set_properties(type="cpu", min=min, max=max, max_limit_ratio=max_limit_ratio)
         return self
 
-    def memory(self, min: Union[str, None] = None, max: Union[str, None] = None,
-               max_limit_ratio: Union[str, None] = None) -> Type['OcpPodLimit']:
+    def memory(
+        self, min: Union[str, None] = None, max: Union[str, None] = None, max_limit_ratio: Union[str, None] = None
+    ) -> Type["OcpPodLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type Pod
         :param min: (str) the minimum value to set for Memory a Pod resource can request across all containers
@@ -396,7 +429,7 @@ class OcpPodLimit(OcpLimitRangeItem):
         :return: OcpContainerLimit object
         """
 
-        self._set_properties(type='memory', min=min, max=max, max_limit_ratio=max_limit_ratio)
+        self._set_properties(type="memory", min=min, max=max, max_limit_ratio=max_limit_ratio)
         return self
 
 
@@ -409,16 +442,16 @@ class OcpImageLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpImageLimit, self).__init__(type='openshift.io/Image')
+        super(OcpImageLimit, self).__init__(type="openshift.io/Image")
 
-    def storage(self, max: Union[str, None] = None) -> Type['OcpImageLimit']:
+    def storage(self, max: Union[str, None] = None) -> Type["OcpImageLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type Image
         :param max: (str) the maximum value to set for Storage an Image can be pushed to a registry
         :return: OcpContainerLimit object
         """
 
-        self._set_properties(type='storage', max=max)
+        self._set_properties(type="storage", max=max)
         return self
 
 
@@ -431,9 +464,9 @@ class OcpImageStreamLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpImageStreamLimit, self).__init__(type='openshift.io/ImageStream')
+        super(OcpImageStreamLimit, self).__init__(type="openshift.io/ImageStream")
 
-    def image_tags(self, max: Union[str, None] = None) -> Type['OcpImageStreamLimit']:
+    def image_tags(self, max: Union[str, None] = None) -> Type["OcpImageStreamLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type ImageStream
         :param max: (str) the maximum value of unique image tags in the imagestream.spec.tags parameter in
@@ -441,10 +474,10 @@ class OcpImageStreamLimit(OcpLimitRangeItem):
         :return: OcpContainerLimit object
         """
 
-        self._set_properties(type='openshift.io/image-tags', max=max)
+        self._set_properties(type="openshift.io/image-tags", max=max)
         return self
 
-    def images(self, max: Union[str, None] = None) -> Type['OcpImageStreamLimit']:
+    def images(self, max: Union[str, None] = None) -> Type["OcpImageStreamLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type ImageStream
         :param max: (str) the maximum value of unique image references in the imagestream.status.tags parameter in
@@ -452,7 +485,7 @@ class OcpImageStreamLimit(OcpLimitRangeItem):
         :return: OcpContainerLimit object
         """
 
-        self._set_properties(type='openshift.io/images', max=max)
+        self._set_properties(type="openshift.io/images", max=max)
         return self
 
 
@@ -465,15 +498,16 @@ class OcpPersistentVolumeClaimLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpPersistentVolumeClaimLimit, self).__init__(type='PersistentVolumeClaim')
+        super(OcpPersistentVolumeClaimLimit, self).__init__(type="PersistentVolumeClaim")
 
-    def storage(self, min: Union[str, None] = None,
-                max: Union[str, None] = None) -> Type['OcpPersistentVolumeClaimLimit']:
+    def storage(
+        self, min: Union[str, None] = None, max: Union[str, None] = None
+    ) -> Type["OcpPersistentVolumeClaimLimit"]:
         """
         Set the properties on the V1LimitRangeItem of type PersistentVolumeClaim
         :param min: (str) the minimum value to set for Storage that can be requested in a volume claim
         :param max: (str) the maximum value to set for Storage that can be requested in a volume claim
         :return: OcpContainerLimit object
         """
-        self._set_properties(type='storage', min=min, max=max)
+        self._set_properties(type="storage", min=min, max=max)
         return self

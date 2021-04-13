@@ -1,7 +1,9 @@
 import logging
+
 import pytest
-from piqe_ocp_lib.api.resources.ocp_service_accounts import OcpServiceAccount
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_service_accounts import OcpServiceAccount
 
 logger = logging.getLogger(__loggername__)
 
@@ -15,7 +17,6 @@ def ocp_service_account(get_kubeconfig):
 
 
 class TestOcpServiceAccounts:
-
     def test_get_list_of_service_account_secret_names(self, ocp_service_account):
         list_of_secrets = ocp_service_account.get_list_of_service_account_secret_names(
             name=SERVICE_ACCOUNT_NAME, namespace="default"

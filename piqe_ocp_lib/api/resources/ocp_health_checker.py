@@ -1,20 +1,22 @@
 import logging
-import requests
 import warnings
-from urllib3.exceptions import InsecureRequestWarning
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from piqe_ocp_lib.api.resources.ocp_nodes import OcpNodes
-from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
-from piqe_ocp_lib.api.resources.ocp_control_planes import OcpControlPlane
-from piqe_ocp_lib.api.resources.ocp_cluster_versions import OcpClusterVersion
-from piqe_ocp_lib.api.resources.ocp_routes import OcpRoutes
-from piqe_ocp_lib.api.resources.ocp_pods import OcpPods
-from piqe_ocp_lib.api.resources.ocp_deploymentconfigs import OcpDeploymentconfigs
-from piqe_ocp_lib.api.resources.ocp_configs import OcpConfig
-from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
-from piqe_ocp_lib import __loggername__
 
-warnings.simplefilter('ignore', InsecureRequestWarning)
+import requests
+from urllib3.exceptions import InsecureRequestWarning
+
+from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
+from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
+from piqe_ocp_lib.api.resources.ocp_cluster_versions import OcpClusterVersion
+from piqe_ocp_lib.api.resources.ocp_configs import OcpConfig
+from piqe_ocp_lib.api.resources.ocp_control_planes import OcpControlPlane
+from piqe_ocp_lib.api.resources.ocp_deploymentconfigs import OcpDeploymentconfigs
+from piqe_ocp_lib.api.resources.ocp_nodes import OcpNodes
+from piqe_ocp_lib.api.resources.ocp_pods import OcpPods
+from piqe_ocp_lib.api.resources.ocp_routes import OcpRoutes
+from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
+
+warnings.simplefilter("ignore", InsecureRequestWarning)
 
 logger = logging.getLogger(__loggername__)
 
@@ -48,8 +50,9 @@ class OcpHealthChecker(OcpBase):
         self.ocp_route = OcpRoutes(kube_config_file=self.kube_config_file)
         self.ocp_pod = OcpPods(kube_config_file=self.kube_config_file)
         self.ocp_deployment = OcpDeploymentconfigs(kind="Deployment", kube_config_file=self.kube_config_file)
-        self.ocp_config = OcpConfig(kind="Config", api_version="imageregistry.operator.openshift.io/v1",
-                                    kube_config_file=self.kube_config_file)
+        self.ocp_config = OcpConfig(
+            kind="Config", api_version="imageregistry.operator.openshift.io/v1", kube_config_file=self.kube_config_file
+        )
         self.ocp_secret = OcpSecret(kube_config_file=self.kube_config_file)
 
     def check_node_health(self):
@@ -85,8 +88,10 @@ class OcpHealthChecker(OcpBase):
                 unhealthy_node_info[node_info["metadata"]["name"]] = temp_list
 
         logger.info("Check overall health of cluster nodes by checking each node health")
-        if len(set(individual_node_health_status_list)) == 1 and \
-                list(set(individual_node_health_status_list))[0] == "True":
+        if (
+            len(set(individual_node_health_status_list)) == 1
+            and list(set(individual_node_health_status_list))[0] == "True"
+        ):
             all_nodes_healthy = True
 
         return all_nodes_healthy, unhealthy_node_info
@@ -159,8 +164,7 @@ class OcpHealthChecker(OcpBase):
         unhealthy_pods = dict()
         pods_response = self.ocp_pod.list_pods_in_a_namespace(namespace="openshift-image-registry")
         for pod in pods_response.items:
-            if "cluster-image-registry-operator" in pod.metadata.name or \
-                    "image-registry" in pod.metadata.name:
+            if "cluster-image-registry-operator" in pod.metadata.name or "image-registry" in pod.metadata.name:
                 for condition in pod["status"]["conditions"]:
                     if condition["type"] == "Ready" and condition["status"] == "False":
                         unhealthy_pods[pod["metadata"]["name"]] = condition["status"]
@@ -177,11 +181,14 @@ class OcpHealthChecker(OcpBase):
         logger.info("Check replicas count of openshift image registry deployment are matching")
         is_replicas_count_matching = False
         replica_count_dict = dict()
-        deployment_response = \
-            self.ocp_deployment.list_all_deployments_in_a_namespace(namespace="openshift-image-registry")
+        deployment_response = self.ocp_deployment.list_all_deployments_in_a_namespace(
+            namespace="openshift-image-registry"
+        )
         for deployment in deployment_response.items:
-            if deployment.metadata.name == "cluster-image-registry-operator" or \
-                    deployment.metadata.name == "image-registry":
+            if (
+                deployment.metadata.name == "cluster-image-registry-operator"
+                or deployment.metadata.name == "image-registry"
+            ):
                 replicas = deployment.status.replicas
                 available_replicas = deployment.status.availableReplicas
                 ready_replicas = deployment.status.readyReplicas
@@ -189,8 +196,11 @@ class OcpHealthChecker(OcpBase):
             if replicas == available_replicas == ready_replicas:
                 is_replicas_count_matching_for_each_image_registry = True
             replica_count_dict[deployment.metadata.name] = is_replicas_count_matching_for_each_image_registry
-            logger.info("Is replicas count for %s matching? : %s", deployment.metadata.name,
-                        is_replicas_count_matching_for_each_image_registry)
+            logger.info(
+                "Is replicas count for %s matching? : %s",
+                deployment.metadata.name,
+                is_replicas_count_matching_for_each_image_registry,
+            )
 
         if all(val for val in replica_count_dict.values()):
             is_replicas_count_matching = True
@@ -252,7 +262,7 @@ class OcpHealthChecker(OcpBase):
         final_api_server_url = api_server_url + "/healthz"
         logger.info("API Server URL : %s", final_api_server_url)
         bearer_token = self.ocp_secret.get_long_live_bearer_token()
-        headers = {'Authorization': 'Bearer ' + bearer_token}
+        headers = {"Authorization": "Bearer " + bearer_token}
 
         # Suppress only the single warning from urllib3 needed.
         requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)

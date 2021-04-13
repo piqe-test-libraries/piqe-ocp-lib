@@ -1,7 +1,9 @@
 import logging
+
 import pytest
-from piqe_ocp_lib.api.monitoring.ocp_prometheus_client import OcpPrometheusClient
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.monitoring.ocp_prometheus_client import OcpPrometheusClient
 
 logger = logging.getLogger(__loggername__)
 
@@ -12,7 +14,6 @@ def ocp_prometheus_client(get_kubeconfig):
 
 
 class TestOcpPrometheusClient:
-
     def test_get_prometheus_url(self, ocp_prometheus_client):
         logger.info("Get prometheus URL")
         prometheus_url = ocp_prometheus_client.get_prometheus_url()

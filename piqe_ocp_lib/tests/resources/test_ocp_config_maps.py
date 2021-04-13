@@ -1,12 +1,14 @@
 import logging
-import pytest
 import random
-from piqe_ocp_lib.api.resources.ocp_config_maps import OcpConfigMaps
+
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_config_maps import OcpConfigMaps
 
 logger = logging.getLogger(__loggername__)
 
-five_digit_number = ''.join(random.sample('0123456789', 5))
+five_digit_number = "".join(random.sample("0123456789", 5))
 NAMESPACE = "default"
 NAME = f"test{five_digit_number}"
 
@@ -18,7 +20,6 @@ def ocp_cm(get_kubeconfig):
 
 
 class TestOcpConfigMaps:
-
     def test_create_config_map(self, ocp_cm):
         logger.info(f"Create a {NAME} ConfigMaps in {NAMESPACE} namespace")
         cm_body = {
@@ -28,17 +29,13 @@ class TestOcpConfigMaps:
                 "name": NAME,
                 "namespace": NAMESPACE,
             },
-            "data": {
-                "name": "css-qe",
-                "group": "CSS"
-            }
+            "data": {"name": "css-qe", "group": "CSS"},
         }
         create_cm_response = ocp_cm.create_config_map(config_maps_body=cm_body)
         logger.info(f"Create Response : {create_cm_response}")
         # logger.info("Wait for 10 secs to create ConfigMaps")
         # time.sleep(10)
-        if not create_cm_response.metadata.name == NAME and \
-                not create_cm_response.metadata.namespace == NAMESPACE:
+        if not create_cm_response.metadata.name == NAME and not create_cm_response.metadata.namespace == NAMESPACE:
             assert False, f"Failed to create {NAME} ConfigMpas in {NAMESPACE} namespace"
 
     def test_get_config_maps(self, ocp_cm):

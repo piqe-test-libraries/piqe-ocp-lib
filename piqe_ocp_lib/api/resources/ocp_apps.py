@@ -1,8 +1,11 @@
+import logging
+
+from kubernetes.client.rest import ApiException
+
+from piqe_ocp_lib import __loggername__
+
 from .ocp_base import OcpBase
 from .ocp_templates import OcpTemplates
-from kubernetes.client.rest import ApiException
-import logging
-from piqe_ocp_lib import __loggername__
 
 logger = logging.getLogger(__loggername__)
 
@@ -14,12 +17,13 @@ class OcpApps(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         self.kube_config_file = kube_config_file
         OcpBase.__init__(self, kube_config_file=self.kube_config_file)
         self.ocp_template_obj = OcpTemplates(kube_config_file=self.kube_config_file)
 
-    def create_app_from_template(self, project, template_name, ident, app_params, template_location='openshift'):
+    def create_app_from_template(self, project, template_name, ident, app_params, template_location="openshift"):
         """
         This method fetches a raw template by name, enumerates it,
         processes it and uses it to deploy an app in a specified
@@ -37,10 +41,12 @@ class OcpApps(OcpBase):
         api_response_list = list()
         # Fetch a raw template
         unprocessed_template = self.ocp_template_obj.get_a_template_in_a_namespace(
-            template_name, project=template_location)
+            template_name, project=template_location
+        )
         # Enumerate it to ensure uniqueness
         enumerated_unprocessed_template = self.ocp_template_obj.enumerate_unprocessed_template(
-            unprocessed_template, ident, app_params)
+            unprocessed_template, ident, app_params
+        )
         # Process it so it's ready to use for deploying an app
         processed_template = self.ocp_template_obj.create_a_processed_template(enumerated_unprocessed_template)
         # Apps can have multiple deployment configs. it is based on their status that we determine
@@ -49,20 +55,24 @@ class OcpApps(OcpBase):
         deployment_config_names = []
         # We iterate through all the resources that make this app so we can
         # deploy them one by one.
-        for resource in processed_template['objects']:
-            if resource['kind'] == 'DeploymentConfig':
-                deployment_config_names.append(resource['metadata']['name'])
+        for resource in processed_template["objects"]:
+            if resource["kind"] == "DeploymentConfig":
+                deployment_config_names.append(resource["metadata"]["name"])
             try:
-                current_resource = self.dyn_client.resources.get(api_version=resource['apiVersion'],
-                                                                 kind=resource['kind'])
+                current_resource = self.dyn_client.resources.get(
+                    api_version=resource["apiVersion"], kind=resource["kind"]
+                )
                 api_response = current_resource.create(body=resource, namespace=project)
                 api_response_list.append(api_response)
             except ApiException as e:
-                logger.error("Exception when calling method: "
-                             " create_app_from_template_" + str(resource['kind']).lower() + "%s\n", e)
+                logger.error(
+                    "Exception when calling method: "
+                    " create_app_from_template_" + str(resource["kind"]).lower() + "%s\n",
+                    e,
+                )
         return api_response_list, deployment_config_names
 
-    def delete_template_based_app(self, project, template_name, ident, app_params, template_location='openshift'):
+    def delete_template_based_app(self, project, template_name, ident, app_params, template_location="openshift"):
         """
         A method to delete a template based app. Loops through the objects
         list in the app template and deletes resources bases on their kind.
@@ -80,18 +90,24 @@ class OcpApps(OcpBase):
         # Fetch the app template, enumerate it and process it so we can obtain the correct names
         # of the resources that need to be deleted.
         unprocessed_template = self.ocp_template_obj.get_a_template_in_a_namespace(
-            template_name, project=template_location)
+            template_name, project=template_location
+        )
         enumerated_unprocessed_template = self.ocp_template_obj.enumerate_unprocessed_template(
-            unprocessed_template, ident, app_params)
+            unprocessed_template, ident, app_params
+        )
         processed_template = self.ocp_template_obj.create_a_processed_template(enumerated_unprocessed_template)
         # Loop through the name of every resouce defined in the processed template and delete it.
-        for resource in processed_template['objects']:
+        for resource in processed_template["objects"]:
             try:
-                current_resource = self.dyn_client.resources.get(api_version=resource['apiVersion'],
-                                                                 kind=resource['kind'])
-                api_response = current_resource.delete(name=resource['metadata']['name'], namespace=project)
+                current_resource = self.dyn_client.resources.get(
+                    api_version=resource["apiVersion"], kind=resource["kind"]
+                )
+                api_response = current_resource.delete(name=resource["metadata"]["name"], namespace=project)
                 api_response_list.append(api_response)
             except ApiException as e:
-                logger.error("Exception when calling method: "
-                             " delete_template_based_app_" + str(resource['kind']).lower() + "%s\n", e)
+                logger.error(
+                    "Exception when calling method: "
+                    " delete_template_based_app_" + str(resource["kind"]).lower() + "%s\n",
+                    e,
+                )
         return api_response_list
