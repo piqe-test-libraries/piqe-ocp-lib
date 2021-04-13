@@ -1,7 +1,9 @@
 import logging
+
 import pytest
-from piqe_ocp_lib.api.monitoring.ocp_prometheus_client import OcpPrometheusClient
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.monitoring.ocp_prometheus_client import OcpPrometheusClient
 
 logger = logging.getLogger(__loggername__)
 

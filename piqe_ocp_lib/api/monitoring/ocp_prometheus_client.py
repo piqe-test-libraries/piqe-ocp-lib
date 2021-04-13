@@ -1,12 +1,14 @@
-import requests
 import logging
 import warnings
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
-from piqe_ocp_lib.api.resources.ocp_routes import OcpRoutes
-from requests.exceptions import RequestException, ConnectionError, HTTPError
+
+import requests
+from requests.exceptions import ConnectionError, HTTPError, RequestException
 from urllib3.exceptions import InsecureRequestWarning
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
+from piqe_ocp_lib.api.resources.ocp_routes import OcpRoutes
+from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
 
 warnings.simplefilter("ignore", InsecureRequestWarning)
 

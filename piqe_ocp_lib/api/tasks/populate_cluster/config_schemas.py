@@ -2,8 +2,10 @@
 
 """ OCP Cluster Config schemas """
 
-import yaml
 import logging
+
+import yaml
+
 from piqe_ocp_lib import __loggername__
 
 logger = logging.getLogger(__loggername__)

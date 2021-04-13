@@ -1,8 +1,10 @@
 import logging
 import os
+
 import pytest
-from piqe_ocp_lib.api.tasks.populate_cluster.populate_cluster import PopulateOcpCluster
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.tasks.populate_cluster.populate_cluster import PopulateOcpCluster
 
 logger = logging.getLogger(__loggername__)
 

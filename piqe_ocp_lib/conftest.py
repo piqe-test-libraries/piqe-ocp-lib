@@ -1,12 +1,14 @@
 """
 Setting pytest config files to be used by test fixtures defined under the test directory
 """
-import os
 from datetime import datetime
-import pytest
-from piqe_ocp_lib.piqe_api_logger import piqe_api_logger
+import os
+
 from glusto.core import Glusto as g
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.piqe_api_logger import piqe_api_logger
 
 
 def pytest_addoption(parser):

@@ -1,9 +1,11 @@
 import logging
-import pytest
 import random
-from piqe_ocp_lib.api.resources.ocp_nodes import OcpNodes
-from piqe_ocp_lib.api.resources.ocp_node_metrics import OcpNodeMetrics
+
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_node_metrics import OcpNodeMetrics
+from piqe_ocp_lib.api.resources.ocp_nodes import OcpNodes
 
 logger = logging.getLogger(__loggername__)
 

@@ -1,7 +1,9 @@
 import logging
+
 import pytest
-from piqe_ocp_lib.api.resources.ocp_service_accounts import OcpServiceAccount
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_service_accounts import OcpServiceAccount
 
 logger = logging.getLogger(__loggername__)
 

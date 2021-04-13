@@ -1,7 +1,9 @@
-from piqe_ocp_lib.api.resources import OcpNodes
-import pytest
 import logging
+
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources import OcpNodes
 
 logger = logging.getLogger(__loggername__)
 

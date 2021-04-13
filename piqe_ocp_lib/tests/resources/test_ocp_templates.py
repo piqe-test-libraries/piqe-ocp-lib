@@ -1,9 +1,11 @@
-from piqe_ocp_lib.api.resources import OcpProjects, OcpTemplates
-import pytest
 import json
-from random import randint
 import logging
+from random import randint
+
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources import OcpProjects, OcpTemplates
 
 logger = logging.getLogger(__loggername__)
 

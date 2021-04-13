@@ -1,9 +1,10 @@
+import logging
 import time
 
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from kubernetes.client.rest import ApiException
-import logging
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 

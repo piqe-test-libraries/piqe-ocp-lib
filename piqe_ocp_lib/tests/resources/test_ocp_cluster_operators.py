@@ -1,8 +1,10 @@
 import logging
-import pytest
 import random
-from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
+
+import pytest
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
 
 logger = logging.getLogger(__loggername__)
 

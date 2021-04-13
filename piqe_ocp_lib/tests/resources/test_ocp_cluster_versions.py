@@ -1,5 +1,6 @@
-import pytest
 from unittest import mock
+
+import pytest
 
 from piqe_ocp_lib.api.constants import CLUSTER_VERSION_OPERATOR_ID
 from piqe_ocp_lib.api.resources.ocp_cluster_versions import OcpClusterVersion

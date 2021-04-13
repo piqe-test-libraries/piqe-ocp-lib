@@ -1,12 +1,13 @@
-from typing import Dict, List, Set, Union
 from datetime import datetime, timedelta
 import logging
 import time
+from typing import Dict, List, Set, Union
 
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from piqe_ocp_lib.api.constants import CLUSTER_VERSION_OPERATOR_ID, CLUSTER_POLLING_SECONDS_INTERVAL
 from kubernetes.client.rest import ApiException
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.constants import CLUSTER_POLLING_SECONDS_INTERVAL, CLUSTER_VERSION_OPERATOR_ID
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 

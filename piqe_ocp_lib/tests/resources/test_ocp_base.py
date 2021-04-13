@@ -1,10 +1,10 @@
 import logging
-from threading import Thread
 from queue import Queue
+from threading import Thread
 
 from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.resources.ocp_base import Version
 from piqe_ocp_lib.api.resources import OcpBase
+from piqe_ocp_lib.api.resources.ocp_base import Version
 
 logger = logging.getLogger(__loggername__)
 

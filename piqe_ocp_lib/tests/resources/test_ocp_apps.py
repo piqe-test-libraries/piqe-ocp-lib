@@ -1,8 +1,10 @@
-from piqe_ocp_lib.api.resources import OcpApps, OcpProjects, OcpTemplates, OcpBase
-import pytest
 import json
-from openshift.dynamic.client import ResourceInstance
 from random import randint
+
+from openshift.dynamic.client import ResourceInstance
+import pytest
+
+from piqe_ocp_lib.api.resources import OcpApps, OcpBase, OcpProjects, OcpTemplates
 
 
 @pytest.fixture(scope="class")

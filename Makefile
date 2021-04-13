@@ -5,7 +5,7 @@ dev:
 	poetry install
 
 format:
-	poetry run isort -rc piqe_ocp_lib/
+	poetry run isort piqe_ocp_lib/
 	poetry run black piqe_ocp_lib/
 
 lint: format

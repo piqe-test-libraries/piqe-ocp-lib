@@ -1,8 +1,10 @@
 import logging
 import random
+
 import pytest
-from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
+
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_secrets import OcpSecret
 
 logger = logging.getLogger(__loggername__)
 

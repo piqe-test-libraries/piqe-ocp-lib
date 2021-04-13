@@ -1,18 +1,17 @@
-import yaml
-import logging
-import warnings
-
 from collections import namedtuple
+import logging
 from threading import RLock
-from urllib3.exceptions import InsecureRequestWarning
+import warnings
 
 import jmespath
 from kubernetes import config
 from kubernetes.client.rest import ApiException
 from openshift.dynamic import DynamicClient
+from urllib3.exceptions import InsecureRequestWarning
+import yaml
 
-from piqe_ocp_lib.api.constants import CLUSTER_VERSION_OPERATOR_ID
 from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.constants import CLUSTER_VERSION_OPERATOR_ID
 
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
@@ -85,9 +84,7 @@ class OcpBase(object):
                  and z-stream version at index 2
         """
         try:
-            client = self.dyn_client.resources.get(
-                api_version='config.openshift.io/v1', kind='ClusterVersion'
-            )
+            client = self.dyn_client.resources.get(api_version="config.openshift.io/v1", kind="ClusterVersion")
 
             version = client.get(name=CLUSTER_VERSION_OPERATOR_ID)
         except ApiException as e:

@@ -1,7 +1,9 @@
+import logging
+
+from kubernetes.client.rest import ApiException
+
 from .ocp_base import OcpBase
 from .ocp_pods import OcpPods
-from kubernetes.client.rest import ApiException
-import logging
 
 # Initiate child logger. Parent logger is in the script invoking this
 # module and is named 'ocp_test_logger'
