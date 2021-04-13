@@ -12,7 +12,6 @@ def ocp_prometheus_client(get_kubeconfig):
 
 
 class TestOcpPrometheusClient:
-
     def test_get_prometheus_url(self, ocp_prometheus_client):
         logger.info("Get prometheus URL")
         prometheus_url = ocp_prometheus_client.get_prometheus_url()

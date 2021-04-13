@@ -12,7 +12,6 @@ def ocp_health(get_kubeconfig):
 
 
 class TestOcpHealthChecker:
-
     def test_check_node_health(self, ocp_health):
         """
         Verify the node health status (bool) and failure nodes (dict) if any are returned

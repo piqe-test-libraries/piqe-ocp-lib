@@ -10,7 +10,6 @@ logger = logging.getLogger(__loggername__)
 
 
 class TestOcpBase(object):
-
     def test_init(self, get_kubeconfig):
         base_api_obj = OcpBase(kube_config_file=get_kubeconfig)
         assert base_api_obj.kube_config_file is not None
@@ -42,7 +41,13 @@ class TestOcpBase(object):
         thread_queue = Queue()
         kube_config_files = [get_kubeconfig, get_kubeconfig]
         for kube_config_file in kube_config_files:
-            thread = Thread(target=test_singleton, args=(kube_config_file, thread_queue,))
+            thread = Thread(
+                target=test_singleton,
+                args=(
+                    kube_config_file,
+                    thread_queue,
+                ),
+            )
             threads.append(thread)
             thread.start()
 

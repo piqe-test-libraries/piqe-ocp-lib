@@ -14,11 +14,12 @@ class OcpNodes(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         self.kube_config_file = kube_config_file
         OcpBase.__init__(self, kube_config_file=self.kube_config_file)
-        self.api_version = 'v1'
-        self.kind = 'Node'
+        self.api_version = "v1"
+        self.kind = "Node"
         self.ocp_nodes = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_all_nodes(self, label_selector=None):
@@ -100,7 +101,7 @@ class OcpNodes(OcpBase):
         :param labels: A dictionary containing the key,val labels
         :return: A V1DeploymentConfig object
         """
-        body = {'metadata': {'labels': labels}}
+        body = {"metadata": {"labels": labels}}
         api_response = None
         try:
             api_response = self.ocp_nodes.patch(name=node_name, body=body)
@@ -118,9 +119,9 @@ class OcpNodes(OcpBase):
         try:
             node_object = self.ocp_nodes.get(name=node_name)
             for condition in node_object.status.conditions:
-                condition_type = condition.get('type')
-                if condition_type == 'Ready':
-                    return condition.get('status')
+                condition_type = condition.get("type")
+                if condition_type == "Ready":
+                    return condition.get("status")
         except ApiException as e:
             logger.error("Exception encountered while determining the node condition: %s\n", e)
         return node_object
@@ -138,10 +139,10 @@ class OcpNodes(OcpBase):
             node_object = self.ocp_nodes.get(name=node_name)
             # labels are returned as tuples
             for label in node_object.metadata.labels:
-                if label[0] == 'node-role.kubernetes.io/master':
-                    node_role.append('Master')
-                if label[0] == 'node-role.kubernetes.io/worker':
-                    node_role.append('Worker')
+                if label[0] == "node-role.kubernetes.io/master":
+                    node_role.append("Master")
+                if label[0] == "node-role.kubernetes.io/worker":
+                    node_role.append("Worker")
         except ApiException as e:
             logger.error("Exception encountered while getting a node by name: %s\n", e)
         return node_role
@@ -159,16 +160,16 @@ class OcpNodes(OcpBase):
         # Check if pod exists
         command = "kubectl get pods | grep %s" % pod_name
         logger.info("Executing command: %s", command)
-        subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = subp.communicate()
         ret = subp.returncode
-        logger.info("Command - %s - execution status:\n"
-                    "RETCODE: %s\nSTDOUT: %s\nSTDERR: %s\n",
-                    command, ret, out, err)
+        logger.info(
+            "Command - %s - execution status:\n" "RETCODE: %s\nSTDOUT: %s\nSTDERR: %s\n", command, ret, out, err
+        )
         if ret != 0:
             # Spin a new container for the node
-            container_definition = """
+            container_definition = (
+                """
                 {
                   "spec": {
                     "hostPID": true,
@@ -197,27 +198,29 @@ class OcpNodes(OcpBase):
                       }
                     ]
                   }
-                }""" % node_name
-            command = ("kubectl run %s --restart=Never --image "
-                       "overriden --overrides '%s'" % (pod_name, container_definition))
+                }"""
+                % node_name
+            )
+            command = "kubectl run %s --restart=Never --image " "overriden --overrides '%s'" % (
+                pod_name,
+                container_definition,
+            )
             logger.info("Executing command : %s", command)
-            subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
+            subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = subp.communicate()
             ret = subp.returncode
-            logger.info("Command - %s - execution status:\n"
-                        "RETCODE: %s\nSTDOUT: %s\nSTDERR: %s\n",
-                        command, ret, out, err)
+            logger.info(
+                "Command - %s - execution status:\n" "RETCODE: %s\nSTDOUT: %s\nSTDERR: %s\n", command, ret, out, err
+            )
             if ret != 0:
                 return ret, out, err
         # Execute the command
         command = "kubectl exec %s %s" % (pod_name, command_to_execute)
         logger.info("Executing command: %s", command)
-        subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = subp.communicate()
         ret = subp.returncode
-        logger.info("Command - %s - execution status:\n"
-                    "RETCODE: %s\nSTDOUT: %s\nSTDERR: %s\n",
-                    command, ret, out, err)
+        logger.info(
+            "Command - %s - execution status:\n" "RETCODE: %s\nSTDOUT: %s\nSTDERR: %s\n", command, ret, out, err
+        )
         return ret, out, err

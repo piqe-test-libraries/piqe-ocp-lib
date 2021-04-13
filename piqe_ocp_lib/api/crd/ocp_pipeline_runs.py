@@ -21,8 +21,8 @@ class OcpPipelines(OcpBase):
 
     def __init__(self, kube_config_file=None):
         super(OcpPipelines, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'tekton.dev/v1beta1'
-        self.kind = 'Pipeline'
+        self.api_version = "tekton.dev/v1beta1"
+        self.kind = "Pipeline"
         self.ocp_pipeline = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def create_pipelline(self, body):
@@ -119,10 +119,11 @@ class OcpPipelineRuns(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpPipelineRuns, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'tekton.dev/v1beta1'
-        self.kind = 'PipelineRun'
+        self.api_version = "tekton.dev/v1beta1"
+        self.kind = "PipelineRun"
         self.ocp_pipeline_runs = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def create_pipeline_run(self, body):
@@ -223,11 +224,15 @@ class OcpPipelineRuns(OcpBase):
         pipeline_run_ready = False
         field_selector = "metadata.name={}".format(pipeline_run_name)
         for event in self.ocp_pipeline_runs.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
-            for pipeline_run_condition in event['object']['status']['conditions']:
+            for pipeline_run_condition in event["object"]["status"]["conditions"]:
                 if pipeline_run_condition["status"] == "True" and pipeline_run_condition["type"] == "Succeeded":
                     logger.info("Pipeline Run %s is in %s state", pipeline_run_name, pipeline_run_condition["status"])
                     pipeline_run_ready = True
                     return pipeline_run_ready
-        logger.error("Pipeline Run %s is in %s state. Message : %s",
-                     pipeline_run_name, pipeline_run_condition["status"], pipeline_run_condition["message"])
+        logger.error(
+            "Pipeline Run %s is in %s state. Message : %s",
+            pipeline_run_name,
+            pipeline_run_condition["status"],
+            pipeline_run_condition["message"],
+        )
         return pipeline_run_ready

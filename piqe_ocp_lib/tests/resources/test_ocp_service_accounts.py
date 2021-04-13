@@ -15,7 +15,6 @@ def ocp_service_account(get_kubeconfig):
 
 
 class TestOcpServiceAccounts:
-
     def test_get_list_of_service_account_secret_names(self, ocp_service_account):
         list_of_secrets = ocp_service_account.get_list_of_service_account_secret_names(
             name=SERVICE_ACCOUNT_NAME, namespace="default"

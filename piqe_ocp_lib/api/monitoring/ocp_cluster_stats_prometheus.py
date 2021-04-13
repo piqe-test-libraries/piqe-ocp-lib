@@ -6,7 +6,6 @@ logger = logging.getLogger(__loggername__)
 
 
 class OcpClusterStatsPrometheus:
-
     def __init__(self, kube_config_file=None):
         """
         This class used ocp_prometheus_client.py class to connect and collect stats from prometheus.

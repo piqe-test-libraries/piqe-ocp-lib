@@ -13,83 +13,41 @@ class OcpTemplates(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         self.kube_config_file = kube_config_file
         OcpBase.__init__(self, kube_config_file=self.kube_config_file)
-        self.api_version = 'template.openshift.io/v1'
-        self.kind = 'Template'
-        self.ocp_unprocessed_templates = self.dyn_client.resources.get(api_version=self.api_version,
-                                                                       kind=self.kind, name='templates')
-        self.ocp_processed_templates = self.dyn_client.resources.get(api_version=self.api_version,
-                                                                     kind=self.kind, name='processedtemplates')
+        self.api_version = "template.openshift.io/v1"
+        self.kind = "Template"
+        self.ocp_unprocessed_templates = self.dyn_client.resources.get(
+            api_version=self.api_version, kind=self.kind, name="templates"
+        )
+        self.ocp_processed_templates = self.dyn_client.resources.get(
+            api_version=self.api_version, kind=self.kind, name="processedtemplates"
+        )
         # TODO: Instead of using this mapper dictionary, we can just pass the parameters that need to be changed as
         # key value pairs using **kwargs to the relevant methods in ocp_templates.py and ocp_apps.py
         # We might then want to provide a helper method that takes as an input a raw template and/or
         # a template name and return the list associated with the parameters key in a template.
         self.app_params_dict = {
-            'jenkins-ephemeral':
-                {
-                    'create': ('JENKINS_SERVICE_NAME', 'JNLP_SERVICE_NAME')
-                },
-            'jenkins-persistent':
-                {
-                    'create': ('JENKINS_SERVICE_NAME', 'JNLP_SERVICE_NAME')
-                },
-            '128mb-fio':
-                {
-                    'create': ('NAME')
-                },
-            'httpd-example':
-                {
-                    'create': ('NAME')
-                },
-            'cakephp-mysql-example':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'dancer-mysql-example':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'django-psql-example':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'nodejs-mongodb-example':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'rails-postgresql-example':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'cakephp-mysql-persistent':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'dancer-mysql-persistent':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'django-psql-persistent':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'nodejs-mongo-persistent':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'rails-pgsql-persistent':
-                {
-                    'create': ('NAME', 'DATABASE_SERVICE_NAME')
-                },
-            'fio-persistent':
-                {
-                    'create': ('NAME', 'PVC_NAME')
-                }
+            "jenkins-ephemeral": {"create": ("JENKINS_SERVICE_NAME", "JNLP_SERVICE_NAME")},
+            "jenkins-persistent": {"create": ("JENKINS_SERVICE_NAME", "JNLP_SERVICE_NAME")},
+            "128mb-fio": {"create": ("NAME")},
+            "httpd-example": {"create": ("NAME")},
+            "cakephp-mysql-example": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "dancer-mysql-example": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "django-psql-example": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "nodejs-mongodb-example": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "rails-postgresql-example": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "cakephp-mysql-persistent": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "dancer-mysql-persistent": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "django-psql-persistent": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "nodejs-mongo-persistent": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "rails-pgsql-persistent": {"create": ("NAME", "DATABASE_SERVICE_NAME")},
+            "fio-persistent": {"create": ("NAME", "PVC_NAME")},
         }
 
-    def get_a_template_in_a_namespace(self, template_name, project='openshift'):
+    def get_a_template_in_a_namespace(self, template_name, project="openshift"):
         """
         A mtehod that fetches an unprocessed template and returns it in
         dictionary format.
@@ -117,23 +75,23 @@ class OcpTemplates(OcpBase):
         :return: An enumerated templated of type dict
         """
         ret = None
-        app_name = template['metadata']['name']
+        app_name = template["metadata"]["name"]
         if app_name not in self.app_params_dict:
             logger.warning("!!! The app %s is not currently supported, skipping ... !!!", app_name)
         else:
-            for obj in template['parameters']:
-                if obj['name'] in self.app_params_dict[app_name]['create']:
+            for obj in template["parameters"]:
+                if obj["name"] in self.app_params_dict[app_name]["create"]:
                     # Apps that have both ephemeral and persistent versions don't
                     # name their resources differently by default.
-                    if 'ephemeral' in app_name:
-                        obj['value'] = obj['value'] + '-ephemeral-' + str(ident)
-                    elif 'persistent' in app_name:
-                        obj['value'] = obj['value'] + '-persistent-' + str(ident)
+                    if "ephemeral" in app_name:
+                        obj["value"] = obj["value"] + "-ephemeral-" + str(ident)
+                    elif "persistent" in app_name:
+                        obj["value"] = obj["value"] + "-persistent-" + str(ident)
                     else:
-                        obj['value'] = obj['value'] + '-' + str(ident)
+                        obj["value"] = obj["value"] + "-" + str(ident)
 
-                if app_params and obj['name'] in app_params:
-                    obj['value'] = app_params[obj['name']]
+                if app_params and obj["name"] in app_params:
+                    obj["value"] = app_params[obj["name"]]
 
             ret = template
         return ret
@@ -154,7 +112,7 @@ class OcpTemplates(OcpBase):
         else:
             return api_response
 
-    def get_all_templates_in_a_namespace(self, project='openshift'):
+    def get_all_templates_in_a_namespace(self, project="openshift"):
         """
         A method that returns all availabel templates in a namespace
         :param project: (optional | str) the project/namespace that contains the templates.
@@ -170,7 +128,7 @@ class OcpTemplates(OcpBase):
         else:
             return api_response
 
-    def create_a_template_in_a_namespace(self, body, project='openshift'):
+    def create_a_template_in_a_namespace(self, body, project="openshift"):
         """
         A method that adds a raw template to a namespace/project so it can
         be conveniently invoked by name for app deployment.

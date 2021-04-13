@@ -16,8 +16,8 @@ class OcpClusterOperator(OcpBase):
 
     def __init__(self, kube_config_file=None):
         super(OcpClusterOperator, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'config.openshift.io/v1'
-        self.kind = 'ClusterOperator'
+        self.api_version = "config.openshift.io/v1"
+        self.kind = "ClusterOperator"
         self.ocp_co = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_cluster_operator(self, name):

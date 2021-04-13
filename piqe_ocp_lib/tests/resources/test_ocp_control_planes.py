@@ -16,7 +16,6 @@ def ocp_control_plane(get_kubeconfig):
 
 
 class TestOcpControlPlane:
-
     def test_get_control_plane_components_name(self, ocp_control_plane):
         """
         Verify that openshift control plane components name are returned

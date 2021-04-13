@@ -1,6 +1,11 @@
 from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
-from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, \
-    Subscription, CatalogSource, OperatorSource, OperatorGroup
+from piqe_ocp_lib.api.resources.ocp_operators import (
+    OperatorhubPackages,
+    Subscription,
+    CatalogSource,
+    OperatorSource,
+    OperatorGroup,
+)
 from kubernetes.client.rest import ApiException
 import logging
 import yaml
@@ -27,11 +32,11 @@ class OperatorInstaller(OcpBase):
         """
         target_namespaces_count = len(target_namespaces)
         if target_namespaces_count == 0:
-            install_mode = 'AllNamespaces'
+            install_mode = "AllNamespaces"
         elif target_namespaces_count == 1:
-            install_mode = 'SingleNamespace'
+            install_mode = "SingleNamespace"
         elif target_namespaces_count > 1:
-            install_mode = 'MultiNamespace'
+            install_mode = "MultiNamespace"
         return install_mode
 
     def _create_og(self, operator_name, install_mode, target_namespaces):

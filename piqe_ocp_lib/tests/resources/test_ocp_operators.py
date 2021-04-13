@@ -5,20 +5,26 @@ from time import sleep
 
 from piqe_ocp_lib.tests.helpers import config
 from piqe_ocp_lib.api.resources import OcpProjects
-from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, \
-    Subscription, OperatorSource, OperatorGroup, ClusterServiceVersion
+from piqe_ocp_lib.api.resources.ocp_operators import (
+    OperatorhubPackages,
+    Subscription,
+    OperatorSource,
+    OperatorGroup,
+    ClusterServiceVersion,
+)
 from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
 from piqe_ocp_lib import __loggername__
 
 logger = logging.getLogger(__loggername__)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def get_test_objects(get_kubeconfig):
     """
     Prepare the test artifacts as an object and pass it as
     a fixture.
     """
+
     class TestObjects:
         def __init__(self):
             self.op_hub_obj = OperatorhubPackages(kube_config_file=get_kubeconfig)
@@ -57,12 +63,11 @@ def operator_source(get_kubeconfig) -> OperatorSource:
 
 
 class TestOcpOperatorHub:
-
     def test_get_package_manifest_list(self, get_test_objects):
         # Simple check on the kind of the response object
         pkgs_obj = get_test_objects.op_hub_obj
         pkgs_resp_obj = pkgs_obj.get_package_manifest_list()
-        assert pkgs_resp_obj.kind == 'PackageManifestList'
+        assert pkgs_resp_obj.kind == "PackageManifestList"
 
     def test_get_package_manifest(self, get_test_objects):
         # Check kind on response object and that metadata.name matches
@@ -71,7 +76,7 @@ class TestOcpOperatorHub:
         pkg_list = pkg_obj.get_package_manifest_list()
         rand_pkg = random.choice(pkg_list.items)
         pkg_details = pkg_obj.get_package_manifest(rand_pkg.metadata.name)
-        assert pkg_details.kind == 'PackageManifest' and pkg_details.metadata.name == rand_pkg.metadata.name
+        assert pkg_details.kind == "PackageManifest" and pkg_details.metadata.name == rand_pkg.metadata.name
 
     def test_get_package_channels_list(self, get_test_objects):
         # Check that the response object type is a list and that
@@ -83,8 +88,8 @@ class TestOcpOperatorHub:
         channels_list = pkg_obj.get_package_channels_list(rand_pkg.metadata.name)
         assert isinstance(channels_list, list)
         for channel in channels_list:
-            assert 'installModes' in channel['currentCSVDesc'].keys()
-            assert len(channel['currentCSVDesc']['installModes']) == 4
+            assert "installModes" in channel["currentCSVDesc"].keys()
+            assert len(channel["currentCSVDesc"]["installModes"]) == 4
 
     def test_get_package_allnamespaces_channel(self, get_test_objects):
         # We pick a random package and check wether it has a clusterwide channel
@@ -96,8 +101,8 @@ class TestOcpOperatorHub:
         logger.info("Package name is: {}".format(rand_pkg.metadata.name))
         cluster_wide_channel = pkg_obj.get_package_allnamespaces_channel(rand_pkg.metadata.name)
         if cluster_wide_channel:
-            assert cluster_wide_channel['currentCSVDesc']['installModes'][3]['type'] == 'AllNamespaces'
-            assert cluster_wide_channel['currentCSVDesc']['installModes'][3]['supported'] is True
+            assert cluster_wide_channel["currentCSVDesc"]["installModes"][3]["type"] == "AllNamespaces"
+            assert cluster_wide_channel["currentCSVDesc"]["installModes"][3]["supported"] is True
         else:
             logger.info("The randomly picked package doesn't seem to have a clusterwide channel")
 
@@ -111,15 +116,14 @@ class TestOcpOperatorHub:
         logger.info("Package name is: {}".format(rand_pkg.metadata.name))
         single_namespace_channel = pkg_obj.get_package_singlenamespace_channel(rand_pkg.metadata.name)
         if single_namespace_channel:
-            assert single_namespace_channel['currentCSVDesc']['installModes'][1]['type'] == 'SingleNamespace'
-            assert single_namespace_channel['currentCSVDesc']['installModes'][1]['supported'] is True
+            assert single_namespace_channel["currentCSVDesc"]["installModes"][1]["type"] == "SingleNamespace"
+            assert single_namespace_channel["currentCSVDesc"]["installModes"][1]["supported"] is True
         else:
             logger.warning("The randomly picked package doesn't seem to have a single namespace channel")
 
 
 @pytest.mark.skip(config.version >= (4, 6, 0), reason="Removed from openshift >= 4.6")
 class TestOperatorSource:
-
     def test_create_operator_source(self, get_test_objects):
         # Create an operator source resource and check
         # kind and name for correctness
@@ -128,18 +132,18 @@ class TestOperatorSource:
             "endpoint": "https://quay.io/cnr",
             "publisher": "Red Hat",
             "registryNamespace": "redhat-operators",
-            "type": "appregistry"
+            "type": "appregistry",
         }
         os_obj = get_test_objects.os_obj
-        os_resp_obj = os_obj.create_operator_source('test-os', spec_dict)
-        assert os_resp_obj.kind == 'OperatorSource' and os_resp_obj.metadata.name == 'test-os'
+        os_resp_obj = os_obj.create_operator_source("test-os", spec_dict)
+        assert os_resp_obj.kind == "OperatorSource" and os_resp_obj.metadata.name == "test-os"
 
     def test_get_operator_source(self, get_test_objects):
         # Get the operator source and check kind and name
         # for correctness
         os_obj = get_test_objects.os_obj
-        os_resp_obj = os_obj.get_operator_source('test-os')
-        assert os_resp_obj.kind == 'OperatorSource' and os_resp_obj.metadata.name == 'test-os'
+        os_resp_obj = os_obj.get_operator_source("test-os")
+        assert os_resp_obj.kind == "OperatorSource" and os_resp_obj.metadata.name == "test-os"
 
     def test_delete_operator_source(self, get_test_objects):
         # Typically the response object is of type status, however for
@@ -148,10 +152,10 @@ class TestOperatorSource:
         # after we delete it. The try/expect catches the exception, so
         # the response object should still be None
         os_obj = get_test_objects.os_obj
-        os_obj.delete_operator_source('test-os')
+        os_obj.delete_operator_source("test-os")
         get_resp = None
         try:
-            get_resp = os_obj.get_operator_source('test-os')
+            get_resp = os_obj.get_operator_source("test-os")
         except ValueError:
             assert not get_resp
 
@@ -163,54 +167,52 @@ class TestSubscription:
     source configs as their source. This is only supported
     with Openshift version 4.1
     """
+
     def test_create_subscription(self, get_test_objects):
         # Create a subscription and check kind and name
         # for correctness
-        get_test_objects.project_obj.create_a_project('test-project1')
-        sub_resp_obj = get_test_objects.sub_obj.create_subscription('etcd',
-                                                                    'SingleNamespace',
-                                                                    'test-project1')
-        assert sub_resp_obj.kind == 'Subscription' and sub_resp_obj.metadata.name == 'etcd'
+        get_test_objects.project_obj.create_a_project("test-project1")
+        sub_resp_obj = get_test_objects.sub_obj.create_subscription("etcd", "SingleNamespace", "test-project1")
+        assert sub_resp_obj.kind == "Subscription" and sub_resp_obj.metadata.name == "etcd"
 
     def test_get_subscription(self, get_test_objects):
         # Get the subscription and check kind and name
         # for correctness
-        sub_resp_obj = get_test_objects.sub_obj.get_subscription('etcd', 'test-project1')
-        assert sub_resp_obj.kind == 'Subscription' and sub_resp_obj.metadata.name == 'etcd'
+        sub_resp_obj = get_test_objects.sub_obj.get_subscription("etcd", "test-project1")
+        assert sub_resp_obj.kind == "Subscription" and sub_resp_obj.metadata.name == "etcd"
 
     def test_delete_subscription(self, get_test_objects):
         # The response object for deleting a subscription is of type Status
         # so we check it has completed successfully
-        sub_resp_obj = get_test_objects.sub_obj.delete_subscription('etcd', 'test-project1')
-        assert sub_resp_obj.status == 'Success'
-        get_test_objects.project_obj.delete_a_project('test-project1')
+        sub_resp_obj = get_test_objects.sub_obj.delete_subscription("etcd", "test-project1")
+        assert sub_resp_obj.status == "Success"
+        get_test_objects.project_obj.delete_a_project("test-project1")
 
 
 class TestOperatorGroup:
-
     def test_create_operator_group(self, get_test_objects):
         # Create an operator group and check kind and name
         # for correctness
-        get_test_objects.project_obj.create_a_project('og-project')
-        get_test_objects.project_obj.create_a_project('test-project2')
-        og_resp_obj = get_test_objects.og_obj.create_operator_group('test-og', 'og-project', ['test-project2'])
-        assert og_resp_obj.kind == 'OperatorGroup' and og_resp_obj.metadata.name == 'test-og'
+        get_test_objects.project_obj.create_a_project("og-project")
+        get_test_objects.project_obj.create_a_project("test-project2")
+        og_resp_obj = get_test_objects.og_obj.create_operator_group("test-og", "og-project", ["test-project2"])
+        assert og_resp_obj.kind == "OperatorGroup" and og_resp_obj.metadata.name == "test-og"
 
     def test_get_operator_group(self, get_test_objects):
         # Get the operator group and check kind and name
         # for correctness. Also, check that the 'targetNamespace'
         # is set correctly
-        og_resp_obj = get_test_objects.og_obj.get_operator_group('test-og', 'og-project')
-        assert og_resp_obj.kind == 'OperatorGroup' and og_resp_obj.metadata.name == 'test-og'
-        assert og_resp_obj.spec.targetNamespaces == ['test-project2']
+        og_resp_obj = get_test_objects.og_obj.get_operator_group("test-og", "og-project")
+        assert og_resp_obj.kind == "OperatorGroup" and og_resp_obj.metadata.name == "test-og"
+        assert og_resp_obj.spec.targetNamespaces == ["test-project2"]
 
     def test_delete_operator_group(self, get_test_objects):
         # The response object for deleting a subscription is of type Status
         # so we check it has completed successfully
-        og_resp_obj = get_test_objects.og_obj.delete_operator_group('test-og', 'og-project')
-        assert og_resp_obj.status == 'Success'
-        get_test_objects.project_obj.delete_a_project('og-project')
-        get_test_objects.project_obj.delete_a_project('test-project2')
+        og_resp_obj = get_test_objects.og_obj.delete_operator_group("test-og", "og-project")
+        assert og_resp_obj.status == "Success"
+        get_test_objects.project_obj.delete_a_project("og-project")
+        get_test_objects.project_obj.delete_a_project("test-project2")
 
 
 class TestClusterServiceVersion:
@@ -234,22 +236,20 @@ class TestClusterServiceVersion:
         # We obtain the CSV name from the subscription response object.
         # Finally we check kind and name for correctness and proceed with
         # cleaning up test artifacts.
-        get_test_objects.project_obj.create_a_project('test-project3')
+        get_test_objects.project_obj.create_a_project("test-project3")
         # os_resp_obj = get_test_objects.os_obj.get_operator_source('community-operators')
-        get_test_objects.og_obj.create_operator_group('test-og',
-                                                      'openshift-marketplace',
-                                                      ['test-project3'])
-        get_test_objects.sub_obj.create_subscription('kong', 'SingleNamespace', 'openshift-marketplace')
+        get_test_objects.og_obj.create_operator_group("test-og", "openshift-marketplace", ["test-project3"])
+        get_test_objects.sub_obj.create_subscription("kong", "SingleNamespace", "openshift-marketplace")
         sleep(10)
-        sub_resp_obj = get_test_objects.sub_obj.get_subscription('kong', 'openshift-marketplace')
+        sub_resp_obj = get_test_objects.sub_obj.get_subscription("kong", "openshift-marketplace")
         sleep(10)
         csv_name = sub_resp_obj.status.currentCSV
-        csv_resp_obj = get_test_objects.csv_obj.get_cluster_service_version(csv_name, 'test-project3')
+        csv_resp_obj = get_test_objects.csv_obj.get_cluster_service_version(csv_name, "test-project3")
         sleep(20)
-        assert csv_resp_obj.kind == 'ClusterServiceVersion' and csv_resp_obj.metadata.name == csv_name
-        get_test_objects.og_obj.delete_operator_group('test-og', 'openshift-marketplace')
-        get_test_objects.sub_obj.delete_subscription('kong', 'openshift-marketplace')
-        get_test_objects.project_obj.delete_a_project('test-project3')
+        assert csv_resp_obj.kind == "ClusterServiceVersion" and csv_resp_obj.metadata.name == csv_name
+        get_test_objects.og_obj.delete_operator_group("test-og", "openshift-marketplace")
+        get_test_objects.sub_obj.delete_subscription("kong", "openshift-marketplace")
+        get_test_objects.project_obj.delete_a_project("test-project3")
 
 
 class TestInstallOperatorWorkflow:

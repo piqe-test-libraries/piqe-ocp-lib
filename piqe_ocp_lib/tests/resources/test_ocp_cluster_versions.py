@@ -12,7 +12,6 @@ def ocp_cv(get_kubeconfig):
 
 
 class TestOcpClusterVersion:
-
     def test_get_cluster_version(self, ocp_cv):
         """
         Verify that cluster version response is returned.
@@ -49,7 +48,7 @@ class TestOcpClusterVersion:
             "metadata": {
                 "name": CLUSTER_VERSION_OPERATOR_ID,
                 "resourceVersion": cluster_version.metadata.resourceVersion,
-            }
+            },
         }
 
         result = ocp_cv._build_spec(input_spec)
@@ -73,44 +72,54 @@ class TestOcpClusterVersion:
                 "name": CLUSTER_VERSION_OPERATOR_ID,  # replaced
                 "resourceVersion": cluster_version.metadata.resourceVersion,
                 "foo": "bar",  # merged
-            }
+            },
         }
 
         result = ocp_cv._build_spec(input_spec)
 
         assert result == expected_output
 
-    @pytest.mark.parametrize("available_updates,expected", [
-        (None, []),
-        ([
-            {
-                'channels': ['candidate-4.6', 'eus-4.6', 'fast-4.6', 'stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-            {
-                'channels': ['candidate-4.6', 'eus-4.6', 'fast-4.6', 'stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.12'
-            },
-        ], ['4.6.8', '4.6.12']),
-        ([
-            {
-                'channels': ['candidate-4.6', 'eus-4.6', 'fast-4.6', 'stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.12'
-            },
-            {
-                'channels': ['candidate-4.6', 'eus-4.6', 'fast-4.6', 'stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-        ], ['4.6.12', '4.6.8']),
-    ], ids=["no-updates", "sorted", "reverse-sorted"])
+    @pytest.mark.parametrize(
+        "available_updates,expected",
+        [
+            (None, []),
+            (
+                [
+                    {
+                        "channels": ["candidate-4.6", "eus-4.6", "fast-4.6", "stable-4.6"],
+                        "image": "quay.io",
+                        "url": "https://foo.bar",
+                        "version": "4.6.8",
+                    },
+                    {
+                        "channels": ["candidate-4.6", "eus-4.6", "fast-4.6", "stable-4.6"],
+                        "image": "quay.io",
+                        "url": "https://foo.bar",
+                        "version": "4.6.12",
+                    },
+                ],
+                ["4.6.8", "4.6.12"],
+            ),
+            (
+                [
+                    {
+                        "channels": ["candidate-4.6", "eus-4.6", "fast-4.6", "stable-4.6"],
+                        "image": "quay.io",
+                        "url": "https://foo.bar",
+                        "version": "4.6.12",
+                    },
+                    {
+                        "channels": ["candidate-4.6", "eus-4.6", "fast-4.6", "stable-4.6"],
+                        "image": "quay.io",
+                        "url": "https://foo.bar",
+                        "version": "4.6.8",
+                    },
+                ],
+                ["4.6.12", "4.6.8"],
+            ),
+        ],
+        ids=["no-updates", "sorted", "reverse-sorted"],
+    )
     def test_available_updates(self, ocp_cv, available_updates, expected):
         with mock.patch.object(ocp_cv, "get_cluster_version") as mock_version:
             mock_version.return_value.status.availableUpdates = available_updates
@@ -122,42 +131,29 @@ class TestOcpClusterVersion:
         assert isinstance(result, list)
         assert result == expected
 
-    @pytest.mark.parametrize("available_updates,channel,expected", [
-        ([
-            {
-                'channels': ['stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.12'
-            },
-            {
-                'channels': ['stable-4.7'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-            {
-                'channels': ['fast-4.7'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-        ], "stable-4.6", ["4.6.12"]),
-        ([
-            {
-                'channels': ['fast-4.7'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-            {
-                'channels': ['fast-4.7'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.12'
-            },
-        ], "fast-4.7", ["4.6.8", "4.6.12"]),
-    ], ids=["filter-stable", "filter-fast"])
+    @pytest.mark.parametrize(
+        "available_updates,channel,expected",
+        [
+            (
+                [
+                    {"channels": ["stable-4.6"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.12"},
+                    {"channels": ["stable-4.7"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.8"},
+                    {"channels": ["fast-4.7"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.8"},
+                ],
+                "stable-4.6",
+                ["4.6.12"],
+            ),
+            (
+                [
+                    {"channels": ["fast-4.7"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.8"},
+                    {"channels": ["fast-4.7"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.12"},
+                ],
+                "fast-4.7",
+                ["4.6.8", "4.6.12"],
+            ),
+        ],
+        ids=["filter-stable", "filter-fast"],
+    )
     def test_available_updates_with_filter(self, ocp_cv, available_updates, channel, expected):
         with mock.patch.object(ocp_cv, "get_cluster_version") as mock_version:
             mock_version.return_value.status.availableUpdates = available_updates
@@ -169,23 +165,30 @@ class TestOcpClusterVersion:
         assert isinstance(result, list)
         assert result == expected
 
-    @pytest.mark.parametrize("available_channels,expected", [
-        (None, set()),
-        ([
-            {
-                'channels': ['candidate-4.6', 'eus-4.6', 'fast-4.6', 'stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-            {
-                'channels': ['candidate-4.6', 'foo-4.7', 'fast-4.6', 'stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.9'
-            },
-        ], {'candidate-4.6', 'eus-4.6', 'fast-4.6', 'stable-4.6', 'foo-4.7'}),
-    ], ids=["no-updates", "available-updates"])
+    @pytest.mark.parametrize(
+        "available_channels,expected",
+        [
+            (None, set()),
+            (
+                [
+                    {
+                        "channels": ["candidate-4.6", "eus-4.6", "fast-4.6", "stable-4.6"],
+                        "image": "quay.io",
+                        "url": "https://foo.bar",
+                        "version": "4.6.8",
+                    },
+                    {
+                        "channels": ["candidate-4.6", "foo-4.7", "fast-4.6", "stable-4.6"],
+                        "image": "quay.io",
+                        "url": "https://foo.bar",
+                        "version": "4.6.9",
+                    },
+                ],
+                {"candidate-4.6", "eus-4.6", "fast-4.6", "stable-4.6", "foo-4.7"},
+            ),
+        ],
+        ids=["no-updates", "available-updates"],
+    )
     def test_available_channels(self, ocp_cv, available_channels, expected):
         with mock.patch.object(ocp_cv, "get_cluster_version") as mock_version:
             mock_version.return_value.status.availableUpdates = available_channels
@@ -197,36 +200,28 @@ class TestOcpClusterVersion:
         assert isinstance(result, set)
         assert result == expected
 
-    @pytest.mark.parametrize("available_updates,channel,expected", [
-        ([
-            {
-                'channels': ['stable-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.12'
-            },
-            {
-                'channels': ['stable-4.7'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-        ], "foo", set()),
-        ([
-            {
-                'channels': ['fast-4.7'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.8'
-            },
-            {
-                'channels': ['fast-4.6'],
-                'image': 'quay.io',
-                'url': 'https://foo.bar',
-                'version': '4.6.12'
-            },
-        ], "fast", {"fast-4.7", "fast-4.6"}),
-    ], ids=["filter-nothing", "filter-fast"])
+    @pytest.mark.parametrize(
+        "available_updates,channel,expected",
+        [
+            (
+                [
+                    {"channels": ["stable-4.6"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.12"},
+                    {"channels": ["stable-4.7"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.8"},
+                ],
+                "foo",
+                set(),
+            ),
+            (
+                [
+                    {"channels": ["fast-4.7"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.8"},
+                    {"channels": ["fast-4.6"], "image": "quay.io", "url": "https://foo.bar", "version": "4.6.12"},
+                ],
+                "fast",
+                {"fast-4.7", "fast-4.6"},
+            ),
+        ],
+        ids=["filter-nothing", "filter-fast"],
+    )
     def test_available_channels_with_filter(self, ocp_cv, available_updates, channel, expected):
         with mock.patch.object(ocp_cv, "get_cluster_version") as mock_version:
             mock_version.return_value.status.availableUpdates = available_updates
@@ -238,11 +233,15 @@ class TestOcpClusterVersion:
         assert isinstance(result, set)
         assert result == expected
 
-    @pytest.mark.parametrize("available_updates,expected", [
-        ([], None),
-        (['4.6.8', '4.6.12'], '4.6.12'),
-        (['4.6.12', '4.6.8'], '4.6.8'),  # Always last element in the list
-    ], ids=["no-updates", "sorted", "reverse-sorted"])
+    @pytest.mark.parametrize(
+        "available_updates,expected",
+        [
+            ([], None),
+            (["4.6.8", "4.6.12"], "4.6.12"),
+            (["4.6.12", "4.6.8"], "4.6.8"),  # Always last element in the list
+        ],
+        ids=["no-updates", "sorted", "reverse-sorted"],
+    )
     def test_latest_update_available(self, ocp_cv, available_updates, expected):
         with mock.patch.object(ocp_cv, "available_updates") as mock_version:
             mock_version.return_value = available_updates

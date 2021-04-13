@@ -11,16 +11,17 @@ logger = logging.getLogger(__loggername__)
 
 class ocp_app(object):
     """
-        ocp_app class defines application's template, number of replicas and
-        app_count of a ocp cluster
+    ocp_app class defines application's template, number of replicas and
+    app_count of a ocp cluster
     """
+
     # ocp_app_config_types defines the type of each attribute of the class
     ocp_app_config_types = {
-        'app_template': str,
-        'app_count': int,
-        'app_replicas': int,
-        'app_labels': dict,
-        'app_params': dict
+        "app_template": str,
+        "app_count": int,
+        "app_replicas": int,
+        "app_labels": dict,
+        "app_params": dict,
     }
 
     def __init__(self, app):
@@ -37,62 +38,46 @@ class ocp_app(object):
 
         if app is not None:
             # app template
-            self._app_template = app.get('app_template')
-            if not isinstance(
-                    self._app_template,
-                    self.ocp_app_config_types.get('app_template')):
+            self._app_template = app.get("app_template")
+            if not isinstance(self._app_template, self.ocp_app_config_types.get("app_template")):
                 raise ValueError(
-                    "'app_template': (Expected '%s', Actual '%s')" % (
-                        self.ocp_app_config_types['app_template'],
-                        self._app_template
-                    )
+                    "'app_template': (Expected '%s', Actual '%s')"
+                    % (self.ocp_app_config_types["app_template"], self._app_template)
                 )
 
             # app count
-            self._app_count = app.get('app_count')
-            if not isinstance(
-                    self._app_count,
-                    self.ocp_app_config_types.get('app_count')):
+            self._app_count = app.get("app_count")
+            if not isinstance(self._app_count, self.ocp_app_config_types.get("app_count")):
                 raise ValueError(
-                    "'app_count': (Expected '%s', Actual '%s')" % (
-                        self.ocp_app_config_types['app_count'],
-                        self._app_count
-                    )
+                    "'app_count': (Expected '%s', Actual '%s')"
+                    % (self.ocp_app_config_types["app_count"], self._app_count)
                 )
 
             # app replicas
-            self._app_replicas = app.get('app_replicas')
-            if not isinstance(
-                    self._app_replicas,
-                    self.ocp_app_config_types.get('app_replicas')):
+            self._app_replicas = app.get("app_replicas")
+            if not isinstance(self._app_replicas, self.ocp_app_config_types.get("app_replicas")):
                 raise ValueError(
-                    "'app_replicas': (Expected '%s', Actual '%s')" % (
-                        self.ocp_app_config_types['app_replicas'],
-                        self._app_replicas
-                    )
+                    "'app_replicas': (Expected '%s', Actual '%s')"
+                    % (self.ocp_app_config_types["app_replicas"], self._app_replicas)
                 )
 
             # app labels
-            self._app_labels = app.get('app_labels')
-            if not isinstance(
-                    self._app_labels,
-                    self.ocp_app_config_types.get('app_labels')):
+            self._app_labels = app.get("app_labels")
+            if not isinstance(self._app_labels, self.ocp_app_config_types.get("app_labels")):
                 raise ValueError(
-                    "'app_labels': (Expected '%s', Actual '%s')" % (
-                        self.ocp_app_config_types['app_labels'],
-                        self._app_labels
-                    )
+                    "'app_labels': (Expected '%s', Actual '%s')"
+                    % (self.ocp_app_config_types["app_labels"], self._app_labels)
                 )
             """
                 No strict check required for app_param since this is an optional value
             """
             # app params
-            if app.get('app_params'):
-                self._app_params = app.get('app_params')
-                if not isinstance(self._app_params, self.ocp_app_config_types.get('app_params')):
+            if app.get("app_params"):
+                self._app_params = app.get("app_params")
+                if not isinstance(self._app_params, self.ocp_app_config_types.get("app_params")):
                     logging.error("app_params are attribute is not of type dict.")
             else:
-                app['app_params'] = None
+                app["app_params"] = None
             # if not isinstance(
             #         self._app_params,
             #         self.ocp_app_config_types.get('app_params')):
@@ -105,7 +90,7 @@ class ocp_app(object):
 
     @property
     def app_template(self):
-        """ Gets the app_template name of this ocp_app.
+        """Gets the app_template name of this ocp_app.
 
         :return: app_template name of this ocp_app.
         :type: str
@@ -123,7 +108,7 @@ class ocp_app(object):
 
     @property
     def app_count(self):
-        """ Gets the app_count of this ocp_app
+        """Gets the app_count of this ocp_app
 
         :return: app_count of this ocp_app
         :type: int
@@ -132,7 +117,7 @@ class ocp_app(object):
 
     @app_count.setter
     def app_count(self, app_count):
-        """ Sets the app_count of this ocp_app.
+        """Sets the app_count of this ocp_app.
 
         :param api_count: The app_count of this ocp_app.
         :type: int
@@ -141,7 +126,7 @@ class ocp_app(object):
 
     @property
     def app_replicas(self):
-        """ Gets the app_replica count of this ocp_app
+        """Gets the app_replica count of this ocp_app
 
         :return: app_replica count of this ocp_app
         :type: int
@@ -150,7 +135,7 @@ class ocp_app(object):
 
     @app_replicas.setter
     def app_replicas(self, app_replicas):
-        """ Sets the app_replicas of this ocp_app.
+        """Sets the app_replicas of this ocp_app.
 
         :param api_: The app_replicas  of this ocp_app.
         :type: int
@@ -159,7 +144,7 @@ class ocp_app(object):
 
     @property
     def app_labels(self):
-        """ Gets the app_labels of this ocp_app
+        """Gets the app_labels of this ocp_app
 
         :return: app_labels of this ocp_app
         :type: dict
@@ -168,7 +153,7 @@ class ocp_app(object):
 
     @app_labels.setter
     def app_labels(self, app_labels):
-        """ Sets the app_labels of this ocp_app.
+        """Sets the app_labels of this ocp_app.
 
         :param api_: The app_labels  of this ocp_app.
         :type: dict
@@ -177,7 +162,7 @@ class ocp_app(object):
 
     @property
     def app_params(self):
-        """ Gets the app_params of this ocp_app
+        """Gets the app_params of this ocp_app
 
         :return: app_params of this ocp_app
         :type: dict
@@ -186,7 +171,7 @@ class ocp_app(object):
 
     @app_params.setter
     def app_params(self, app_params):
-        """ Sets the app_params of this ocp_app.
+        """Sets the app_params of this ocp_app.
 
         :param api_: The app_params  of this ocp_app.
         :type: dict
@@ -195,18 +180,15 @@ class ocp_app(object):
 
 
 class ocp_project(object):
-    """ ocp_project defines project in the ocp cluster i.e project_name
+    """ocp_project defines project in the ocp cluster i.e project_name
     and list of all apps of the project/namespace in ocp cluster.
     Each app in the projects list is of type 'ocp_app'
     """
-    ocp_project_config_types = {
-        'project_name': str,
-        'apps': list,
-        'project_labels': dict
-    }
+
+    ocp_project_config_types = {"project_name": str, "apps": list, "project_labels": dict}
 
     def __init__(self, project=None):
-        """ Project as defined by project_name and list of apps
+        """Project as defined by project_name and list of apps
 
         :param project: dict containing project_name, list of apps
         """
@@ -216,26 +198,18 @@ class ocp_project(object):
 
         if project is not None:
             # project name
-            self._project_name = project.get('project_name')
-            if not isinstance(
-                    self._project_name,
-                    self.ocp_project_config_types.get('project_name')):
+            self._project_name = project.get("project_name")
+            if not isinstance(self._project_name, self.ocp_project_config_types.get("project_name")):
                 raise ValueError(
-                    "'project_name': (Expected '%s', Actual '%s')" % (
-                        self.ocp_project_config_types['project_name'],
-                        type(self._project_name)
-                    )
+                    "'project_name': (Expected '%s', Actual '%s')"
+                    % (self.ocp_project_config_types["project_name"], type(self._project_name))
                 )
 
             # apps
-            apps = project.get('apps')
-            if not isinstance(
-                    apps, self.ocp_project_config_types.get('apps')):
+            apps = project.get("apps")
+            if not isinstance(apps, self.ocp_project_config_types.get("apps")):
                 raise ValueError(
-                    "'apps': (Expected '%s', Actual '%s')" % (
-                        self.ocp_project_config_types['apps'],
-                        type(apps)
-                    )
+                    "'apps': (Expected '%s', Actual '%s')" % (self.ocp_project_config_types["apps"], type(apps))
                 )
             else:
                 self._apps = []
@@ -247,20 +221,16 @@ class ocp_project(object):
                         raise ValueError(_e)
 
             # project labels
-            self._project_labels = project.get('project_labels')
-            if not isinstance(
-                    self._project_labels,
-                    self.ocp_project_config_types.get('project_labels')):
+            self._project_labels = project.get("project_labels")
+            if not isinstance(self._project_labels, self.ocp_project_config_types.get("project_labels")):
                 raise ValueError(
-                    "'project_labels': (Expected '%s', Actual '%s')" % (
-                        self.ocp_project_config_types['project_labels'],
-                        type(self._project_labels)
-                    )
+                    "'project_labels': (Expected '%s', Actual '%s')"
+                    % (self.ocp_project_config_types["project_labels"], type(self._project_labels))
                 )
 
     @property
     def project_name(self):
-        """ Gets project_name of this ocp_project
+        """Gets project_name of this ocp_project
 
         :return: project_name of this ocp_project
         :type: str
@@ -269,7 +239,7 @@ class ocp_project(object):
 
     @project_name.setter
     def project_name(self, project_name):
-        """ Sets the project_name of this ocp_project
+        """Sets the project_name of this ocp_project
 
         :param project_name: Name of the ocp_project
         :type: str
@@ -278,7 +248,7 @@ class ocp_project(object):
 
     @property
     def apps(self):
-        """ Gets list of apps of this ocp_project
+        """Gets list of apps of this ocp_project
 
         :return: list of apps objects of this ocp_project
         :type: list
@@ -287,7 +257,7 @@ class ocp_project(object):
 
     @apps.setter
     def apps(self, apps):
-        """ Sets app or list of apps of type ocp_app of this ocp_project
+        """Sets app or list of apps of type ocp_app of this ocp_project
 
         :param apps: app or list of apps of type ocp_app of this ocp_project
         :type: list of ocp_app class object
@@ -305,7 +275,7 @@ class ocp_project(object):
 
     @property
     def project_labels(self):
-        """ Gets project_name of this ocp_project
+        """Gets project_name of this ocp_project
 
         :return: project_name of this ocp_project
         :type: str
@@ -314,7 +284,7 @@ class ocp_project(object):
 
     @project_labels.setter
     def project_labels(self, project_labels):
-        """ Sets the project_name of this ocp_project
+        """Sets the project_name of this ocp_project
 
         :param project_name: Name of the ocp_project
         :type: str
@@ -323,19 +293,19 @@ class ocp_project(object):
 
 
 class ocp_cluster_metadata(object):
-    """Class containing ocp cluster metadata
-    """
+    """Class containing ocp cluster metadata"""
+
     ocp_cluster_metadata_types = {
-        'ocp_version': str,
-        'cns_required': bool,
-        'cns_version': str,
-        'cns_nodes': int,
-        'routers': list,
-        'heketi': str,
+        "ocp_version": str,
+        "cns_required": bool,
+        "cns_version": str,
+        "cns_nodes": int,
+        "routers": list,
+        "heketi": str,
     }
 
     def __init__(self, metadata):
-        """ ocp cluster metadata. i.e ocp_version, cns_version,
+        """ocp cluster metadata. i.e ocp_version, cns_version,
         number of cns_nodes, routers, heketi info.
 
         :param metadata:  dict of ocp cluster metadata
@@ -348,89 +318,59 @@ class ocp_cluster_metadata(object):
         self._heketi = None
 
         # ocp_version
-        self._ocp_version = (
-            metadata.get('prerequisites', {}).get('ocp_version'))
-        if not isinstance(
-                self._ocp_version,
-                self.ocp_cluster_metadata_types.get('ocp_version')):
+        self._ocp_version = metadata.get("prerequisites", {}).get("ocp_version")
+        if not isinstance(self._ocp_version, self.ocp_cluster_metadata_types.get("ocp_version")):
             raise ValueError(
-                "'ocp_version': (Expected '%s', Actual '%s)" % (
-                    self.ocp_cluster_metadata_types['ocp_version'],
-                    type(self._ocp_version)
-                )
+                "'ocp_version': (Expected '%s', Actual '%s)"
+                % (self.ocp_cluster_metadata_types["ocp_version"], type(self._ocp_version))
             )
 
         # cns required
-        self._cns_required = (
-            metadata.get('prerequisites', {}).get('cns', {}).get('required'))
-        if not isinstance(
-                self._cns_required,
-                self.ocp_cluster_metadata_types.get('cns_required')):
+        self._cns_required = metadata.get("prerequisites", {}).get("cns", {}).get("required")
+        if not isinstance(self._cns_required, self.ocp_cluster_metadata_types.get("cns_required")):
             raise ValueError(
-                "'cns_required': (Expected '%s', Actual '%s)" % (
-                    self.ocp_cluster_metadata_types['cns_required'],
-                    type(self._cns_required)
-                )
+                "'cns_required': (Expected '%s', Actual '%s)"
+                % (self.ocp_cluster_metadata_types["cns_required"], type(self._cns_required))
             )
 
         # cns_version
-        self._cns_version = (
-            metadata.get('prerequisites', {}).get('cns', {}).get('version'))
-        if not isinstance(
-                self._cns_version,
-                self.ocp_cluster_metadata_types.get('cns_version')):
+        self._cns_version = metadata.get("prerequisites", {}).get("cns", {}).get("version")
+        if not isinstance(self._cns_version, self.ocp_cluster_metadata_types.get("cns_version")):
             raise ValueError(
-                "'cns_version': (Expected '%s', Actual '%s)" % (
-                    self.ocp_cluster_metadata_types['cns_version'],
-                    type(self._cns_version)
-                )
+                "'cns_version': (Expected '%s', Actual '%s)"
+                % (self.ocp_cluster_metadata_types["cns_version"], type(self._cns_version))
             )
 
         # cns nodes
-        self._cns_nodes = (
-            metadata.get('prerequisites', {}).get('cns', {}).get('cns_nodes'))
-        if not isinstance(
-                self._cns_nodes,
-                self.ocp_cluster_metadata_types.get('cns_nodes')):
+        self._cns_nodes = metadata.get("prerequisites", {}).get("cns", {}).get("cns_nodes")
+        if not isinstance(self._cns_nodes, self.ocp_cluster_metadata_types.get("cns_nodes")):
             raise ValueError(
-                "'cns_nodes': (Expected '%s', Actual '%s)" % (
-                    self.ocp_cluster_metadata_types['cns_nodes'],
-                    type(self._cns_nodes)
-                )
+                "'cns_nodes': (Expected '%s', Actual '%s)"
+                % (self.ocp_cluster_metadata_types["cns_nodes"], type(self._cns_nodes))
             )
 
         # routers
-        self._routers = (
-            metadata.get('prerequisites', {}).get('routers'))
-        if not isinstance(
-                self._routers,
-                self.ocp_cluster_metadata_types.get('routers')):
+        self._routers = metadata.get("prerequisites", {}).get("routers")
+        if not isinstance(self._routers, self.ocp_cluster_metadata_types.get("routers")):
             if isinstance(self._routers, str):
                 self._routers = [self._routers]
             else:
                 raise ValueError(
-                    "'routers': (Expected '%s', Actual '%s)" % (
-                        self.ocp_cluster_metadata_types['routers'],
-                        type(self._routers)
-                    )
+                    "'routers': (Expected '%s', Actual '%s)"
+                    % (self.ocp_cluster_metadata_types["routers"], type(self._routers))
                 )
 
         # heketi
-        self._heketi = (
-            metadata.get('prerequisites', {}).get('heketi'))
-        if not isinstance(
-                self._heketi,
-                self.ocp_cluster_metadata_types.get('heketi')):
+        self._heketi = metadata.get("prerequisites", {}).get("heketi")
+        if not isinstance(self._heketi, self.ocp_cluster_metadata_types.get("heketi")):
             raise ValueError(
-                "'heketi': (Expected '%s', Actual '%s)" % (
-                    self.ocp_cluster_metadata_types['heketi'],
-                    type(self._heketi)
-                )
+                "'heketi': (Expected '%s', Actual '%s)"
+                % (self.ocp_cluster_metadata_types["heketi"], type(self._heketi))
             )
 
     @property
     def ocp_version(self):
-        """ Gets ocp_version of this ocp_cluster
+        """Gets ocp_version of this ocp_cluster
 
         :return: ocp_version of this ocp_cluster
         :type: str
@@ -439,7 +379,7 @@ class ocp_cluster_metadata(object):
 
     @ocp_version.setter
     def ocp_version(self, ocp_version):
-        """ Sets ocp_version of this ocp_cluster
+        """Sets ocp_version of this ocp_cluster
 
         :param ocp_version: ocp_version of this ocp_cluster
         :type: str
@@ -448,7 +388,7 @@ class ocp_cluster_metadata(object):
 
     @property
     def cns_required(self):
-        """ Gets if cns_required in this ocp_cluster
+        """Gets if cns_required in this ocp_cluster
 
         :return: is cns_required in this ocp_cluster
         :type: bool
@@ -457,7 +397,7 @@ class ocp_cluster_metadata(object):
 
     @cns_required.setter
     def cns_required(self, cns_required):
-        """ Sets cns_required if cns is required in this ocp_cluster
+        """Sets cns_required if cns is required in this ocp_cluster
 
         :param cns_required: if cns is required in this ocp_cluster
         :type: bool
@@ -466,7 +406,7 @@ class ocp_cluster_metadata(object):
 
     @property
     def cns_version(self):
-        """ Gets cns_version of this ocp_cluster
+        """Gets cns_version of this ocp_cluster
 
         :return: cns_version of this ocp_cluster
         :type: str
@@ -475,7 +415,7 @@ class ocp_cluster_metadata(object):
 
     @cns_version.setter
     def cns_version(self, cns_version):
-        """ Sets cns_version of this ocp_cluster
+        """Sets cns_version of this ocp_cluster
 
         :param cns_version: cns_version of this ocp_cluster
         :type: str
@@ -484,7 +424,7 @@ class ocp_cluster_metadata(object):
 
     @property
     def cns_nodes(self):
-        """ Gets number of cns_nodes in this ocp_cluster
+        """Gets number of cns_nodes in this ocp_cluster
 
         :return: number of cns_nodes in this ocp_cluster
         :type: int
@@ -493,7 +433,7 @@ class ocp_cluster_metadata(object):
 
     @cns_nodes.setter
     def cns_nodes(self, cns_nodes):
-        """ Sets number of cns_nodes in this ocp_cluster
+        """Sets number of cns_nodes in this ocp_cluster
 
         :param cns_nodes: number of cns_nodes in this ocp_cluster
         :type: int
@@ -502,7 +442,7 @@ class ocp_cluster_metadata(object):
 
     @property
     def routers(self):
-        """ Gets routers of this ocp_cluster
+        """Gets routers of this ocp_cluster
 
         :return: routers of this ocp_cluster
         :type: list
@@ -511,7 +451,7 @@ class ocp_cluster_metadata(object):
 
     @routers.setter
     def routers(self, routers):
-        """ Sets routers of this ocp_cluster
+        """Sets routers of this ocp_cluster
 
         :param routers: list of routers of this ocp_cluster
         :type: list
@@ -529,7 +469,7 @@ class ocp_cluster_metadata(object):
 
     @property
     def heketi(self):
-        """ Gets heketi name of this cluster
+        """Gets heketi name of this cluster
 
         :return: heketi name of this cluster
         :type: str
@@ -538,7 +478,7 @@ class ocp_cluster_metadata(object):
 
     @heketi.setter
     def heketi(self, heketi):
-        """ Sets heketi name of this ocp_cluster
+        """Sets heketi name of this ocp_cluster
 
         :param heketi: heketi name of this ocp_cluster
         :type: str
@@ -548,17 +488,15 @@ class ocp_cluster_metadata(object):
 
 class populate_ocp_cluster_config(object):
     """
-      ocp_populate_cluster_config (dict): The key is attribute name
-        and the value is attribute type.
+    ocp_populate_cluster_config (dict): The key is attribute name
+      and the value is attribute type.
     """
+
     nodes = []
-    populate_ocp_cluster_config_types = {
-        'metadata': ocp_cluster_metadata,
-        'projects': list
-    }
+    populate_ocp_cluster_config_types = {"metadata": ocp_cluster_metadata, "projects": list}
 
     def __init__(self, populate_ocp_cluster_config_file):
-        """ config to create the ocp_cluster as defined in the Populate
+        """config to create the ocp_cluster as defined in the Populate
         cluster YAML config file
 
         :param populate_ocp_cluster_config_file: YAML config file to
@@ -582,29 +520,21 @@ class populate_ocp_cluster_config(object):
             raise ValueError("Invalid cluster config dict")
 
         # get metadata
-        cluster_metadata = cluster_config.get('metadata')
+        cluster_metadata = cluster_config.get("metadata")
         if not isinstance(cluster_metadata, dict):
-            raise ValueError(
-                "'metadata': (Expected '%s', Actual '%s')" %
-                (str(dict), type(cluster_metadata))
-            )
+            raise ValueError("'metadata': (Expected '%s', Actual '%s')" % (str(dict), type(cluster_metadata)))
         else:
             try:
-                self._metadata = ocp_cluster_metadata(
-                    cluster_metadata)
+                self._metadata = ocp_cluster_metadata(cluster_metadata)
             except ValueError as _e:
                 raise ValueError(_e)
 
         # get list of projects
-        projects = cluster_config.get('projects', {})
-        if not isinstance(
-                projects,
-                self.populate_ocp_cluster_config_types.get('projects')):
+        projects = cluster_config.get("projects", {})
+        if not isinstance(projects, self.populate_ocp_cluster_config_types.get("projects")):
             raise ValueError(
-                "'projects': (Expected '%s', Actual '%s')" % (
-                    self.populate_ocp_cluster_config_types['projects'],
-                    type(projects)
-                )
+                "'projects': (Expected '%s', Actual '%s')"
+                % (self.populate_ocp_cluster_config_types["projects"], type(projects))
             )
         else:
             self._projects = []
@@ -617,7 +547,7 @@ class populate_ocp_cluster_config(object):
 
     @property
     def metadata(self):
-        """ Gets ocp_cluster metadata
+        """Gets ocp_cluster metadata
 
         :return: ocp_cluster metadata
         ;type: ocp_cluster_metadata obj
@@ -626,7 +556,7 @@ class populate_ocp_cluster_config(object):
 
     @metadata.setter
     def metadata(self, metada6a):
-        """ Sets ocp_cluster metadata
+        """Sets ocp_cluster metadata
 
         :param metada6a: ocp_cluster_metadata object
         :type: ocp_cluster_metadata
@@ -635,7 +565,7 @@ class populate_ocp_cluster_config(object):
 
     @property
     def projects(self):
-        """ Gets list of projects in this ocp_cluster
+        """Gets list of projects in this ocp_cluster
 
         :return: list of ocp_project objs
         :type: list[ocp_project]
@@ -644,7 +574,7 @@ class populate_ocp_cluster_config(object):
 
     @projects.setter
     def projects(self, projects):
-        """ Sets projects of this ocp_cluster
+        """Sets projects of this ocp_cluster
 
         :param projects: list of ocp_project objs
         :type:  list[ocp_project]

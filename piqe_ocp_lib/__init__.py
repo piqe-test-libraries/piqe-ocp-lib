@@ -17,4 +17,4 @@
 #
 
 __version__ = "0.1.0"
-__loggername__ = 'piqe_api_logger'
+__loggername__ = "piqe_api_logger"

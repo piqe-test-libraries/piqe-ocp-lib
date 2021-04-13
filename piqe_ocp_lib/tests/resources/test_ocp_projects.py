@@ -6,19 +6,19 @@ from piqe_ocp_lib import __loggername__
 logger = logging.getLogger(__loggername__)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope="class")
 def setup_params(get_kubeconfig):
-    params_dict = {'project_api_obj': OcpProjects(kube_config_file=get_kubeconfig),
-                   'project1': {'name': 'test-project1', 'label': {'test': '1'}},
-                   'project2': {'name': 'test-project2', 'label': {'test': '2'}},
-                   'project3': {'name': 'openshift-test1', 'label': {'test': '3'}},
-                   'project4': {'name': 'openshift-test2', 'label': {'test': '4'}}
-                   }
+    params_dict = {
+        "project_api_obj": OcpProjects(kube_config_file=get_kubeconfig),
+        "project1": {"name": "test-project1", "label": {"test": "1"}},
+        "project2": {"name": "test-project2", "label": {"test": "2"}},
+        "project3": {"name": "openshift-test1", "label": {"test": "3"}},
+        "project4": {"name": "openshift-test2", "label": {"test": "4"}},
+    }
     return params_dict
 
 
 class TestOcpProjects(object):
-
     def test_create_a_project(self, setup_params):
         """
         1. Create a test project
@@ -28,11 +28,11 @@ class TestOcpProjects(object):
            the correct type and that it is in the
            active phase.
         """
-        project_api_obj = setup_params['project_api_obj']
-        api_response = project_api_obj.create_a_project(setup_params['project1']['name'])
-        assert api_response.kind == 'Project'
-        assert api_response.metadata.name == setup_params['project1']['name']
-        assert api_response.status['phase'] == 'Active'
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.create_a_project(setup_params["project1"]["name"])
+        assert api_response.kind == "Project"
+        assert api_response.metadata.name == setup_params["project1"]["name"]
+        assert api_response.status["phase"] == "Active"
 
     def test_create_namespace(self, setup_params):
         """
@@ -43,12 +43,12 @@ class TestOcpProjects(object):
            the correct type and that it is in the
            active phase.
         """
-        project_api_obj = setup_params['project_api_obj']
-        api_response = project_api_obj.create_a_namespace(namespace_name=setup_params['project3']['name'])
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.create_a_namespace(namespace_name=setup_params["project3"]["name"])
         logger.info("API Response : %s", api_response)
-        assert api_response.kind == 'Namespace'
-        assert api_response.metadata.name == setup_params['project3']['name']
-        assert api_response.status['phase'] == 'Active'
+        assert api_response.kind == "Namespace"
+        assert api_response.metadata.name == setup_params["project3"]["name"]
+        assert api_response.status["phase"] == "Active"
 
     def test_label_a_project(self, setup_params):
         """
@@ -57,11 +57,12 @@ class TestOcpProjects(object):
            by checking the metadata labels in the response
            object.
         """
-        project_api_obj = setup_params['project_api_obj']
-        api_response = project_api_obj.label_a_project(setup_params['project1']['name'],
-                                                       setup_params['project1']['label'])
-        assert api_response.kind == 'Namespace'
-        assert api_response.metadata.labels['test'] == setup_params['project1']['label']['test']
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.label_a_project(
+            setup_params["project1"]["name"], setup_params["project1"]["label"]
+        )
+        assert api_response.kind == "Namespace"
+        assert api_response.metadata.labels["test"] == setup_params["project1"]["label"]["test"]
 
     def test_create_and_label_a_project(self, setup_params):
         """
@@ -72,14 +73,15 @@ class TestOcpProjects(object):
            by checking the metadata labels in the response
            object.
         """
-        project_api_obj = setup_params['project_api_obj']
-        api_response = project_api_obj.create_a_project(setup_params['project2']['name'],
-                                                        labels_dict=setup_params['project2']['label'])
-        assert api_response.kind == 'Project'
-        assert api_response.metadata.name == setup_params['project2']['name']
-        created_project = project_api_obj.get_a_project(setup_params['project2']['name'])
-        assert created_project.kind == 'Namespace'
-        assert created_project.metadata.labels['test'] == setup_params['project2']['label']['test']
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.create_a_project(
+            setup_params["project2"]["name"], labels_dict=setup_params["project2"]["label"]
+        )
+        assert api_response.kind == "Project"
+        assert api_response.metadata.name == setup_params["project2"]["name"]
+        created_project = project_api_obj.get_a_project(setup_params["project2"]["name"])
+        assert created_project.kind == "Namespace"
+        assert created_project.metadata.labels["test"] == setup_params["project2"]["label"]["test"]
 
     def test_create_and_label_a_namespace(self, setup_params):
         """
@@ -89,19 +91,20 @@ class TestOcpProjects(object):
            by checking the metadata labels in the response
            object.
         """
-        project_api_obj = setup_params['project_api_obj']
-        api_response = project_api_obj.create_a_namespace(setup_params['project4']['name'],
-                                                          labels_dict=setup_params['project4']['label'])
-        assert api_response.metadata.name == setup_params['project4']['name']
-        created_project = project_api_obj.get_a_project(setup_params['project4']['name'])
-        assert created_project.metadata.labels['test'] == setup_params['project4']['label']['test']
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.create_a_namespace(
+            setup_params["project4"]["name"], labels_dict=setup_params["project4"]["label"]
+        )
+        assert api_response.metadata.name == setup_params["project4"]["name"]
+        created_project = project_api_obj.get_a_project(setup_params["project4"]["name"])
+        assert created_project.metadata.labels["test"] == setup_params["project4"]["label"]["test"]
 
         # Cleanup
         logger.info("Cleanup Create and Label a Namespace.")
         logger.info("Delete the namespace.")
-        api_response = project_api_obj.delete_a_namespace(setup_params['project4']['name'])
-        assert api_response.kind == 'Namespace'
-        assert api_response.status.phase == 'Terminating'
+        api_response = project_api_obj.delete_a_namespace(setup_params["project4"]["name"])
+        assert api_response.kind == "Namespace"
+        assert api_response.status.phase == "Terminating"
 
     def test_get_a_project(self, setup_params):
         """
@@ -109,13 +112,13 @@ class TestOcpProjects(object):
         2. Verify that both response objects
            reflect the correct names and types.
         """
-        project_api_obj = setup_params['project_api_obj']
-        project1 = project_api_obj.get_a_project(setup_params['project1']['name'])
-        project2 = project_api_obj.get_a_project(setup_params['project2']['name'])
-        assert project1.metadata.name == setup_params['project1']['name']
-        assert project1.kind == 'Namespace'
-        assert project2.metadata.name == setup_params['project2']['name']
-        assert project2.kind == 'Namespace'
+        project_api_obj = setup_params["project_api_obj"]
+        project1 = project_api_obj.get_a_project(setup_params["project1"]["name"])
+        project2 = project_api_obj.get_a_project(setup_params["project2"]["name"])
+        assert project1.metadata.name == setup_params["project1"]["name"]
+        assert project1.kind == "Namespace"
+        assert project2.metadata.name == setup_params["project2"]["name"]
+        assert project2.kind == "Namespace"
 
     def test_delete_a_project(self, setup_params):
         """
@@ -126,14 +129,14 @@ class TestOcpProjects(object):
         :param setup_params:
         :return:
         """
-        project_api_obj = setup_params['project_api_obj']
-        api_response = project_api_obj.delete_a_project(setup_params['project1']['name'])
-        assert api_response.kind == 'Namespace'
-        assert api_response.status.phase == 'Terminating'
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.delete_a_project(setup_params["project1"]["name"])
+        assert api_response.kind == "Namespace"
+        assert api_response.status.phase == "Terminating"
 
-        api_response = project_api_obj.delete_a_project(setup_params['project2']['name'])
-        assert api_response.kind == 'Namespace'
-        assert api_response.status.phase == 'Terminating'
+        api_response = project_api_obj.delete_a_project(setup_params["project2"]["name"])
+        assert api_response.kind == "Namespace"
+        assert api_response.status.phase == "Terminating"
 
     def test_delete_a_namespace(self, setup_params):
         """
@@ -144,10 +147,10 @@ class TestOcpProjects(object):
         :param setup_params: (dict)
         :return: None
         """
-        project_api_obj = setup_params['project_api_obj']
-        api_response = project_api_obj.delete_a_namespace(setup_params['project3']['name'])
-        assert api_response.kind == 'Namespace'
-        assert api_response.status.phase == 'Terminating'
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.delete_a_namespace(setup_params["project3"]["name"])
+        assert api_response.kind == "Namespace"
+        assert api_response.status.phase == "Terminating"
 
     def test_get_all_projects(self, setup_params):
         """
@@ -160,19 +163,19 @@ class TestOcpProjects(object):
         :param setup_params:
         :return:
         """
-        project_api_obj = setup_params['project_api_obj']
+        project_api_obj = setup_params["project_api_obj"]
         api_response = project_api_obj.get_all_projects()
         original_project_count = len(api_response.items)
 
-        create_project_response = project_api_obj.create_a_project(setup_params['project1']['name'])
-        assert create_project_response.status.phase == 'Active'
+        create_project_response = project_api_obj.create_a_project(setup_params["project1"]["name"])
+        assert create_project_response.status.phase == "Active"
 
         updated_api_response = project_api_obj.get_all_projects()
         updated_project_count = len(updated_api_response.items)
         assert updated_project_count == (original_project_count + 1)
 
-        delete_project_response = project_api_obj.delete_a_project(setup_params['project1']['name'])
-        assert delete_project_response.status.phase == 'Terminating'
+        delete_project_response = project_api_obj.delete_a_project(setup_params["project1"]["name"])
+        assert delete_project_response.status.phase == "Terminating"
 
         final_api_response = project_api_obj.get_all_projects()
         final_project_count = len(final_api_response.items)
@@ -185,9 +188,9 @@ class TestOcpProjects(object):
         :param setup_params:
         :return:
         """
-        project_api_obj = setup_params['project_api_obj']
+        project_api_obj = setup_params["project_api_obj"]
 
-        project_name = setup_params['project1']['name']
+        project_name = setup_params["project1"]["name"]
         project_api_obj.create_a_project(project_name=project_name)
         is_created_project_present = project_api_obj.does_project_exist(project_name)
         assert is_created_project_present is True

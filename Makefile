@@ -5,7 +5,8 @@ dev:
 	poetry install
 
 format:
-	@echo "skipped"
+	poetry run isort -rc piqe_ocp_lib/
+	poetry run black piqe_ocp_lib/
 
 lint: format
 	poetry run flake8 piqe_ocp_lib/*

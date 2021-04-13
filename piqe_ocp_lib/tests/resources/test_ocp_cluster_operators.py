@@ -16,7 +16,6 @@ def ocp_co(get_kubeconfig):
 
 
 class TestOcpClusterOperator:
-
     def test_get_cluster_operators_name(self, ocp_co):
         """
         Verify that list of cluster operators names are returned

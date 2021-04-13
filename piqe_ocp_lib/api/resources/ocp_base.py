@@ -14,7 +14,7 @@ from openshift.dynamic import DynamicClient
 from piqe_ocp_lib.api.constants import CLUSTER_VERSION_OPERATOR_ID
 from piqe_ocp_lib import __loggername__
 
-warnings.simplefilter('ignore', InsecureRequestWarning)
+warnings.simplefilter("ignore", InsecureRequestWarning)
 
 logger = logging.getLogger(__loggername__)
 
@@ -26,6 +26,7 @@ class OcpBase(object):
     """
     This dict will hold kubeconfig as key and DynamicClient object as value
     """
+
     _dyn_clients = {}
 
     """
@@ -112,11 +113,11 @@ class OcpBase(object):
 
             # Get API server URL
             logger.info("Find API Server URL from kubeconfig file")
-            if 'clusters' in kcfg:
-                clusters = kcfg['clusters']
+            if "clusters" in kcfg:
+                clusters = kcfg["clusters"]
                 for cluster in clusters:
-                    if "server" in cluster['cluster']:
-                        api_server_url = cluster['cluster']['server']
+                    if "server" in cluster["cluster"]:
+                        api_server_url = cluster["cluster"]["server"]
                     if api_server_url:
                         break
             logger.info("API Server URL : %s", api_server_url)

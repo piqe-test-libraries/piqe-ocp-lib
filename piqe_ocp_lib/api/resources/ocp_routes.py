@@ -13,10 +13,11 @@ class OcpRoutes(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpRoutes, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'v1'
-        self.kind = 'Route'
+        self.api_version = "v1"
+        self.kind = "Route"
         self.ocp_routes = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_route_names_and_paths_in_namespace(self, namespace):

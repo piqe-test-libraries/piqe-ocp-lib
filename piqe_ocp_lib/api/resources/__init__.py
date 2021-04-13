@@ -17,6 +17,20 @@ from .ocp_cluster_versions import OcpClusterVersion
 from .ocp_configs import OcpConfig
 from .ocp_limit_ranges import OcpLimitRanges
 
-__all__ = ['OcpBase', 'OcpNodes', 'OcpProjects', 'OcpTemplates', 'OcpRoutes',
-           'OcpApps', 'OcpDeploymentconfigs', 'OcpPods', 'OcpEvents', 'OcpSecret',
-           'OcpClusterOperator', 'OcpControlPlane', 'OcpClusterVersion', 'OcpConfig', 'OcpLimitRanges']
+__all__ = [
+    "OcpBase",
+    "OcpNodes",
+    "OcpProjects",
+    "OcpTemplates",
+    "OcpRoutes",
+    "OcpApps",
+    "OcpDeploymentconfigs",
+    "OcpPods",
+    "OcpEvents",
+    "OcpSecret",
+    "OcpClusterOperator",
+    "OcpControlPlane",
+    "OcpClusterVersion",
+    "OcpConfig",
+    "OcpLimitRanges",
+]

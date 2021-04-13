@@ -20,7 +20,6 @@ def ocp_config(get_kubeconfig):
 
 
 class TestOcpConfig:
-
     def test_get_all_ocp_config(self, ocp_config):
         """
         Verify that openshift config response for all resources in specified api version is returned
@@ -30,7 +29,7 @@ class TestOcpConfig:
         logger.info("Get openshift configs for %s api version", API_VERSION)
         pytest.config_response = ocp_config.get_all_ocp_config()
         logger.debug("Config Response : %s", pytest.config_response)
-        if not pytest.config_response and len(pytest.config_response .items) <= 0:
+        if not pytest.config_response and len(pytest.config_response.items) <= 0:
             assert False, f"Failed to get config for {API_VERSION} api version"
 
     def test_get_ocp_config(self, ocp_config):
@@ -69,15 +68,7 @@ class TestOcpConfig:
                 "name": name,
                 "resourceVersion": "10287401",
             },
-            "spec": {
-                "managementState": "Removed",
-                "replicas": 1,
-                "logging": 2,
-                "storage": {
-                    "emptyDir": {}
-                }
-            }
-
+            "spec": {"managementState": "Removed", "replicas": 1, "logging": 2, "storage": {"emptyDir": {}}},
         }
 
         config_response_after_update = ocp_config.update_ocp_config(config_body=config_body)

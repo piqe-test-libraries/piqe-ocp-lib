@@ -21,10 +21,11 @@ class OcpArgocdApplications(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpArgocdApplications, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'argoproj.io/v1alpha1'
-        self.kind = 'Application'
+        self.api_version = "argoproj.io/v1alpha1"
+        self.kind = "Application"
         self.ocp_argocd_app = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_argocd_application(self, namespace):

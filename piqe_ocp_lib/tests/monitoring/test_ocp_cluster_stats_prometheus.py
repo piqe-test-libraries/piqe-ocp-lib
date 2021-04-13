@@ -12,7 +12,6 @@ def ocp_cluster_stats_prom(get_kubeconfig):
 
 
 class TestOcpClusterStatsPrometheus:
-
     def test_get_prometheus_labels(self, ocp_cluster_stats_prom):
         logger.info("Get prometheus labels")
         prometheus_labels = ocp_cluster_stats_prom.get_prometheus_ocp_labels()
@@ -30,8 +29,7 @@ class TestOcpClusterStatsPrometheus:
     def test_get_cluster_stats_using_query_param(self, ocp_cluster_stats_prom):
         logger.info("Get openshift cluster stats from prometheus")
         label = "namespace:container_cpu_usage:sum"
-        cluster_stats_dict = ocp_cluster_stats_prom.get_cluster_stats_using_query_param(
-            label=label)
+        cluster_stats_dict = ocp_cluster_stats_prom.get_cluster_stats_using_query_param(label=label)
         assert isinstance(cluster_stats_dict, dict)
         if not cluster_stats_dict and len(cluster_stats_dict["result"]) == 0:
             assert False, f"Failed to get cluster stats for label {label}"
