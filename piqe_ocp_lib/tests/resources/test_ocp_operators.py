@@ -2,6 +2,8 @@ import logging
 import pytest
 import random
 from time import sleep
+
+from piqe_ocp_lib.tests.helpers import config
 from piqe_ocp_lib.api.resources import OcpProjects
 from piqe_ocp_lib.api.resources.ocp_operators import OperatorhubPackages, \
     Subscription, OperatorSource, OperatorGroup, ClusterServiceVersion
@@ -22,34 +24,36 @@ def get_test_objects(get_kubeconfig):
             self.op_hub_obj = OperatorhubPackages(kube_config_file=get_kubeconfig)
             self.sub_obj = Subscription(kube_config_file=get_kubeconfig)
             self.og_obj = OperatorGroup(kube_config_file=get_kubeconfig)
-            self.os_obj = OperatorSource(kube_config_file=get_kubeconfig)
             self.csv_obj = ClusterServiceVersion(kube_config_file=get_kubeconfig)
             self.project_obj = OcpProjects(kube_config_file=get_kubeconfig)
             self.oi_obj = OperatorInstaller(kube_config_file=get_kubeconfig)
-            self.ocp_version = '.'.join(self.op_hub_obj.version)
     test_objs = TestObjects()
     return test_objs
 
 
-@pytest.fixture(autouse=True)
-def required_version(request, get_test_objects):
-    """
-    We create a custom marker called 'skip_if_not_version' and pass it
-    the desired version of Openshift we want to test on as an argument.
-    We look for that marker in request.node using get_closest_marker,
-    if it's there, we check desired version against detected version
-    that is obtained via the base class. If we don't have a match,
-    we explicitly skip using pytest.skip()
-    """
-    skip_marker = request.node.get_closest_marker('skip_if_not_version')
-    if not skip_marker:
-        return
-    else:
-        desired_version = skip_marker.args[0]
-    if desired_version != get_test_objects.ocp_version:
-        logger.warning("The current test module requires version {}, "
-                       "but version {} was detected".format(desired_version, get_test_objects.ocp_version))
-        pytest.skip()
+@pytest.fixture(scope="module")
+def operator_installer(get_kubeconfig) -> OperatorInstaller:
+    return OperatorInstaller(kube_config_file=get_kubeconfig)
+
+
+@pytest.fixture(scope="module")
+def project_resource(get_kubeconfig) -> OcpProjects:
+    return OcpProjects(kube_config_file=get_kubeconfig)
+
+
+@pytest.fixture(scope="module")
+def operator_hub(get_kubeconfig) -> OperatorhubPackages:
+    return OperatorhubPackages(kube_config_file=get_kubeconfig)
+
+
+@pytest.fixture(scope="module")
+def cluster_service(get_kubeconfig) -> ClusterServiceVersion:
+    return ClusterServiceVersion(kube_config_file=get_kubeconfig)
+
+
+@pytest.fixture(scope="module")
+def operator_source(get_kubeconfig) -> OperatorSource:
+    return OperatorSource(kube_config_file=get_kubeconfig)
 
 
 class TestOcpOperatorHub:
@@ -113,6 +117,7 @@ class TestOcpOperatorHub:
             logger.warning("The randomly picked package doesn't seem to have a single namespace channel")
 
 
+@pytest.mark.skip(config.version >= (4, 6, 0), reason="Removed from openshift >= 4.6")
 class TestOperatorSource:
 
     def test_create_operator_source(self, get_test_objects):
@@ -256,66 +261,42 @@ class TestInstallOperatorWorkflow:
     of an operator is implemented, and this test will be updated.
     """
 
-    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
-    def test_add_operator_singlenamespace(self, get_test_objects):
-        get_test_objects.project_obj.create_a_project('test-project4')
-        get_test_objects.oi_obj.add_operator_to_cluster('amq-streams', target_namespaces=['test-project4'])
-        csv_name = get_test_objects.op_hub_obj.get_package_singlenamespace_channel('amq-streams').currentCSV
-        assert get_test_objects.csv_obj.is_cluster_service_version_present(csv_name, 'test-project4')
+    def test_add_operator_singlenamespace(self, project_resource, operator_installer, operator_hub, cluster_service):
+        project_resource.create_a_project('test-project4')
+        operator_installer.add_operator_to_cluster('amq-streams', target_namespaces=['test-project4'])
+        csv_name = operator_hub.get_package_singlenamespace_channel('amq-streams').currentCSV
+        assert cluster_service.is_cluster_service_version_present(csv_name, 'test-project4')
         # TODO: update when delete_operator_from_cluster is implemented
-        get_test_objects.project_obj.delete_a_project('test-amq-streams-singlenamespace-og-sub-project')
-        get_test_objects.project_obj.delete_a_project('test-project4')
+        project_resource.delete_a_project('test-amq-streams-singlenamespace-og-sub-project')
+        project_resource.delete_a_project('test-project4')
 
-    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
-    def test_add_operator_multinamespace(self, get_test_objects):
-        get_test_objects.project_obj.create_a_project('test-project5')
-        get_test_objects.project_obj.create_a_project('test-project6')
-        get_test_objects.oi_obj.add_operator_to_cluster('amq-streams',
-                                                        target_namespaces=['test-project5', 'test-project6'])
-        csv_name = get_test_objects.op_hub_obj.get_package_multinamespace_channel('amq-streams').currentCSV
-        assert get_test_objects.csv_obj.is_cluster_service_version_present(csv_name, 'test-project5')
-        assert get_test_objects.csv_obj.is_cluster_service_version_present(csv_name, 'test-project6')
+    def test_add_operator_multinamespace(self, project_resource, operator_installer, operator_hub, cluster_service):
+        project_resource.create_a_project('test-project5')
+        project_resource.create_a_project('test-project6')
+        operator_installer.add_operator_to_cluster(
+            'amq-streams', target_namespaces=['test-project5', 'test-project6'])
+
+        csv_name = operator_hub.get_package_multinamespace_channel('amq-streams').currentCSV
+
+        assert cluster_service.is_cluster_service_version_present(csv_name, 'test-project5')
+        assert cluster_service.is_cluster_service_version_present(csv_name, 'test-project6')
+
         # TODO: update when delete_operator_from_cluster is implemented
-        get_test_objects.project_obj.delete_a_project('test-amq-streams-multinamespace-og-sub-project')
-        get_test_objects.project_obj.delete_a_project('test-project5')
-        get_test_objects.project_obj.delete_a_project('test-project6')
+        project_resource.delete_a_project('test-amq-streams-multinamespace-og-sub-project')
+        project_resource.delete_a_project('test-project5')
+        project_resource.delete_a_project('test-project6')
 
-    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
-    def test_add_operator_clusterwide(self, get_test_objects):
-        get_test_objects.project_obj.create_a_project('test-project7')
-        get_test_objects.oi_obj.add_operator_to_cluster('amq-streams')
-        csv_name = get_test_objects.op_hub_obj.get_package_allnamespaces_channel('amq-streams').currentCSV
-        all_projects = get_test_objects.project_obj.get_all_projects()
+    def test_add_operator_clusterwide(self, project_resource, operator_installer, operator_hub, cluster_service):
+        project_resource.create_a_project('test-project7')
+        operator_installer.add_operator_to_cluster('amq-streams')
+        csv_name = operator_hub.get_package_allnamespaces_channel('amq-streams').currentCSV
+        all_projects = project_resource.get_all_projects()
+
         for project in all_projects.items:
-            assert get_test_objects.csv_obj.is_cluster_service_version_present(csv_name, project.metadata.name)
-        get_test_objects.project_obj.delete_a_project('test-amq-streams-allnamespaces-og-sub-project')
-        get_test_objects.project_obj.delete_a_project('test-project7')
+            assert cluster_service.is_cluster_service_version_present(csv_name, project.metadata.name)
+
+        project_resource.delete_a_project('test-amq-streams-allnamespaces-og-sub-project')
+        project_resource.delete_a_project('test-project7')
         # TODO: look into why the csv persits in openshift-operators project after cleaning
         # test artifacts
-        get_test_objects.project_obj.delete_a_project('openshift-operators')
-
-    @pytest.mark.skip(reason="Skip until MPQEENABLE-356 is resolved")
-    def test_add_operator_using_operatorsource(self, get_test_objects):
-        get_test_objects.project_obj.create_a_project('test-project8')
-        operator_source = {
-            "apiVersion": "operators.coreos.com/v1",
-            "kind": "OperatorSource",
-            "metadata": {
-                "name": "yaks",
-                "namespace": "openshift-marketplace"
-            },
-            "spec": {
-                "type": "appregistry",
-                "endpoint": "https://quay.io/cnr",
-                "registryNamespace": "yaks",
-                "displayName": "YAKS Operators",
-                "publisher": "Red Hat"
-            }
-        }
-        get_test_objects.oi_obj.add_operator_to_cluster('yaks', source=operator_source,
-                                                        target_namespaces=['test-project8'])
-        csv_name = get_test_objects.op_hub_obj.get_package_singlenamespace_channel('yaks').currentCSV
-        assert get_test_objects.csv_obj.is_cluster_service_version_present(csv_name, 'test-project8')
-        get_test_objects.project_obj.delete_a_project('test-yaks-singlenamespace-og-sub-project')
-        get_test_objects.project_obj.delete_a_project('test-project8')
-        get_test_objects.os_obj.delete_operator_source('yaks')
+        project_resource.delete_a_project('openshift-operators')

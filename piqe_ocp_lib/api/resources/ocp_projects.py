@@ -82,7 +82,7 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.get(name=project_name)
         except ApiException as e:
-            logger.error("Exception when calling method list_a_namespace: %s\n" % e)
+            logger.error("Exception when calling method get_a_project: %s\n" % e)
         return api_response
 
     def delete_a_project(self, project_name):
@@ -134,9 +134,8 @@ class OcpProjects(OcpBase):
         :param project_name:
         :return: True if the project is found. False if the project is not found.
         """
-        if self.get_a_project(project_name) is not None:
-            return True
-        return False
+        has_project = self.get_a_project(project_name)
+        return bool(has_project)
 
     def _watch_is_project_created(self, project_name):
         """
