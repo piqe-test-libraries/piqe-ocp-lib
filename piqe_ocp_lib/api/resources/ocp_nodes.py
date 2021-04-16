@@ -217,7 +217,7 @@ class OcpNodes(OcpBase):
             if ret != 0:
                 return ret, out, err
         # Execute the command
-        command = "kubectl exec %s %s" % (pod_name, command_to_execute)
+        command = "kubectl exec %s -- %s" % (pod_name, command_to_execute)
         logger.info("Executing command: %s", command)
         subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = subp.communicate()

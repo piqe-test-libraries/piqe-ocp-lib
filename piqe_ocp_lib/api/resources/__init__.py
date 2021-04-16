@@ -15,6 +15,7 @@ from .ocp_pods import OcpPods
 from .ocp_projects import OcpProjects
 from .ocp_routes import OcpRoutes
 from .ocp_secrets import OcpSecret
+from .ocp_services import OcpServices
 from .ocp_templates import OcpTemplates
 
 __all__ = [
@@ -33,4 +34,5 @@ __all__ = [
     "OcpClusterVersion",
     "OcpConfig",
     "OcpLimitRanges",
+    "OcpServices",
 ]
