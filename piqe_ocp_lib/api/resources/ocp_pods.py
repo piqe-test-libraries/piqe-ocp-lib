@@ -25,7 +25,7 @@ class OcpPods(OcpBase):
         self.kind = "Pod"
         self.ocp_pods = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_a_pod_from_definition(self, definition):
+    def create_a_pod_from_definition(self, namespace, body):
         """
         Create a pod with specified definition
         :param definition: Definition for additional network interface in dict form
@@ -33,7 +33,7 @@ class OcpPods(OcpBase):
         """
         api_response = None
         try:
-            api_response = self.ocp_pods.create(body=definition)
+            api_response = self.ocp_pods.create(namespace=namespace, body=body)
         except ApiException as e:
             print("Exception while creating pods: %s\n", e)
         return api_response
