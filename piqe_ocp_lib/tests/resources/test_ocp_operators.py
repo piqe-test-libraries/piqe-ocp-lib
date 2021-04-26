@@ -1,6 +1,7 @@
 import logging
 import random
 from time import sleep
+from unittest import mock
 
 import pytest
 
@@ -124,7 +125,7 @@ class TestOcpOperatorHub:
             logger.warning("The randomly picked package doesn't seem to have a single namespace channel")
 
 
-@pytest.mark.skip(config.version >= (4, 6, 0), reason="Removed from openshift >= 4.6")
+@pytest.mark.skipif(config.version >= (4, 6, 0), reason="Removed from openshift >= 4.6")
 class TestOperatorSource:
     def test_create_operator_source(self, get_test_objects):
         # Create an operator source resource and check
@@ -252,6 +253,16 @@ class TestClusterServiceVersion:
         get_test_objects.og_obj.delete_operator_group("test-og", "openshift-marketplace")
         get_test_objects.sub_obj.delete_subscription("kong", "openshift-marketplace")
         get_test_objects.project_obj.delete_a_project("test-project3")
+
+    @pytest.mark.unit
+    def test_delete(self, get_test_objects):
+        expected_name = "foo-name"
+        expected_namespace = "bar-namespace"
+
+        with mock.patch.object(get_test_objects.csv_obj, "csv_obj") as mock_client:
+            get_test_objects.csv_obj.delete(expected_name, expected_namespace)
+
+            mock_client.delete.assert_called_once_with(name=expected_name, namespace=expected_namespace)
 
 
 class TestInstallOperatorWorkflow:

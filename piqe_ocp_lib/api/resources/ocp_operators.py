@@ -616,3 +616,18 @@ class ClusterServiceVersion(OcpBase):
             " of {} seconds".format(csv_name, namespace, timeout)
         )
         return False
+
+    def delete(self, csv_name: str, namespace: str) -> bool:
+        """
+        A method to delete an existing CSV.
+        :param csv_name: (str)
+        :param namespace: (str)
+        :return: success (True) or failure (False)
+        """
+        try:
+            self.csv_obj.delete(name=csv_name, namespace=namespace)
+        except ApiException as e:
+            logger.error(f"Failed to delete CSV due to: {e}")
+            return False
+
+        return True
