@@ -1,31 +1,29 @@
+import logging
+
+from kubernetes.client.rest import ApiException
+from openshift.dynamic.resource import ResourceInstance, ResourceList
+
+from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from piqe_ocp_lib.api.resources.ocp_nodes import OcpNodes
-from kubernetes.client.rest import ApiException
-from openshift.dynamic.resource import ResourceList, ResourceInstance
-import logging
-from piqe_ocp_lib import __loggername__
 
 logger = logging.getLogger(__loggername__)
-MACHINE_NAMESPACE = 'openshift-machine-api'
+MACHINE_NAMESPACE = "openshift-machine-api"
 TIMEOUT = 300
 
 
 class OcpMachineSet(OcpBase):
     """
     OcpMachineSet class extends OcpBase and encapsulates all methods
-<<<<<<< HEAD
     related to managing Openshift Machine Sets.
     :param kube_config_file: A kubernetes config file.
-=======
-    related to managing Openshift Machine Sets
-    :param kube_config_file: A kubernetes config file
->>>>>>> 79d1743... [CSS-3384] Add Machine management support
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpMachineSet, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'machine.openshift.io/v1beta1'
-        self.kind = 'MachineSet'
+        self.api_version = "machine.openshift.io/v1beta1"
+        self.kind = "MachineSet"
         self.machineset = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
         self.machine = OcpMachines(kube_config_file=kube_config_file)
         self.node = OcpNodes(kube_config_file=kube_config_file)
@@ -65,7 +63,7 @@ class OcpMachineSet(OcpBase):
         """
         role = str()
         machine_set = self.get_machine_set(machine_set_name)
-        role = machine_set.metadata.labels['machine.openshift.io/cluster-api-machine-role']
+        role = machine_set.metadata.labels["machine.openshift.io/cluster-api-machine-role"]
         return role
 
     def is_machine_set_ready(self, machine_set_name: str) -> bool:
@@ -76,21 +74,22 @@ class OcpMachineSet(OcpBase):
         """
         field_selector = f"metadata.name={machine_set_name}"
         for event in self.machineset.watch(namespace=MACHINE_NAMESPACE, field_selector=field_selector, timeout=TIMEOUT):
-            requested_replicas = event['object']['status']['replicas']
-            ready_replicas = event['object']['status']['readyReplicas']
+            requested_replicas = event["object"]["status"]["replicas"]
+            ready_replicas = event["object"]["status"]["readyReplicas"]
             if requested_replicas == ready_replicas:
                 return True
             else:
                 logger.info("Waiting for replicas to match ready replicas")
         return False
 
-    def scale_machine_set(self, machine_set_name: str, replicas: int) -> bool:
+    def scale_machine_set(self, machine_set_name: str, replicas: int) -> bool:  # noqa: C901
         """
         Verify that a Machine reflects the desired number of user specified replicas
         :param machine_set_name: (str) name of the machine set
         :param replicas: (int) the number of desired machine replicas
         :return: (bool) True when successfully scaling a Machine set object OR False otherwise
         """
+
         def _verify_successful_scale_up(machine_set_name: str) -> bool:
             """
             Once a patch operation is successfully completed, a scale up is deemed successful
@@ -99,16 +98,15 @@ class OcpMachineSet(OcpBase):
                 2. New nodes corresponding to the newcly created machines are created
                    and reach a ready state.
             :param machinet_set_name: (str) name of the machine set
-<<<<<<< HEAD
             :return: (bool) True if the given machine set is successfully scaled up OR False otherwise.
-=======
-            :return: (bool) True if the given machine set is successfully scaled up OR False otherwise
->>>>>>> 79d1743... [CSS-3384] Add Machine management support
             """
             scaled_up_machines_list = self.machine.get_machines_in_machineset(machine_set_name)
-            creation_phases = {'Provisioning', 'Provisioned'}
-            new_machine_names = [machine.metadata.name for machine in scaled_up_machines_list.items
-                                 if machine.status.phase in creation_phases]
+            creation_phases = {"Provisioning", "Provisioned"}
+            new_machine_names = [
+                machine.metadata.name
+                for machine in scaled_up_machines_list.items
+                if machine.status.phase in creation_phases
+            ]
             new_machines_ready = True
             for machine_name in new_machine_names:
                 new_machines_ready = new_machines_ready and self.machine.is_machine_created(machine_name)
@@ -132,8 +130,11 @@ class OcpMachineSet(OcpBase):
             :return: (bool) True if the given machine set is successfully scaled down OR False otherwise.
             """
             scaled_down_machines_list = self.machine.get_machines_in_machineset(machine_set_name)
-            machine_names_to_be_deleted = [machine.metadata.name for machine in scaled_down_machines_list.items
-                                           if machine.status.phase == 'Deleting']
+            machine_names_to_be_deleted = [
+                machine.metadata.name
+                for machine in scaled_down_machines_list.items
+                if machine.status.phase == "Deleting"
+            ]
             node_names_to_be_deleted = list()
             for machine in machine_names_to_be_deleted:
                 node_names_to_be_deleted.append(self.machine.get_machine_node_ref(machine))
@@ -160,10 +161,10 @@ class OcpMachineSet(OcpBase):
             :return: (bool) True when values match OR False otherwise
             """
             field_selector = f"metadata.name={machine_set_name}"
-            for event in self.machineset.watch(namespace=MACHINE_NAMESPACE,
-                                               field_selector=field_selector,
-                                               timeout=TIMEOUT):
-                if event['object']['status']['replicas'] == replicas:
+            for event in self.machineset.watch(
+                namespace=MACHINE_NAMESPACE, field_selector=field_selector, timeout=TIMEOUT
+            ):
+                if event["object"]["status"]["replicas"] == replicas:
                     return True
                 else:
                     logger.debug("Waiting for MachineSet to reflect new number of desired replicas")
@@ -179,10 +180,12 @@ class OcpMachineSet(OcpBase):
         body = {"spec": {"replicas": replicas}}
         api_response = None
         try:
-            api_response = self.machineset.patch(name=machine_set_name,
-                                                 body=body,
-                                                 namespace=MACHINE_NAMESPACE,
-                                                 content_type='application/merge-patch+json')
+            api_response = self.machineset.patch(
+                name=machine_set_name,
+                body=body,
+                namespace=MACHINE_NAMESPACE,
+                content_type="application/merge-patch+json",
+            )
         except ApiException as e:
             logger.error("Exception while updating MachineSet: %s\n", e)
         if not _is_watched_desired(machine_set_name, replicas):
@@ -198,19 +201,15 @@ class OcpMachineSet(OcpBase):
 class OcpMachines(OcpBase):
     """
     OcpMachineSet class extends OcpBase and encapsulates all methods
-<<<<<<< HEAD
     related to managing Openshift Machine Sets.
     :param kube_config_file: A kubernetes config file.
-=======
-    related to managing Openshift Machine Sets
-    :param kube_config_file: A kubernetes config file
->>>>>>> 79d1743... [CSS-3384] Add Machine management support
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super(OcpMachines, self).__init__(kube_config_file=kube_config_file)
-        self.api_version = 'machine.openshift.io/v1beta1'
-        self.kind = 'Machine'
+        self.api_version = "machine.openshift.io/v1beta1"
+        self.kind = "Machine"
         self.machine = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
     def get_machines(self) -> ResourceList:
@@ -246,9 +245,10 @@ class OcpMachines(OcpBase):
         """
         api_response = list()
         try:
-            api_response = self.machine.get(namespace=MACHINE_NAMESPACE,
-                                            label_selector="machine.openshift.io/"
-                                                           "cluster-api-machine-role={}".format(machine_role))
+            api_response = self.machine.get(
+                namespace=MACHINE_NAMESPACE,
+                label_selector="machine.openshift.io/" "cluster-api-machine-role={}".format(machine_role),
+            )
         except ApiException as e:
             logger.error("Exception while getting Machine by role: %s\n", e)
         return api_response
@@ -260,9 +260,9 @@ class OcpMachines(OcpBase):
         :return: (str) The name of the machine set containing the machine
         """
         machine = self.get_machine(machine_name)
-        machine_role = machine.metadata.labels['machine.openshift.io/cluster-api-machine-role']
-        if 'machine.openshift.io/cluster-api-machineset' in machine.metadata.labels.keys():
-            return machine.metadata.labels['machine.openshift.io/cluster-api-machineset']
+        machine_role = machine.metadata.labels["machine.openshift.io/cluster-api-machine-role"]
+        if "machine.openshift.io/cluster-api-machineset" in machine.metadata.labels.keys():
+            return machine.metadata.labels["machine.openshift.io/cluster-api-machineset"]
         else:
             logger.warning("machine {} with role {} is not part of machineset".format(machine_name, machine_role))
             return str()
@@ -275,9 +275,10 @@ class OcpMachines(OcpBase):
         """
         api_response = None
         try:
-            api_response = self.machine.get(namespace=MACHINE_NAMESPACE,
-                                            label_selector="machine.openshift.io/"
-                                                           "cluster-api-machineset={}".format(machine_set))
+            api_response = self.machine.get(
+                namespace=MACHINE_NAMESPACE,
+                label_selector="machine.openshift.io/" "cluster-api-machineset={}".format(machine_set),
+            )
         except ApiException as e:
             logger.error("Exception while getting Machines in a machine set: %s\n", e)
         return api_response
@@ -291,7 +292,7 @@ class OcpMachines(OcpBase):
         field_selector = f"metadata.name={machine_name}"
         for event in self.machine.watch(namespace=MACHINE_NAMESPACE, field_selector=field_selector):
             try:
-                node_name = event['object']['status']['nodeRef']['name']
+                node_name = event["object"]["status"]["nodeRef"]["name"]
             except TypeError:
                 logger.warning("Machine {} doesn't have a nodeRef field yet ...".format(machine_name))
                 continue
@@ -303,11 +304,7 @@ class OcpMachines(OcpBase):
 
     def is_machine_created(self, machine_name: str, timeout: int = TIMEOUT) -> bool:
         """
-<<<<<<< HEAD
         Method that watches a machine resource reaches a 'Running' state.
-=======
-        Method that watches a machine resource reaches a 'Running' state
->>>>>>> 79d1743... [CSS-3384] Add Machine management support
         :param machine_name: (str) The name of the machine resource to be watched
         :param tiemout: (int) The amount of time to poll before timing out. Defaults to 300s
         :return: bool. True on success OR False on failure
@@ -315,19 +312,20 @@ class OcpMachines(OcpBase):
         field_selector = f"metadata.name={machine_name}"
         for event in self.machine.watch(namespace=MACHINE_NAMESPACE, field_selector=field_selector, timeout=timeout):
             try:
-                vm_state = event['object']['status']['providerStatus']['vmState']
-                provider_status_condition = event['object']['status']['providerStatus']['conditions']
+                vm_state = event["object"]["status"]["providerStatus"]["vmState"]
+                provider_status_condition = event["object"]["status"]["providerStatus"]["conditions"]
             except TypeError:
                 logger.warning("Provider Status for machine {} has not yet been detected ...".format(machine_name))
                 continue
             else:
-                if provider_status_condition[0]['type'] == 'MachineCreated':
-                    if vm_state == 'Running':
+                if provider_status_condition[0]["type"] == "MachineCreated":
+                    if vm_state == "Running":
                         logger.debug("Machine {} has reached 'Running state'".format(machine_name))
                         return True
                     else:
-                        logger.debug("Waiting for Machine to reach 'Running' phase."
-                                     "Current state is: {}".format(vm_state))
+                        logger.debug(
+                            "Waiting for Machine to reach 'Running' phase." "Current state is: {}".format(vm_state)
+                        )
                         continue
                 else:
                     logger.debug("Waiting for new Machine to reach 'MachineCreated' state")

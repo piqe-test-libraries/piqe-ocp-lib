@@ -92,14 +92,16 @@ class OcpNodes(OcpBase):
         """
         field_selector = "metadata.name={}".format(node_name)
         for event in self.ocp_nodes.watch(field_selector=field_selector, timeout=timeout):
-            conditions_list = event['object']['status']['conditions']
+            conditions_list = event["object"]["status"]["conditions"]
             latest_event = conditions_list[-1]
-            if conditions_list and latest_event['type'] == "Ready" and latest_event['status'] == "True":
+            if conditions_list and latest_event["type"] == "Ready" and latest_event["status"] == "True":
                 logger.debug("Node {} has reached 'Ready' state".format(node_name))
                 return True
             else:
-                logger.debug("Waiting for node {} to reach 'Ready' state."
-                             "Reason: {}".format(node_name, latest_event['message']))
+                logger.debug(
+                    "Waiting for node {} to reach 'Ready' state."
+                    "Reason: {}".format(node_name, latest_event["message"])
+                )
         return False
 
     def is_node_deleted(self, node_name, timeout=300):
@@ -118,7 +120,7 @@ class OcpNodes(OcpBase):
             for event in self.ocp_nodes.watch(field_selector=field_selector, timeout=timeout):
                 if self.get_a_node(node_name):
                     logger.debug("Node is still present")
-                    logger.debug("Node state is: {}".format(event['object']['status']['conditions'][-1]['message']))
+                    logger.debug("Node state is: {}".format(event["object"]["status"]["conditions"][-1]["message"]))
                     continue
                 else:
                     logger.debug("Node is no longer here")

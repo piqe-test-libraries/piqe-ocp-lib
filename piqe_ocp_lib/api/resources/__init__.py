@@ -10,6 +10,7 @@ from .ocp_control_planes import OcpControlPlane
 from .ocp_deploymentconfigs import OcpDeploymentconfigs
 from .ocp_events import OcpEvents
 from .ocp_limit_ranges import OcpLimitRanges
+from .ocp_machine_management import OcpMachines, OcpMachineSet
 from .ocp_nodes import OcpNodes
 from .ocp_pods import OcpPods
 from .ocp_projects import OcpProjects
@@ -17,7 +18,6 @@ from .ocp_routes import OcpRoutes
 from .ocp_secrets import OcpSecret
 from .ocp_services import OcpServices
 from .ocp_templates import OcpTemplates
-from .ocp_machine_management import OcpMachineSet, OcpMachines
 
 __all__ = [
     "OcpBase",
@@ -36,6 +36,6 @@ __all__ = [
     "OcpConfig",
     "OcpLimitRanges",
     "OcpMachineSet",
-    "OcpMachines"
+    "OcpMachines",
     "OcpServices",
 ]

@@ -112,11 +112,11 @@ class OcpBase(object):
         """
         provider = str()
         try:
-            api_response = self.dyn_client.resources.search(api_version='config.openshift.io/v1', kind='Infrastructure')
+            api_response = self.dyn_client.resources.search(api_version="config.openshift.io/v1", kind="Infrastructure")
             assert isinstance(api_response, list)
         except ApiException as e:
             logger.exception("Exception was encountered while trying to get the infrastructure resource: {}".format(e))
-        if api_response and isinstance(api_response[0], Resource) and api_response[0].kind == 'Infrastructure':
+        if api_response and isinstance(api_response[0], Resource) and api_response[0].kind == "Infrastructure":
             api_response = api_response[0]
             infra_obj = api_response.get()
             try:
