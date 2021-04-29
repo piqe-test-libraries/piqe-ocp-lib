@@ -4,7 +4,12 @@ from kubernetes.client.rest import ApiException
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
-from piqe_ocp_lib.api.resources.ocp_operators import OperatorGroup, OperatorhubPackages, Subscription
+from piqe_ocp_lib.api.resources.ocp_operators import (
+    ClusterServiceVersion,
+    OperatorGroup,
+    OperatorhubPackages,
+    Subscription,
+)
 
 logger = logging.getLogger(__loggername__)
 
@@ -72,8 +77,27 @@ class OperatorInstaller(OcpBase):
 
         return True
 
-    def delete_operator_from_cluster(self, operator_name):
+    def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
         Uninstall an operator from a cluster
+        :param operator_name: name of the operator
+        :param namespace: name of the namespace the operator is installed
+        :return: success or failure
         """
-        pass
+        csv = ClusterServiceVersion(self.kube_config_file)
+
+        try:
+            subscription = self.sub_obj.get_subscription(operator_name, namespace)
+            csv_name = subscription.status.currentCSV
+        except ApiException:
+            logger.error("Failed to retrieve subscription")
+            return False
+
+        try:
+            self.sub_obj.delete_subscription(operator_name, namespace)
+            csv.delete(csv_name, namespace)
+        except ApiException:
+            logger.error(f"Failed to uninstall operator {operator_name}")
+            return False
+
+        return True
