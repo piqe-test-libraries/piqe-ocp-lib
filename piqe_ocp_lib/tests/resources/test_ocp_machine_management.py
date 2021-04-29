@@ -1,7 +1,7 @@
 import logging
 import pytest
 from piqe_ocp_lib.api.resources import OcpMachineSet, OcpMachines, OcpNodes
-from openshift.dynamic.resource import ResourceList, ResourceInstance
+from openshift.dynamic.resource import ResourceInstance
 from piqe_ocp_lib import __loggername__
 
 logger = logging.getLogger(__loggername__)
