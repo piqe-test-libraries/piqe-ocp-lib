@@ -83,18 +83,49 @@ class OcpNodes(OcpBase):
             logger.info("Total memory in bytes : %s", total_memory_in_bytes)
         return total_memory_in_bytes
 
-    def watch_all_nodes(self):
-        # We need to determine if a use case for this exists.
-        pass
+    def is_node_ready(self, node_name, timeout=300):
+        """
+        Check if a node has reached a Ready state
+        :param node_name: (str) The node name
+        :param timeout: (int) The time limit for polling status. Defaults to 300
+        :return: (bool) True if it's Ready OR False otherwise
+        """
+        field_selector = "metadata.name={}".format(node_name)
+        for event in self.ocp_nodes.watch(field_selector=field_selector, timeout=timeout):
+            conditions_list = event["object"]["status"]["conditions"]
+            latest_event = conditions_list[-1]
+            if conditions_list and latest_event["type"] == "Ready" and latest_event["status"] == "True":
+                logger.debug("Node {} has reached 'Ready' state".format(node_name))
+                return True
+            else:
+                logger.debug(
+                    "Waiting for node {} to reach 'Ready' state."
+                    "Reason: {}".format(node_name, latest_event["message"])
+                )
+        return False
 
-    def watch_a_node(self, node_name):
-        pass
-
-    def create_a_node(self, node_name):
-        pass
-
-    def delete_a_node(self, node_name):
-        pass
+    def is_node_deleted(self, node_name, timeout=300):
+        """
+        Check if a node was successfully deleted
+        :param node_name: (str) The node name
+        :param timeout: (int) The time limit for polling status. Defaults to 300
+        :return: (bool) True if it's deleted OR False otherwise
+        """
+        if self.get_a_node(node_name) is None:
+            logger.info("Node {} is not present".format(node_name))
+            return True
+        else:
+            logger.debug("Node seems to be present, let's watch")
+            field_selector = "metadata.name={}".format(node_name)
+            for event in self.ocp_nodes.watch(field_selector=field_selector, timeout=timeout):
+                if self.get_a_node(node_name):
+                    logger.debug("Node is still present")
+                    logger.debug("Node state is: {}".format(event["object"]["status"]["conditions"][-1]["message"]))
+                    continue
+                else:
+                    logger.debug("Node is no longer here")
+                    return True
+        return False
 
     def label_a_node(self, node_name, labels):
         """

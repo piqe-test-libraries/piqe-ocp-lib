@@ -6,7 +6,7 @@ import warnings
 import jmespath
 from kubernetes import config
 from kubernetes.client.rest import ApiException
-from openshift.dynamic import DynamicClient
+from openshift.dynamic import DynamicClient, Resource
 from urllib3.exceptions import InsecureRequestWarning
 import yaml
 
@@ -75,6 +75,15 @@ class OcpBase(object):
         """
         return self._get_ocp_version()
 
+    @property
+    def provider(self):
+        """
+        Return the name of the infrastructure provider if discoverable
+        :return: (str) The infrastructure provider as described by
+        spec.platformSpec.type in the Infrastructure resource
+        """
+        return self._get_infrastructure_provider()
+
     def _get_ocp_version(self):
         """
         Method that discovers the server version and returns it in the form of a tuple
@@ -94,6 +103,27 @@ class OcpBase(object):
         version_query = "sort_by(status.history[?state=='Completed'], &completionTime)[::-1].version"
         version = jmespath.search(version_query, version.to_dict())
         return Version(*map(int, version[0].split(".")))
+
+    def _get_infrastructure_provider(self):
+        """
+        Returns the infrastructure provided for this cluster by
+        instpecting the Infastructure resource.
+        :return: (str) The name of the infrastructure provider or None
+        """
+        provider = str()
+        try:
+            api_response = self.dyn_client.resources.search(api_version="config.openshift.io/v1", kind="Infrastructure")
+            assert isinstance(api_response, list)
+        except ApiException as e:
+            logger.exception("Exception was encountered while trying to get the infrastructure resource: {}".format(e))
+        if api_response and isinstance(api_response[0], Resource) and api_response[0].kind == "Infrastructure":
+            api_response = api_response[0]
+            infra_obj = api_response.get()
+            try:
+                provider = infra_obj.items[0].spec.platformSpec.type
+            except KeyError:
+                logger.error("Could not access the platformSpec key in Infrastructure: \n{}".format(infra_obj))
+        return provider
 
     def get_data_from_kubeconfig_v4(self):
         """
