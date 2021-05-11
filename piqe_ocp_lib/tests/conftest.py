@@ -18,8 +18,8 @@ def pytest_addoption(parser):
         default="latest",
         help="Version of OpenShift to test against for functional tests",
     )
-    parser.addoption("--openshift-first-master", action="store", help="Openshift first master HOSTNAME/IP")
-    parser.addoption("--openshift-default-tests-config", action="store", help="Openshift default tests config file")
+    parser.addoption("--openshift-first-master", action="store", help="Openshift first master HOSTNAME/IP", default=None)
+    parser.addoption("--openshift-default-tests-config", action="store", help="Openshift default tests config file", default=None)
     parser.addoption("--openshift-tests-log-dir", action="store", default="./logs/", help="Openshift tests logs dir")
     parser.addoption("--openshift-tests-log-level", action="store", default="INFO", help="Openshift tests log level")
     parser.addoption("--log-to-stdout", action="store", default="True", help="Log output to stdout as well as file")
@@ -57,18 +57,6 @@ def pytest_addoption(parser):
         help="The config yaml file describing the desired cluster layout",
     )
     parser.addoption("--num-jenkins-jobs", action="store", default=None, help="The number of jenkins job to create")
-    parser.addoption(
-        "--num-locust-clients",
-        action="store",
-        default=None,
-        help="Number of concurrent Locust users. Only used together with --no-web",
-    )
-    parser.addoption(
-        "--locust-hatch-rate",
-        action="store",
-        default=None,
-        help="The rate per second in which clients are spawned. Only used together with --no-web",
-    )
 
 
 def pytest_report_header(config):
@@ -132,15 +120,11 @@ def app_ops_args(request, get_kubeconfig, get_kubeconfig_3x):
             self.num_jenkins_jobs = 5
             self.kubeconfig = None
             self.kubeconfig_3x = None
-            self.num_locust_clients = None
-            self.locust_hatch_rate = None
 
     ops_args = AppOpsArgs()
     ops_args.cluster_config = request.config.getoption("--cluster-config")
     ops_args.span = request.config.getoption("--span")
     ops_args.num_jenkins_jobs = request.config.getoption("--num-jenkins-jobs")
-    ops_args.num_locust_clients = request.config.getoption("--num-locust-clients")
-    ops_args.locust_hatch_rate = request.config.getoption("--locust-hatch-rate")
     ops_args.kubeconfig = get_kubeconfig
     ops_args.kubeconfig_3x = get_kubeconfig_3x
     return ops_args
