@@ -1,5 +1,6 @@
 from collections import namedtuple
 import logging
+import os
 from threading import RLock
 import warnings
 
@@ -43,7 +44,7 @@ class OcpBase(object):
         """
         # Lock the thread in case of multi-threading
         with OcpBase._lock:
-            self.kube_config_file = kube_config_file
+            self.kube_config_file = kube_config_file or os.environ.get("KUBECONFIG")
 
     @property
     def k8s_client(self):

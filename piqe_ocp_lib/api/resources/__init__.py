@@ -18,6 +18,7 @@ from .ocp_routes import OcpRoutes
 from .ocp_secrets import OcpSecret
 from .ocp_services import OcpServices
 from .ocp_templates import OcpTemplates
+from .ocp_virtual_machine import OcpVirtualMachines, VirtualMachine
 
 __all__ = [
     "OcpBase",
@@ -38,4 +39,6 @@ __all__ = [
     "OcpMachineSet",
     "OcpMachines",
     "OcpServices",
+    "OcpVirtualMachines",
+    "VirtualMachine",
 ]
