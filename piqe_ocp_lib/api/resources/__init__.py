@@ -14,6 +14,7 @@ from .ocp_machine_management import OcpMachines, OcpMachineSet
 from .ocp_nodes import OcpNodes
 from .ocp_pods import OcpPods
 from .ocp_projects import OcpProjects
+from .ocp_resource_quotas import OcpResourceQuota
 from .ocp_routes import OcpRoutes
 from .ocp_secrets import OcpSecret
 from .ocp_services import OcpServices
@@ -38,4 +39,5 @@ __all__ = [
     "OcpMachineSet",
     "OcpMachines",
     "OcpServices",
+    "OcpResourceQuota",
 ]
