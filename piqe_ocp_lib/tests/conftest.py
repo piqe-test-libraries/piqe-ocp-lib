@@ -18,8 +18,12 @@ def pytest_addoption(parser):
         default="latest",
         help="Version of OpenShift to test against for functional tests",
     )
-    parser.addoption("--openshift-first-master", action="store", help="Openshift first master HOSTNAME/IP", default=None)
-    parser.addoption("--openshift-default-tests-config", action="store", help="Openshift default tests config file", default=None)
+    parser.addoption(
+        "--openshift-first-master", action="store", help="Openshift first master HOSTNAME/IP", default=None
+    )
+    parser.addoption(
+        "--openshift-default-tests-config", action="store", help="Openshift default tests config file", default=None
+    )
     parser.addoption("--openshift-tests-log-dir", action="store", default="./logs/", help="Openshift tests logs dir")
     parser.addoption("--openshift-tests-log-level", action="store", default="INFO", help="Openshift tests log level")
     parser.addoption("--log-to-stdout", action="store", default="True", help="Log output to stdout as well as file")

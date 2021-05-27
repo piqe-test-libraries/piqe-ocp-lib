@@ -1,0 +1,50 @@
+name: Publish to PyPi
+
+# RELEASE PROCESS
+#
+# === Manual activities ===
+#
+# 1. Document human readable changes in CHANGELOG
+# 2. Bump package version using poetry version <major|minor|patch|specific version>
+
+#
+# === Automated activities ===
+#
+# 1. Publish package to PyPi test repository
+# 2. Publish package to PyPi prod repository
+
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: "3.8"
+
+    - name: Install dependencies
+      run: make dev
+
+    - name: Build python package and wheel
+      run: poetry run build
+
+    - name: Upload to Pypi test
+      run: make release-test
+      env:
+        PYPI_USERNAME: __token__
+        PYPI_TEST_TOKEN: ${{ secrets.PYPI_TEST_TOKEN }}
+
+    - name: Upload to PyPi prod
+      run: make release-prod
+      env:
+        PYPI_USERNAME: __token__
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+

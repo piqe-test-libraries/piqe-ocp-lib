@@ -26,24 +26,24 @@ Change directory to piqe-ocp-lib and create a virtual environment.
 
 Enter the virtual environment, export the environment variables and performn a pip install.
 
-    source scenario/bin/activate  
-    export WORKSPACE=$PWD  
-    export KUBECONFIG=/vagrant/auth/ocp43/kubeconfig  
+    source scenario/bin/activate
+    export WORKSPACE=$PWD
+    export KUBECONFIG=/vagrant/auth/ocp43/kubeconfig
     pip install .
 
 At this point, your environment is prepared. Verify that you can connect to your OpenShift instance.
 
     $ oc cluster-info
-    Kubernetes master is running at https://api.<yourdomain>.com:6443  
+    Kubernetes master is running at https://api.<yourdomain>.com:6443
 
 #### Try running a test
 
 The API library resides under piqe_ocp_lib/api/resources, and the corresponding tests reside under piqe_ocp_lib/tests/resources.
 
 Run the test_ocp_base tests
-  
+
     pytest -sv piqe_ocp_lib/tests/resources/test_ocp_base.py
-    
+
 Results similar to those shown below should be presented.
 
     ====================================== test session starts ======================================
@@ -52,13 +52,28 @@ Results similar to those shown below should be presented.
     OpenShift version: latest
     rootdir: /vagrant/piqe-test-libraries/piqe-ocp-lib
     plugins: dependency-0.5.1, forked-1.1.3, xdist-1.31.0
-    collected 1 item                                                                                
+    collected 1 item
 
     piqe-ocp-lib/tests/resources/test_ocp_base.py::TestOcpBase::test_init 2020-03-18 16:00:03,318 INFO (get_openshift_cluster_info) openshift tests default configs:
     {'first_master': None}
     2020-03-18 16:00:03,318 INFO (log_start_test_case) Starting test case: test_init
     2020-03-18 16:00:03,883 - [INFO] - piqe_api_logger - test_ocp_base@test_init:25 - The obtained version is: 4.3.0
     PASSED2020-03-18 16:00:03,884 INFO (log_end_test_case) Ending test case: test_init
-    
-    
+
+
     ======================================= 1 passed in 0.96s =======================================
+
+## Release process
+
+We're maintaining a log of changes for every release. Semantic versioning and Keep a Changelog were chosen as standards. You can find more information about both standards [here](CHANGELOG.md).
+
+This library shall be automatically published to Pypi following the steps below:
+1. Update `CHANGELOG.md` with the new changes (Keep a Changelog);
+2. Bump your package version with `poetry version major.minor.patch` (Semantic Versioning);
+3. Open a PR with these two changes above;
+4. Manually create a GitHub release;
+5. Successful CI will publish.
+
+### Further improvements
+
+We're currently not running any tests in our CI phase due to some limitations. We should target improving this and remove this burden from developers.

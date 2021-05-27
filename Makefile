@@ -1,4 +1,4 @@
-.PHONY: dev format lint test build release
+.PHONY: dev format lint test build release-test release-prod
 
 dev:
 	pip install --upgrade pip poetry
@@ -17,6 +17,11 @@ test:
 build: lint test
 	poetry build
 
-release: build
+release-test:
+	poetry config repositories.testpypi https://test.pypi.org/simple
+	poetry config pypi-token.pypi ${PYPI_TEST_TOKEN}
+	poetry publish --repository testpypi -n
+
+release-prod:
 	poetry config pypi-token.pypi ${PYPI_TOKEN}
 	poetry publish --no-interaction
