@@ -30,7 +30,7 @@ ipdb = "^0.13.7"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-s"
+addopts = "-s -rxs"
 testpaths = ["./piqe_ocp_lib/tests"]
 markers = [
     "populate",

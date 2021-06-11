@@ -27,7 +27,6 @@ Change directory to piqe-ocp-lib and create a virtual environment.
 Enter the virtual environment, export the environment variables and performn a pip install.
 
     source scenario/bin/activate
-    export WORKSPACE=$PWD
     export KUBECONFIG=/vagrant/auth/ocp43/kubeconfig
     pip install .
 
@@ -62,6 +61,14 @@ Results similar to those shown below should be presented.
 
 
     ======================================= 1 passed in 0.96s =======================================
+
+#### Cluster Config
+
+Some task-level APIs or tests require the use of a cluster_config yaml file that describes 
+the layout of the cluster and the resources being deployed. You can either specify the file using a command
+line flag or set the variable `PIQE_OCP_LIB_CLUSTER_CONF` variable to the path. 
+
+For reference you can refer to the one used in our tests [here](piqe_ocp_lib/tests/config/smoke_ocp_config.yaml)
 
 ## Release process
 
