@@ -21,7 +21,6 @@ logger = logging.getLogger(__loggername__)
 
 Version = namedtuple("Version", ["major", "minor", "patch"])
 
-
 class OcpBase(object):
     """
     This dict will hold kubeconfig as key and DynamicClient object as value
@@ -95,15 +94,17 @@ class OcpBase(object):
         """
         try:
             client = self.dyn_client.resources.get(api_version="config.openshift.io/v1", kind="ClusterVersion")
-
             version = client.get(name=CLUSTER_VERSION_OPERATOR_ID)
         except ApiException as e:
             logger.exception(f"Exception was encountered while trying to obtain cluster version: {e}")
             return None
-
+         
         version_query = "sort_by(status.history[?state=='Completed'], &completionTime)[::-1].version"
+        print(version_query)
         version = jmespath.search(version_query, version.to_dict())
-        return Version(*map(int, version[0].split(".")))
+        if 'nightly'in version[0]:
+            version=(version[0].split('-'))[0]
+        return Version(*map(int, version.split(".")))
 
     def _get_infrastructure_provider(self):
         """
