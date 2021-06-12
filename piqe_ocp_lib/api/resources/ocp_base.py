@@ -103,8 +103,8 @@ class OcpBase(object):
         print(version_query)
         version = jmespath.search(version_query, version.to_dict())
         if 'nightly'in version[0]:
-            version=(version[0].split('-'))[0]
-        return Version(*map(int, version.split(".")))
+            version=[(version[0].split('-'))[0]]
+        return Version(*map(int, version[0].split(".")))
 
     def _get_infrastructure_provider(self):
         """
