@@ -100,7 +100,6 @@ class OcpBase(object):
             return None
          
         version_query = "sort_by(status.history[?state=='Completed'], &completionTime)[::-1].version"
-        print(version_query)
         version = jmespath.search(version_query, version.to_dict())
         if 'nightly'in version[0]:
             version=[(version[0].split('-'))[0]]
