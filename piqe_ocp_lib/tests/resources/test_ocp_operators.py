@@ -1,5 +1,6 @@
 import logging
 import random
+import string
 from time import sleep
 from unittest import mock
 
@@ -12,6 +13,7 @@ from piqe_ocp_lib.api.resources.ocp_operators import (
     OperatorGroup,
     OperatorhubPackages,
     OperatorSource,
+    CatalogSource,
     Subscription,
 )
 from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
@@ -35,6 +37,7 @@ def get_test_objects(get_kubeconfig):
             self.csv_obj = ClusterServiceVersion(kube_config_file=get_kubeconfig)
             self.project_obj = OcpProjects(kube_config_file=get_kubeconfig)
             self.oi_obj = OperatorInstaller(kube_config_file=get_kubeconfig)
+            self.cs_obj=CatalogSource(kube_config_file=get_kubeconfig)
 
     test_objs = TestObjects()
     return test_objs
@@ -64,6 +67,9 @@ def cluster_service(get_kubeconfig) -> ClusterServiceVersion:
 def operator_source(get_kubeconfig) -> OperatorSource:
     return OperatorSource(kube_config_file=get_kubeconfig)
 
+@pytest.fixture(scope="module")
+def catalog_source(get_kubeconfig) -> CatalogSource:
+    return CatalogSource(kube_config_file=get_kubeconfig)
 
 class TestOcpOperatorHub:
     def test_get_package_manifest_list(self, get_test_objects):
@@ -161,6 +167,16 @@ class TestOperatorSource:
             get_resp = os_obj.get_operator_source("test-os")
         except ValueError:
             assert not get_resp
+
+
+class TestCatalogSource:
+    def test_create_catalog_source(self, get_test_objects):
+        cs_name='test-'+'-'+''.join(random.choice(string.ascii_lowercase) for i in range(4))
+        image="quay.io/openshift-qe-optional-operators/ocp4-index:latest"
+        cs_obj = get_test_objects.cs_obj
+        cs_resp_obj = cs_obj.create_catalog_source(cs_name,image)
+        assert cs_resp_obj.kind == "CatalogSource" and cs_resp_obj.metadata.name == cs_name
+
 
 
 class TestSubscription:
