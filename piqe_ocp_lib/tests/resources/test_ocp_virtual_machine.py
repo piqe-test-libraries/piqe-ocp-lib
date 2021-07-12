@@ -10,6 +10,7 @@ from piqe_ocp_lib.api.resources.ocp_virtual_machine import (
     VirtualMachineSubResourcesClient,
 )
 
+pytestmark = pytest.mark.requiresoperator('kubevirt-hyperconverged')
 
 @pytest.fixture(scope="module")
 def vm_name() -> str:

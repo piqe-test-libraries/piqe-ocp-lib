@@ -9,6 +9,7 @@ import pytest
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.piqe_api_logger import piqe_api_logger
+from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
 
 
 def pytest_addoption(parser):
@@ -67,9 +68,33 @@ def pytest_report_header(config):
     return "OpenShift version: {}".format(config.getoption("--openshift-version"))
 
 
-@pytest.fixture(scope="session")
-def get_kubeconfig(request):
-    if request.config.getoption("--kubeconfig"):
+def pytest_runtest_setup(item):
+
+    """
+    Adding this because we have some tests that depend on an operator existing in the test cluster
+    because they aren't fully mocked out but our test cluster can't really support the operator yet.
+    So making it that developers can mark their tests with this marker by specifying that the tests
+    depend on an operator. If the operator doesn't exist the test will be skipped, if
+    it does the test will run.
+    """
+    op_names = {mark.args[0]: item.name for mark in item.iter_markers(name="requiresoperator")}
+    if op_names:
+        k8config = _get_kubeconfig()
+        ops = OcpClusterOperator(k8config)
+        for name in op_names:
+            if name not in ops.get_cluster_operators_name():
+                pytest.skip(f"Skipping test, {op_names[name]}, because operator: {name} is required and not installed.")
+
+
+def _get_kubeconfig(request=None):
+    """
+    Actual logic to find the kubconfig file that can get used
+    by the fixtures and other methods in this conftest.
+
+    :param request:
+    :return: str
+    """
+    if request and request.config.getoption("--kubeconfig"):
         k8config = request.config.getoption("--kubeconfig")
     elif "KUBECONFIG" in os.environ.keys() and os.environ["KUBECONFIG"]:
         k8config = os.environ["KUBECONFIG"]
@@ -79,6 +104,12 @@ def get_kubeconfig(request):
             "via the --kubeconfig command option or by setting a KUBECONFIG "
             "environment variable"
         )
+    return k8config
+
+
+@pytest.fixture(scope="session")
+def get_kubeconfig(request):
+    k8config = _get_kubeconfig(request)
     return k8config
 
 
