@@ -168,7 +168,7 @@ class TestOperatorSource:
         except ValueError:
             assert not get_resp
 
-
+@pytest.mark.check1
 class TestCatalogSource:
     def test_create_catalog_source(self, get_test_objects):
         cs_name='test-'+'-'+''.join(random.choice(string.ascii_lowercase) for i in range(4))
