@@ -67,10 +67,6 @@ def cluster_service(get_kubeconfig) -> ClusterServiceVersion:
 def operator_source(get_kubeconfig) -> OperatorSource:
     return OperatorSource(kube_config_file=get_kubeconfig)
 
-@pytest.fixture(scope="module")
-def catalog_source(get_kubeconfig) -> CatalogSource:
-    return CatalogSource(kube_config_file=get_kubeconfig)
-
 class TestOcpOperatorHub:
     def test_get_package_manifest_list(self, get_test_objects):
         # Simple check on the kind of the response object
