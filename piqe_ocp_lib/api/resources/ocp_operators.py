@@ -306,7 +306,8 @@ class CatalogSource(OcpBase):
         self.kind = "CatalogSource"
         self.catalog_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_catalog_source(self, cs_name, image, displayName="Optional operators", publisher="Red Hat", namespace="openshift-marketplace"):
+    def create_catalog_source(self, cs_name, image, displayName="Optional operators", 
+                              publisher="Red Hat", namespace="openshift-marketplace"):
         cs_body = {
         "apiVersion": self.api_version,
         "kind": self.kind,
