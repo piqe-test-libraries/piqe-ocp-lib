@@ -166,12 +166,23 @@ class TestOperatorSource:
 
 
 class TestCatalogSource:
+    cs_name='test-'+'-'+''.join(random.choice(string.ascii_lowercase) for i in range(4))
+    
     def test_create_catalog_source(self, get_test_objects):
-        cs_name='test-'+'-'+''.join(random.choice(string.ascii_lowercase) for i in range(4))
         image="quay.io/openshift-qe-optional-operators/ocp4-index:latest"
         cs_obj = get_test_objects.cs_obj
-        cs_resp_obj = cs_obj.create_catalog_source(cs_name,image)
-        assert cs_resp_obj.kind == "CatalogSource" and cs_resp_obj.metadata.name == cs_name
+        cs_resp_obj = cs_obj.create_catalog_source(self.cs_name,image)
+        assert cs_resp_obj.kind == "CatalogSource" and cs_resp_obj.metadata.name == self.cs_name
+
+    def test_delete_catalog_source(self, get_test_objects):
+        cs_obj = get_test_objects.cs_obj
+        cs_resp_obj = cs_obj.delete_catalog_source(self.cs_name)
+        get_resp = None
+        try:
+            get_resp = cs_obj.get_catalog_source(self.cs_name)
+        except ValueError:
+            assert not get_resp
+
 
 
 
