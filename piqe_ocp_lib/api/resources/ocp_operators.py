@@ -306,14 +306,19 @@ class CatalogSource(OcpBase):
         self.kind = "CatalogSource"
         self.catalog_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_catalog_source(self, cs_name, image, displayName="Optional operators", publisher="Red Hat", namespace="openshift-marketplace"):
-        spec_dict =  {"displayName": displayName,  "icon": {"base64data": "", "mediatype": ""} , 
-                      "image": image , "publisher": publisher,  "sourceType": "grpc"}
+    def create_catalog_source(self, cs_name, image, displayName="Optional operators", 
+                              publisher="Red Hat", namespace="openshift-marketplace"):
         cs_body = {
         "apiVersion": self.api_version,
         "kind": self.kind,
         "metadata": {"name": cs_name, "namespace": namespace},
-        "spec": spec_dict,
+        'spec': {
+            'displayName': displayName,
+            'icon': {'base64data': '', 'mediatype': ''},
+            'image': image,
+            'publisher': publisher,
+            'sourceType': 'grpc',
+            },
         }
         api_response = None
         try:
@@ -321,8 +326,14 @@ class CatalogSource(OcpBase):
         except ApiException as e:
             logger.exception("Exception when calling method create_operator_source: %s\n" % e)
         return api_response
-
-
+  
+    def delete_catalog_source(self, cs_name, namespace="openshift-marketplace"):
+        api_response = None
+        try:
+            api_response = self.catalog_source_obj.delete(name=cs_name, namespace=namespace)
+        except ApiException as e:
+            logger.exception("Exception when calling method delete_catalog_source: %s\n" % e)
+        return api_response
 
     def get_catalog_source(self, cs_name, namespace="openshift-marketplace"):
         """
