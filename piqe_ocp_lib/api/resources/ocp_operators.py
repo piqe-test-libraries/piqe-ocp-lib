@@ -326,7 +326,7 @@ class CatalogSource(OcpBase):
         except ApiException as e:
             logger.exception("Exception when calling method create_operator_source: %s\n" % e)
         return api_response
-  
+
     def delete_catalog_source(self, cs_name, namespace="openshift-marketplace"):
         api_response = None
         try:

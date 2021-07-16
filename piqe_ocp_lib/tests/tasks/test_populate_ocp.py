@@ -20,11 +20,22 @@ def populate_ocp_cluster(ocp_smoke_args):
     """
     if ocp_smoke_args.cluster_config:
         cluster_config = ocp_smoke_args.cluster_config
-    elif "WORKSPACE" in os.environ and os.environ["WORKSPACE"]:
-        cluster_config = "%s/piqe_ocp_lib/tests/" "config/smoke_ocp_config.yaml" % os.environ["WORKSPACE"]
+    elif "PIQE_OCP_LIB_CLUSTER_CONF" in os.environ and os.environ["PIQE_OCP_LIB_CLUSTER_CONF"]:
+        # If we support the use of a env variable this works better to
+        # support a library specific variable than use WORKSPACE
+        # since in the Jenkins context WORKSPACE doesn't necessarily mean the
+        # PWD which can lead to trouble
+        cluster_config = os.path.abspath(os.path.expandvars(os.path.expanduser(os.environ['PIQE_OCP_LIB_CLUSTER_CONF'])
+                                                            )
+                                         )
+    elif os.path.exists(os.path.join('/'.join(__file__.split(os.sep)[:-2]), 'config/', 'smoke_ocp_config.yaml')):
+        # This is a reliable way to default to finding the ocp_config.yml in the test/config directory
+        # by working our way up the parent directory from the location of this test file rather
+        # than relying on the on the WORKSPACE env and assuming the relative path.
+        cluster_config = os.path.join('/'.join(__file__.split(os.sep)[:-2]), 'config/', 'smoke_ocp_config.yaml')
     else:
         raise ValueError(
-            "A path to the cluster config yaml was expected, or a WORKSPACE env variable"
+            "A path to the cluster config yaml was expected, or a PIQE_OCP_LIB_CLUSTER_CONF env variable"
             " to find the default template"
         )
     logger.info("Config Template Location : %s", cluster_config)
@@ -99,7 +110,8 @@ class TestOperatorIntaller:
     @mock.patch.object(Subscription, "get_subscription")
     @mock.patch.object(Subscription, "delete_subscription", side_effect=[ApiException])
     @mock.patch.object(ClusterServiceVersion, "delete")
-    def test_delete_operator_from_cluster_failed_to_delete_sub(self, mock_get_sub, get_kubeconfig, caplog):
+    def test_delete_operator_from_cluster_failed_to_delete_sub(self, _mock_delete, _mock_del_sub, mock_get_sub,
+                                                               get_kubeconfig, caplog):
         caplog.set_level(logging.ERROR)
 
         expected_operator_name = "foo-name"

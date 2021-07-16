@@ -164,10 +164,9 @@ class TestOperatorSource:
         except ValueError:
             assert not get_resp
 
-@pytest.mark.check1
 class TestCatalogSource:
     cs_name='test-'+'-'+''.join(random.choice(string.ascii_lowercase) for i in range(4))
-    
+
     def test_create_catalog_source(self, get_test_objects):
         image="quay.io/openshift-qe-optional-operators/ocp4-index:latest"
         cs_obj = get_test_objects.cs_obj
@@ -176,13 +175,12 @@ class TestCatalogSource:
 
     def test_delete_catalog_source(self, get_test_objects):
         cs_obj = get_test_objects.cs_obj
-        cs_resp_obj = cs_obj.delete_catalog_source(self.cs_name)
+        cs_obj.delete_catalog_source(self.cs_name)
         get_resp = None
         try:
             get_resp = cs_obj.get_catalog_source(self.cs_name)
         except ValueError:
             assert not get_resp
-
 
 
 
@@ -301,7 +299,8 @@ class TestInstallOperatorWorkflow:
         project_resource.create_a_project("test-project4")
         operator_installer.add_operator_to_cluster("amq-streams", target_namespaces=["test-project4"])
         csv_name = operator_hub.get_package_singlenamespace_channel("amq-streams").currentCSV
-        assert cluster_service.is_cluster_service_version_present(csv_name, "test-project4")
+        # increased timeout because on slow virtual clusters the default 30 seconds may not be enough
+        assert cluster_service.is_cluster_service_version_present(csv_name, "test-project4", timeout=60)
         # TODO: update when delete_operator_from_cluster is implemented
         project_resource.delete_a_project("test-amq-streams-singlenamespace-og-sub-project")
         project_resource.delete_a_project("test-project4")
@@ -313,8 +312,9 @@ class TestInstallOperatorWorkflow:
 
         csv_name = operator_hub.get_package_multinamespace_channel("amq-streams").currentCSV
 
-        assert cluster_service.is_cluster_service_version_present(csv_name, "test-project5")
-        assert cluster_service.is_cluster_service_version_present(csv_name, "test-project6")
+        # increased timeout because on slow virtual clusters the default 30 seconds may not be enough
+        assert cluster_service.is_cluster_service_version_present(csv_name, "test-project5", timeout=60)
+        assert cluster_service.is_cluster_service_version_present(csv_name, "test-project6", timeout=60)
 
         # TODO: update when delete_operator_from_cluster is implemented
         project_resource.delete_a_project("test-amq-streams-multinamespace-og-sub-project")
@@ -328,7 +328,8 @@ class TestInstallOperatorWorkflow:
         all_projects = project_resource.get_all_projects()
 
         for project in all_projects.items:
-            assert cluster_service.is_cluster_service_version_present(csv_name, project.metadata.name)
+            # increased timeout because on slow virtual clusters the default 30 seconds may not be enough
+            assert cluster_service.is_cluster_service_version_present(csv_name, project.metadata.name, timeout=60)
 
         project_resource.delete_a_project("test-amq-streams-allnamespaces-og-sub-project")
         project_resource.delete_a_project("test-project7")
