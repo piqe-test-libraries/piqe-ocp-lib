@@ -1,6 +1,7 @@
 import logging
 import random
 import string
+import json
 from time import sleep
 from unittest import mock
 
@@ -126,7 +127,16 @@ class TestOcpOperatorHub:
         else:
             logger.warning("The randomly picked package doesn't seem to have a single namespace channel")
 
+    
+    def test_get_yaml_from_annotation(self, get_test_objects):
+        yfa_obj = get_test_objects.op_hub_obj
+        channel=yfa_obj.get_yaml_from_annotation("amq-streams-1.6.x") 
+        alm=getattr(channel.currentCSVDesc.annotations, "alm-examples")
+        assert len(alm)>1
+        assert '"apiVersion":' in alm
+        assert '"kind":' in alm     
 
+ 
 @pytest.mark.skipif(config.version >= (4, 6, 0), reason="Removed from openshift >= 4.6")
 class TestOperatorSource:
     def test_create_operator_source(self, get_test_objects):

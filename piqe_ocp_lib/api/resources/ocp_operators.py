@@ -141,7 +141,7 @@ class OperatorhubPackages(OcpBase):
         :param package_name: The name of the operator package for which we want to
                              obtain the multinamespace channel name.
         :return: The name of the multinamespace channel, if availabele, otherwise
-                 the method returns None.
+                 the method returns None.4
         """
         channels_list = self.get_package_channels_list(package_name)
         multinamespace_channels = []
@@ -200,6 +200,19 @@ class OperatorhubPackages(OcpBase):
             logger.error("A OwnNamespace channel was not found for package: {}".format(package_name))
         return None
 
+    def get_yaml_from_annotation(self, channel_name):
+        """
+        A method that returns a channel object
+        :param channel_name: name of the channel 
+        :return: channel object
+        """
+        pkg_details = self.get_package_manifest("amq-streams")
+        channels_list = self.get_package_channels_list(pkg_details.metadata.name)
+
+        for channel in channels_list:
+            if channel.name == channel_name:
+               channel=channel
+        return channel 
 
 class OperatorSource(OcpBase):
     """
