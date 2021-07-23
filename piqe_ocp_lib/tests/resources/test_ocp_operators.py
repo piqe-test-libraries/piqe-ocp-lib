@@ -1,7 +1,6 @@
 import logging
 import random
 import string
-import json
 from time import sleep
 from unittest import mock
 
