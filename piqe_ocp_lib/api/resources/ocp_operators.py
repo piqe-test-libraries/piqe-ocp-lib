@@ -141,7 +141,7 @@ class OperatorhubPackages(OcpBase):
         :param package_name: The name of the operator package for which we want to
                              obtain the multinamespace channel name.
         :return: The name of the multinamespace channel, if availabele, otherwise
-                 the method returns None.4
+                 the method returns None.
         """
         channels_list = self.get_package_channels_list(package_name)
         multinamespace_channels = []
