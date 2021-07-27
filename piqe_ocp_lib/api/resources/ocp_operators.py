@@ -200,20 +200,24 @@ class OperatorhubPackages(OcpBase):
             logger.error("A OwnNamespace channel was not found for package: {}".format(package_name))
         return None
 
-    def get_yaml_from_annotation(self, channel_name):
+    def get_yaml_from_annotation(self, package_name, channel_name):
         """
         A method that returns a channel object
-        :param channel_name: name of the channel 
-        :return: channel object
+        :param package_name: name of the package
+        :param channel_name: name of the channel
+        :return: list of dictionary of alm-examples
+        TODO: replace the logic with a method call once CSSWA-526 is merged
         """
-        pkg_details = self.get_package_manifest("amq-streams")
-        channels_list = self.get_package_channels_list(pkg_details.metadata.name)
-
+        channels_list = self.get_package_channels_list(package_name)
         for channel in channels_list:
             if channel.name == channel_name:
-               channel=channel
-        return channel 
+                channel_obj = channel
+        logger.error(f"A channel with the name {channel_name} could not be found")
 
+        alm = channel_obj.currentCSVDesc.annotations['alm-examples']
+        alm_list = json.loads(alm)
+        return alm_list
+   
 class OperatorSource(OcpBase):
     """
     A class that provides a user the ability to create OperatorSource objects whcih then can be used
