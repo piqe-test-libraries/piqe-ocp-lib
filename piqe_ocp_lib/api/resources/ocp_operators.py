@@ -200,12 +200,12 @@ class OperatorhubPackages(OcpBase):
             logger.error("A OwnNamespace channel was not found for package: {}".format(package_name))
         return None
 
-    def get_yaml_from_annotation(self, package_name, channel_name):
+    def get_crd_models_from_manifest(self, package_name, channel_name):
         """
         A method that returns a channel object
         :param package_name: name of the package
         :param channel_name: name of the channel
-        :return: list of dictionary of alm-examples
+        :return: list of dictionary alm-examples
         TODO: replace the logic with a method call once CSSWA-526 is merged
         """
         channels_list = self.get_package_channels_list(package_name)
@@ -217,6 +217,7 @@ class OperatorhubPackages(OcpBase):
         alm = channel_obj.currentCSVDesc.annotations['alm-examples']
         alm_list = json.loads(alm)
         return alm_list
+    
    
 class OperatorSource(OcpBase):
     """
