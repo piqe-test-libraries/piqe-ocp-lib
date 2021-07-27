@@ -126,7 +126,17 @@ class TestOcpOperatorHub:
         else:
             logger.warning("The randomly picked package doesn't seem to have a single namespace channel")
 
-
+    
+    def test_get_crd_models_from_manifest(self, get_test_objects):
+        cmfm_obj = get_test_objects.op_hub_obj
+        alm_list=cmfm_obj.get_crd_models_from_manifest('amq-streams', 'stable')
+        assert len(alm_list)!= 0
+        for i in range(0,len(alm_list)):
+            assert 'apiVersion' in alm_list[i].keys()
+        for i in range(0,len(alm_list)):
+            assert 'kind' in alm_list[i].keys()
+ 
+ 
 @pytest.mark.skipif(config.version >= (4, 6, 0), reason="Removed from openshift >= 4.6")
 class TestOperatorSource:
     def test_create_operator_source(self, get_test_objects):

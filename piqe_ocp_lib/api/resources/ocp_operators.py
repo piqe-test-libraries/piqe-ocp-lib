@@ -1,7 +1,7 @@
 import logging
 from time import sleep
 import warnings
-
+import json
 from kubernetes.client.rest import ApiException
 
 from piqe_ocp_lib import __loggername__
@@ -200,7 +200,25 @@ class OperatorhubPackages(OcpBase):
             logger.error("A OwnNamespace channel was not found for package: {}".format(package_name))
         return None
 
+    def get_crd_models_from_manifest(self, package_name, channel_name):
+        """
+        A method that returns a channel object
+        :param package_name: name of the package
+        :param channel_name: name of the channel
+        :return: list of dictionary alm-examples
+        TODO: replace the logic with a method call once CSSWA-526 is merged
+        """
+        channels_list = self.get_package_channels_list(package_name)
+        for channel in channels_list:
+            if channel.name == channel_name:
+                target_channel = channel
+                break
+        alm = target_channel.currentCSVDesc.annotations['alm-examples']
+        alm_list = json.loads(alm)
+        return alm_list
 
+    
+   
 class OperatorSource(OcpBase):
     """
     A class that provides a user the ability to create OperatorSource objects whcih then can be used
