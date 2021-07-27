@@ -211,12 +211,12 @@ class OperatorhubPackages(OcpBase):
         channels_list = self.get_package_channels_list(package_name)
         for channel in channels_list:
             if channel.name == channel_name:
-                channel_obj = channel
-        logger.error(f"A channel with the name {channel_name} could not be found")
-
-        alm = channel_obj.currentCSVDesc.annotations['alm-examples']
+                target_channel = channel
+                break
+        alm = target_channel.currentCSVDesc.annotations['alm-examples']
         alm_list = json.loads(alm)
         return alm_list
+
     
    
 class OperatorSource(OcpBase):
