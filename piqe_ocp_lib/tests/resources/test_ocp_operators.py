@@ -129,12 +129,10 @@ class TestOcpOperatorHub:
     
     def test_get_yaml_from_annotation(self, get_test_objects):
         yfa_obj = get_test_objects.op_hub_obj
-        channel=yfa_obj.get_yaml_from_annotation("amq-streams-1.6.x") 
-        alm=getattr(channel.currentCSVDesc.annotations, "alm-examples")
-        assert len(alm)>1
-        assert '"apiVersion":' in alm
-        assert '"kind":' in alm     
-
+        alm_list=yfa_obj.get_yaml_from_annotation('amq-streams', 'stable')
+        assert len(alm_list)>1
+        assert alm_list[0]['kind'] == 'Kafka'
+ 
  
 @pytest.mark.skipif(config.version >= (4, 6, 0), reason="Removed from openshift >= 4.6")
 class TestOperatorSource:
