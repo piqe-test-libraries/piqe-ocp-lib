@@ -77,6 +77,20 @@ class OperatorInstaller(OcpBase):
 
         return True
 
+    def verify_operator_installed(self, operator_name, namespace):
+        """
+        Check if operator is installed and returned true or false
+        :param operator_name: name of the operator.
+        :param channel_name: name of the channel
+        return: object of CSV
+        """  
+        csv = ClusterServiceVersion(self.kube_config_file)
+        subscription = self.sub_obj.get_subscription(operator_name, namespace)
+        csv_name = subscription.status.currentCSV
+        csv_obj = csv.get_cluster_service_version(csv_name, namespace)
+        return csv_obj
+        
+
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
         Uninstall an operator from a cluster

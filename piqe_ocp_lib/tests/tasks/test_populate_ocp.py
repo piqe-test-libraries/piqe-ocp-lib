@@ -106,6 +106,14 @@ class TestOperatorIntaller:
 
         assert "Failed to retrieve subscription" in [m.message for m in caplog.records]
 
+
+    def test_verify_operator_installed(self, get_kubeconfig):
+        verify=OperatorInstaller(get_kubeconfig)
+        csv_obj = verify.verify_operator_installed('local-storage-operator','openshift-local-storage')
+        assert csv_obj is not None
+        assert csv_obj.metadata.namespace == 'openshift-local-storage'
+        assert csv_obj.kind == 'ClusterServiceVersion' 
+
     @pytest.mark.unit
     @mock.patch.object(Subscription, "get_subscription")
     @mock.patch.object(Subscription, "delete_subscription", side_effect=[ApiException])
