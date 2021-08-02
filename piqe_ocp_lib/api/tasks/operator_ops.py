@@ -78,7 +78,7 @@ class OperatorInstaller(OcpBase):
 
         return True
 
-    def is_operator_installed(self, operator_name, operator_namespace):
+    def is_operator_installed(self, operator_name: str, operator_namespace: str) -> bool:
         """
         Check if operator is installed and returned true or false
         :param operator_name: name of the operator.
