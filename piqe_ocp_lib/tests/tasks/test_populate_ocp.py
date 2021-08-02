@@ -108,11 +108,12 @@ class TestOperatorIntaller:
 
 
     def test_verify_operator_installed(self, get_kubeconfig):
-        verify=OperatorInstaller(get_kubeconfig)
-        csv_obj = verify.verify_operator_installed('local-storage-operator','openshift-local-storage')
-        assert csv_obj is not None
-        assert csv_obj.metadata.namespace == 'openshift-local-storage'
-        assert csv_obj.kind == 'ClusterServiceVersion' 
+        verify = OperatorInstaller(get_kubeconfig)
+        csv_resp = verify.verify_operator_installed('packageserver','openshift-operator-lifecycle-manager')
+        assert csv_resp is not None
+        assert csv_resp.metadata.namespace == 'openshift-operator-lifecycle-manager'
+        assert csv_resp.kind == 'ClusterServiceVersion'
+
 
     @pytest.mark.unit
     @mock.patch.object(Subscription, "get_subscription")
