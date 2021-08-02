@@ -85,8 +85,7 @@ class OperatorInstaller(OcpBase):
         :param operator_namespace: namespace of the operator
         rturn: object of values of csv
         """
-        csv = self.csv
-        csv_resp = csv.get_cluster_service_version(operator_name, operator_namespace)
+        csv_resp = self.csv.get_cluster_service_version(operator_name, operator_namespace)
         return csv_resp    
       
 
@@ -97,8 +96,6 @@ class OperatorInstaller(OcpBase):
         :param namespace: name of the namespace the operator is installed
         :return: success or failure
         """
-        csv = self.csv
-
         try:
             subscription = self.sub_obj.get_subscription(operator_name, namespace)
             csv_name = subscription.status.currentCSV
@@ -108,7 +105,7 @@ class OperatorInstaller(OcpBase):
 
         try:
             self.sub_obj.delete_subscription(operator_name, namespace)
-            csv.delete(csv_name, namespace)
+            self.csv.delete(csv_name, namespace)
         except ApiException:
             logger.error(f"Failed to uninstall operator {operator_name}")
             return False
