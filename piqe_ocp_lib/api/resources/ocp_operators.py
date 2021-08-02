@@ -61,13 +61,11 @@ class OperatorhubPackages(OcpBase):
             package_obj = self.package_manifest_obj.get(field_selector="metadata.name={}".format(package_name))
         except ApiException as e:
             logger.exception("Exception when calling method get_package_manifest: %s\n" % e)
-        if package_obj and len(package_obj.items) == 1:
+        if package_obj and len(package_obj.items) >= 1:
             return package_obj.items[0]
-        elif len(package_obj.items) == 0:
+        else:
             logger.exception("The package {}, could not be detected".format(package_name))
             return None
-        else:
-            return package_obj.items
 
     def watch_package_manifest_present(self, package_name, timeout=30):
         """
