@@ -107,9 +107,9 @@ class TestOperatorIntaller:
         assert "Failed to retrieve subscription" in [m.message for m in caplog.records]
 
 
-    def test_verify_operator_installed(self, get_kubeconfig):
+    def test_is_operator_installed(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
-        csv_resp = verify.verify_operator_installed('packageserver','openshift-operator-lifecycle-manager')
+        csv_resp = verify.is_operator_installed('packageserver','openshift-operator-lifecycle-manager')
         assert csv_resp is not None
         assert csv_resp.metadata.namespace == 'openshift-operator-lifecycle-manager'
         assert csv_resp.kind == 'ClusterServiceVersion'
