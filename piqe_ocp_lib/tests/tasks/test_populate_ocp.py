@@ -109,10 +109,7 @@ class TestOperatorIntaller:
 
     def test_is_operator_installed(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
-        csv_resp = verify.is_operator_installed('packageserver','openshift-operator-lifecycle-manager')
-        assert csv_resp is not None
-        assert csv_resp.metadata.namespace == 'openshift-operator-lifecycle-manager'
-        assert csv_resp.kind == 'ClusterServiceVersion'
+        assert verify.is_operator_installed('packageserver','openshift-operator-lifecycle-manager') == True
 
 
     @pytest.mark.unit
