@@ -78,17 +78,16 @@ class OperatorInstaller(OcpBase):
 
         return True
 
-    def verify_operator_installed(self, operator_name, operator_namespace):
+    def is_operator_installed(self, operator_name, operator_namespace):
         """
         Check if operator is installed and returned true or false
         :param operator_name: name of the operator.
         :param operator_namespace: namespace of the operator
-        return: object of values of csv
+        rturn: object of values of csv
         """
         csv = self.csv
         csv_resp = csv.get_cluster_service_version(operator_name, operator_namespace)
-        return csv_resp
-
+        return csv_resp    
       
 
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
