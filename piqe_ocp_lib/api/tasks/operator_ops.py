@@ -21,6 +21,7 @@ class OperatorInstaller(OcpBase):
         self.sub_obj = Subscription(kube_config_file=self.kube_config_file)
         self.ohp_obj = OperatorhubPackages(kube_config_file=self.kube_config_file)
         self.proj_obj = OcpProjects(kube_config_file=self.kube_config_file)
+        self.csv = ClusterServiceVersion(self.kube_config_file)
 
     def _derive_install_mode_from_target_namespaces(self, operator_name, target_namespaces):
         """
@@ -77,19 +78,18 @@ class OperatorInstaller(OcpBase):
 
         return True
 
-    def verify_operator_installed(self, operator_name, namespace):
+    def verify_operator_installed(self, operator_name, operator_namespace):
         """
         Check if operator is installed and returned true or false
         :param operator_name: name of the operator.
-        :param channel_name: name of the channel
-        return: object of CSV
-        """  
-        csv = ClusterServiceVersion(self.kube_config_file)
-        subscription = self.sub_obj.get_subscription(operator_name, namespace)
-        csv_name = subscription.status.currentCSV
-        csv_obj = csv.get_cluster_service_version(csv_name, namespace)
-        return csv_obj
-        
+        :param operator_namespace: namespace of the operator
+        return: object of values of csv
+        """
+        csv = self.csv
+        csv_resp = csv.get_cluster_service_version(operator_name, operator_namespace)
+        return csv_resp
+
+      
 
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
@@ -98,7 +98,7 @@ class OperatorInstaller(OcpBase):
         :param namespace: name of the namespace the operator is installed
         :return: success or failure
         """
-        csv = ClusterServiceVersion(self.kube_config_file)
+        csv = self.csv
 
         try:
             subscription = self.sub_obj.get_subscription(operator_name, namespace)
