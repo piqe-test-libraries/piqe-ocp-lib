@@ -83,7 +83,7 @@ class OperatorInstaller(OcpBase):
         Check if operator is installed and returned true or false
         :param operator_name: name of the operator.
         :param operator_namespace: namespace of the operator
-        rturn: object of values of csv
+        return: object of values of csv
         """
         csv_resp = self.csv.get_cluster_service_version(operator_name, operator_namespace)
         return csv_resp    
