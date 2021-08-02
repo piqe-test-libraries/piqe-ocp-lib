@@ -61,7 +61,7 @@ class TestPopulateOcpCluster:
                 ocp_smoke_args.span, scale_replicas=ocp_smoke_args.replicas
             )
         except Exception as e:
-            logger.error("Exception while running longevity: %s", e.message)
+            logger.error("Exception while running longevity: %s", str(e))
         logger.info("Is longevity completed successfully? : %s", is_longevity_successful)
         assert is_longevity_successful is True
 
