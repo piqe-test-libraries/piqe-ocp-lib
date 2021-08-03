@@ -21,6 +21,7 @@ class OperatorInstaller(OcpBase):
         self.sub_obj = Subscription(kube_config_file=self.kube_config_file)
         self.ohp_obj = OperatorhubPackages(kube_config_file=self.kube_config_file)
         self.proj_obj = OcpProjects(kube_config_file=self.kube_config_file)
+        self.csv = ClusterServiceVersion(self.kube_config_file)
 
     def _derive_install_mode_from_target_namespaces(self, operator_name, target_namespaces):
         """
@@ -77,6 +78,16 @@ class OperatorInstaller(OcpBase):
 
         return True
 
+    def is_operator_installed(self, operator_name: str, operator_namespace: str) -> bool:
+        """
+        Check if operator is installed and returned true or false
+        :param operator_name: name of the operator.
+        :param operator_namespace: namespace of the operator
+        return: installed or not
+        """
+        return self.csv.get_cluster_service_version(operator_name, operator_namespace) is not None
+      
+
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
         Uninstall an operator from a cluster
@@ -84,8 +95,6 @@ class OperatorInstaller(OcpBase):
         :param namespace: name of the namespace the operator is installed
         :return: success or failure
         """
-        csv = ClusterServiceVersion(self.kube_config_file)
-
         try:
             subscription = self.sub_obj.get_subscription(operator_name, namespace)
             csv_name = subscription.status.currentCSV
@@ -95,7 +104,7 @@ class OperatorInstaller(OcpBase):
 
         try:
             self.sub_obj.delete_subscription(operator_name, namespace)
-            csv.delete(csv_name, namespace)
+            self.csv.delete(csv_name, namespace)
         except ApiException:
             logger.error(f"Failed to uninstall operator {operator_name}")
             return False
