@@ -85,10 +85,7 @@ class OperatorInstaller(OcpBase):
         :param operator_namespace: namespace of the operator
         return: installed or not
         """
-        if self.csv.get_cluster_service_version(operator_name, operator_namespace) is not None:
-            return True
-        else:
-            return False    
+        return self.csv.get_cluster_service_version(operator_name, operator_namespace) is not None
       
 
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
