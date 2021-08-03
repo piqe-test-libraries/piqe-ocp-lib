@@ -109,7 +109,7 @@ class TestOperatorIntaller:
 
     def test_is_operator_installed(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
-        assert verify.is_operator_installed('packageserver','openshift-operator-lifecycle-manager') == True
+        assert (verify.is_operator_installed('packageserver','openshift-operator-lifecycle-manager')) == True
 
 
     @pytest.mark.unit
