@@ -40,6 +40,8 @@ markers = [
     "integration",
     "positive",
     "negative",
+    "skip_if_not_provider",
+    "requiresoperator"
 ]
 
 [tool.isort]

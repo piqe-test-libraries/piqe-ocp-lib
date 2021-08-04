@@ -2,10 +2,13 @@ import logging
 from time import sleep
 import warnings
 import json
+from typing import Optional, Union
+from openshift.dynamic.resource import ResourceInstance, ResourceList, Subresource
+
 from kubernetes.client.rest import ApiException
 
 from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
+from piqe_ocp_lib.api.resources import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
@@ -25,19 +28,20 @@ class OperatorhubPackages(OcpBase):
         self.kind = "PackageManifest"
         self.package_manifest_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def get_package_manifest_list(self, catalog=None):
+    def get_package_manifest_list(self, catalog: Optional[str] = None) -> Union[ResourceList, list]:
         """
         A method that retrieves the entire list of package manifest objects
         visible by the OperatorHub regardless of the source
         :param catalog: The name of the catalog with which we want to filter results
                         by default, there are three different catalogs available:
-                        'Red Hat Operators'
-                        'Certified Operators'
-                        'Community Operators'
-        :return: a list of PackageManifest objects when successfule, otherwise it
+                        'certified-operators'
+                        'community-operators'
+                        'redhat-marketplace'
+                        'redhat-operators'
+        :return: (ResourceList) a list of PackageManifest objects when successfule, otherwise it
                  returns an empty list.
         TODO: Instead of filtering by catalog, is it better to filter by
-              spec.catalogSource?
+              status.catalogSource?
         """
         packages_obj_list = []
         try:
@@ -49,12 +53,12 @@ class OperatorhubPackages(OcpBase):
             logger.exception("Exception when calling method get_package_manifest_list: %s\n" % e)
         return packages_obj_list
 
-    def get_package_manifest(self, package_name):
+    def get_package_manifest(self, package_name: str) -> Optional[ResourceInstance]:
         """
         A method that gets the manifest details on a specific operator manifest file
         :param package_name: The name or the operator package manifest object we want
                              to obtain.
-        :return: a PackageManifest object if present, otherwise it returns None.
+        :return: (ResourceInstance) a PackageManifest object if present, otherwise it returns None.
         """
         package_obj = None
         try:
@@ -69,13 +73,14 @@ class OperatorhubPackages(OcpBase):
         else:
             return package_obj.items
 
-    def watch_package_manifest_present(self, package_name, timeout=30):
+    def watch_package_manifest_present(self, package_name: str, timeout: int = 30) -> bool:
         """
         Watch doesn't seem to be supported of resource type PackageManifest
         so we have implement it ourselves.
         :param package_name: (required | str) name of the package to be watched
         :param timeout: (optional | int) maximum time (in seconds) to watch a
                         package before erroring out. Defaults to 30 seconds.
+        :return: (bool) True if present, False otherwise
         """
         counter = 0
         while counter < timeout:
@@ -88,13 +93,13 @@ class OperatorhubPackages(OcpBase):
                 return True
         return False
 
-    def get_package_channels_list(self, package_name):
+    def get_package_channels_list(self, package_name: str) -> list:
         """
         A method that returns a list of available subscription channels for a particular
         package. Different channels maps to one or more install modes.
         :param package_name: The name of the operator package for which we want to obtain
                              the supported channels list.
-        :return: A list of subscription channels.
+        :return: (list) A list of subscription channels.
         """
         if not self.watch_package_manifest_present(package_name):
             logger.error("The package {} could not be detected".format(package_name))
@@ -111,15 +116,46 @@ class OperatorhubPackages(OcpBase):
                     logger.exception("Exception when calling method get_package_channels_list: %s\n" % e)
         return channels_list
 
-    def get_package_allnamespaces_channel(self, package_name):
+    def get_package_channel_by_name(self, package_name: str, channel_name: str) -> Optional[Subresource]:
         """
-        A method that specifically retrieves the name of a package's channel name
+        A method that returns a package manifest channel object. Every packagemanifest typically
+        has a list of different channels. This method allows the user to get a specific package
+        by name.
+        : param package_name: (required | str) The name of the packagemanifest.
+        : param channel_name: (requires | str) The channel name.
+        :return: (Subresource) A channel obj if found, otherwise it returns None.
+        """
+        channels_list = self.get_package_channels_list(package_name)
+        for channel in channels_list:
+            if channel.name == channel_name:
+                return channel
+        logger.error(f"A channel with the name {channel_name} could not be found")
+        return None
+
+    def get_channel_suggested_namespace(self, package_name: str, channel_name: str) -> Optional[str]:
+        """
+        A method that retrieves the suggested namespace for installing an operator. Note not all
+        packagemanifests provide this information. In such case, this method will return None.
+        :param package_name: (required | str) The name of the packagemanifest.
+        :param channel_name: (required | str) The channel name.
+        :return: (str) The name of the suggested operator namespace if present, otherwise it returns None.
+        """
+        channel = self.get_package_channel_by_name(package_name, channel_name)
+        if channel and hasattr(channel.currentCSVDesc.annotations, 'operatorframework.io/suggested-namespace'):
+            return channel.currentCSVDesc.annotations['operatorframework.io/suggested-namespace']
+        else:
+            logger.error("No suggested namespace was found for this channel")
+        return None
+
+    def get_package_allnamespaces_channels(self, package_name: str) -> list:
+        """
+        A method that retrieves a list of channels for a packagemanifest
         that allows the user to enable the operator across all namespaces/projects
         of the entire cluster.
         :param package_name: The name of the operator package for which we want to
                              obtain the clusterwide channel name.
-        :return: The name of the clusterwide channel, if availabele, otherwise
-                 the method returns None.
+        :return: (list) A list of clusterwide channels, if availabele, otherwise
+                 the method returns an empty.
         """
         channels_list = self.get_package_channels_list(package_name)
         clusterwide_channels = []
@@ -128,20 +164,18 @@ class OperatorhubPackages(OcpBase):
             for im in install_modes:
                 if im.type == "AllNamespaces" and im.supported is True:
                     clusterwide_channels.append(channel)
-        if len(clusterwide_channels) != 0:
-            return clusterwide_channels[-1]
-        else:
-            logger.error("A clusterwide channel was not found for package: {}".format(package_name))
-        return None
+        if len(clusterwide_channels) == 0:
+            logger.info("No clusterwide channels were found for package: {}".format(package_name))
+        return clusterwide_channels
 
-    def get_package_multinamespace_channel(self, package_name):
+    def get_package_multinamespace_channels(self, package_name: str) -> list:
         """
-        A method that specifically retrieves the name of a package's channel name
+        A method that retrieves a list of channels for a packagemanifest
         that allows the user to enable the operator in multiple namespaces/projects.
         :param package_name: The name of the operator package for which we want to
                              obtain the multinamespace channel name.
-        :return: The name of the multinamespace channel, if availabele, otherwise
-                 the method returns None.
+        :return: (list) A list of multinamespace channels, if availabele, otherwise
+                 the method returns an empty list.
         """
         channels_list = self.get_package_channels_list(package_name)
         multinamespace_channels = []
@@ -150,20 +184,18 @@ class OperatorhubPackages(OcpBase):
             for im in install_modes:
                 if im.type == "MultiNamespace" and im.supported is True:
                     multinamespace_channels.append(channel)
-        if len(multinamespace_channels) != 0:
-            return multinamespace_channels[-1]
-        else:
-            logger.error("A MultiNamespace channel was not found for package: {}".format(package_name))
-        return None
+        if len(multinamespace_channels) == 0:
+            logger.info("No MultiNamespace channels were found for package: {}".format(package_name))
+        return multinamespace_channels
 
-    def get_package_singlenamespace_channel(self, package_name):
+    def get_package_singlenamespace_channels(self, package_name: str) -> list:
         """
-        A method that specifically retrieves the name of a package's channel name
+        A method that retrieves a list of channels for a packagemanifest
         that allows the user to enable the operator in a single namespaces/project.
         :param package_name: The name of the operator package for which we want to
                              obtain the single namespace channel name.
-        :return: The name of the single namespace channel, if availabele, otherwise
-                 the method returns None.
+        :return: (list) A list of single namespace channel, if availabele, otherwise
+                 the method returns an empty list.
         """
         channels_list = self.get_package_channels_list(package_name)
         singlenamespace_channels = []
@@ -172,20 +204,18 @@ class OperatorhubPackages(OcpBase):
             for im in install_modes:
                 if im.type == "SingleNamespace" and im.supported is True:
                     singlenamespace_channels.append(channel)
-        if len(singlenamespace_channels) != 0:
-            return singlenamespace_channels[-1]
-        else:
-            logger.error("A SingleNamespace channel was not found for package: {}".format(package_name))
-        return None
+        if len(singlenamespace_channels) == 0:
+            logger.info("No SingleNamespace channels were found for package: {}".format(package_name))
+        return singlenamespace_channels
 
-    def get_package_ownnamespace_channel(self, package_name):
+    def get_package_ownnamespace_channels(self, package_name: str) -> list:
         """
-        A method that specifically retrieves the name of a package's channel name
+        A method that retrieves a list of channels for a packagemanifest
         that allows the user to enable the operator in a single namespaces/project.
         :param package_name: The name of the operator package for which we want to
                              obtain the single namespace channel name.
-        :return: The name of the single namespace channel, if availabele, otherwise
-                 the method returns None.
+        :return: (list) A list of single namespace channel, if availabele, otherwise
+                 the method returns an empty list.
         """
         channels_list = self.get_package_channels_list(package_name)
         ownnamespace_channels = []
@@ -194,11 +224,36 @@ class OperatorhubPackages(OcpBase):
             for im in install_modes:
                 if im.type == "OwnNamespace" and im.supported is True:
                     ownnamespace_channels.append(channel)
-        if len(ownnamespace_channels) != 0:
-            return ownnamespace_channels[-1]
+        if len(ownnamespace_channels) == 0:
+            logger.info("No OwnNamespace channels were found for package: {}".format(package_name))
+        return ownnamespace_channels
+
+    def get_package_default_channel(self, package_name: str) -> Optional[str]:
+        """
+        A method that returns a packagemanifest's default channel if available
+        :param package_name: (required | str) The packagemanifest name
+        :return: (str) The defualt channel name, otherwise it returns None.
+        """
+        package_namnifest = self.get_package_manifest(package_name)
+        if not hasattr(package_namnifest.status, 'defaultChannel'):
+            return None
         else:
-            logger.error("A OwnNamespace channel was not found for package: {}".format(package_name))
-        return None
+            return package_namnifest.status.defaultChannel
+
+    def is_install_mode_supported_by_channel(self, operator_name: str, channel_name: str, install_mode: str) -> bool:
+        """
+        A method that checks whether a channel supports a given install mode
+        :param operator_name: (required | str) The name of the packagemanifest
+        :param channel_name: (required | str) The name of the channel
+        :param install_mode: (required | str) The install mode we want to check
+        :return: (bool) True is supported, False otherwise
+        """
+        channel_obj = self.get_package_channel_by_name(operator_name, channel_name)
+        install_modes_list = channel_obj.currentCSVDesc.installModes
+        for im in install_modes_list:
+            if im.type == install_mode:
+                logger.info(f"The channel {channel_name} 'supported' value is {im.supported}")
+                return im.supported
 
     def get_crd_models_from_manifest(self, package_name, channel_name):
         """
@@ -217,8 +272,7 @@ class OperatorhubPackages(OcpBase):
         alm_list = json.loads(alm)
         return alm_list
 
-    
-   
+
 class OperatorSource(OcpBase):
     """
     A class that provides a user the ability to create OperatorSource objects whcih then can be used
@@ -313,29 +367,28 @@ class CatalogSource(OcpBase):
     :return: None
     """
 
-    warnings.warn(
-        "Removed from OpenShift >= 4.5. Deprecated for version 4.4",
-        DeprecationWarning,
-    )
-
     def __init__(self, kube_config_file):
         super(CatalogSource, self).__init__(kube_config_file=kube_config_file)
         self.api_version = "operators.coreos.com/v1alpha1"
         self.kind = "CatalogSource"
         self.catalog_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_catalog_source(self, cs_name, image, displayName="Optional operators", 
-                              publisher="Red Hat", namespace="openshift-marketplace"):
+    def create_catalog_source(self, cs_name,
+                              image,
+                              displayName="Optional operators",
+                              publisher="Red Hat",
+                              namespace="openshift-marketplace"):
         cs_body = {
-        "apiVersion": self.api_version,
-        "kind": self.kind,
-        "metadata": {"name": cs_name, "namespace": namespace},
-        'spec': {
-            'displayName': displayName,
-            'icon': {'base64data': '', 'mediatype': ''},
-            'image': image,
-            'publisher': publisher,
-            'sourceType': 'grpc',
+
+            "apiVersion": self.api_version,
+            "kind": self.kind,
+            "metadata": {"name": cs_name, "namespace": namespace},
+            'spec': {
+                'displayName': displayName,
+                'icon': {'base64data': '', 'mediatype': ''},
+                'image': image,
+                'publisher': publisher,
+                'sourceType': 'grpc',
             },
         }
         api_response = None
@@ -353,7 +406,7 @@ class CatalogSource(OcpBase):
             logger.exception("Exception when calling method delete_catalog_source: %s\n" % e)
         return api_response
 
-    def get_catalog_source(self, cs_name, namespace="openshift-marketplace"):
+    def get_catalog_source(self, cs_name: str, namespace: str = "openshift-marketplace") -> Optional[ResourceInstance]:
         """
         A method that retrieves a catalog source by name from a namespace, which by default,
         will be 'openshift-marketplace'
@@ -372,7 +425,7 @@ class CatalogSource(OcpBase):
             logger.exception("Exception when calling method get_catalog_source: %s\n" % e)
         return api_response
 
-    def get_all_catalog_sources(self):
+    def get_all_catalog_sources(self) -> Optional[ResourceList]:
         """
         A method that retrieves all catalog sources in an openshift cluster.
         :param return: An object of type CatalogSourceList
@@ -384,7 +437,9 @@ class CatalogSource(OcpBase):
             logger.exception("Exception when calling method get_all_catalog_sources: %s\n" % e)
         return api_response
 
-    def is_catalog_source_present(self, cs_name, namespace="openshift-marketplace", timeout=30):
+    def is_catalog_source_present(self, cs_name: str,
+                                  namespace: str = "openshift-marketplace",
+                                  timeout: int = 30) -> bool:
         """
         A method that verifies that a catalog source was created in a namespace. By default it
         will be 'openshift-marketplace'
@@ -427,63 +482,43 @@ class Subscription(OcpBase):
         self.package_manifest_obj = OperatorhubPackages(kube_config_file=kube_config_file)
         self.catalog_source_obj = CatalogSource(kube_config_file=kube_config_file)
 
-    def create_subscription(self, operator_name, install_mode, namespace):
+    def create_subscription(self, operator_name: str, channel_name: str, operator_namespace: str) -> ResourceInstance:
         """
         A method to create a subscription object in a namespace. NOTE: the namespace you pick must have an
         OperatorGroup that matches the InstallMode (either AllNamespaces or SingleNamespace modes)
         :param operator_name: (required | str) The name of the operator/package that you want to subscribe to.
-        :param source_obj: (required | str) Either a CatalogSourceConfig object (OCPv4.1) or OperatorSource
-                           object (OCPv4.1/4.2). Use either the get_operator_source method in the
-                           OperatorSource calss or the get_catalog_source_config method in the
-                           CatalogSourceConfig class to obtain this object.
-        :param install_mode: (required | str) The install mode type for the operator. Currently two
-                             out of the four install modes are supported: 'singleNamespace' or 'AllNamespaces'
+        :param channel_name: (required | str) The name of the channel we want to subscribe to.
+        :param operator_namespace: (required | str) The namespace where the subscription object will be created.
         :param return: An object of type Subscription
         """
-        # Based on the install mode chosen, we then need to fetch the corresponding subscription channel name
-        # available in the package manifest for this operator.
-        if install_mode == "SingleNamespace":
-            channel = self.package_manifest_obj.get_package_singlenamespace_channel(operator_name)
-        elif install_mode == "AllNamespaces":
-            channel = self.package_manifest_obj.get_package_allnamespaces_channel(operator_name)
-        elif install_mode == "MultiNamespace":
-            channel = self.package_manifest_obj.get_package_multinamespace_channel(operator_name)
-        elif install_mode == "OwnNamespace":
-            channel = self.package_manifest_obj.get_package_ownnamespace_channel(operator_name)
-        else:
-            channel_error_msg = "Unrecognized or unsupported install mode provided"
-            logger.exception(channel_error_msg)
-            raise ValueError(channel_error_msg)
-        # We get the CatalogSource name directly from the packagemanifest object
-        # we then use that fetch the CatalogSource object in order to obtain its
-        # namespace. NOTE: CatalogSources are typically in 'openshift-marketplace'
-        # but it is also possible to create them in a different namespace in the
-        # when using catalog source configs (see targetNamespace), so we shouldn't
-        # hard code sourceNamespace to be 'openshift-marketplace'
         operator_pkg = self.package_manifest_obj.get_package_manifest(operator_name)
         cs_name = operator_pkg.status.catalogSource
         catalog_source = self.catalog_source_obj.get_catalog_source(cs_name)
         cs_namespace = catalog_source.metadata.namespace
-        # From the subscription body
+        channel = self.package_manifest_obj.get_package_channel_by_name(operator_name, channel_name)
+        csv_name = channel.currentCSV
+        # Form the subscription body
         subscription_body = {
             "apiVersion": self.api_version,
             "kind": self.kind,
-            "metadata": {"name": operator_name, "namespace": namespace},
+            "metadata": {"name": operator_name, "namespace": operator_namespace},
             "spec": {
-                "channel": channel.name,
+                "channel": channel_name,
                 "installPlanApproval": "Automatic",
                 "name": operator_name,
                 "source": cs_name,
                 "sourceNamespace": cs_namespace,
+                "startingCSV": csv_name
             },
         }
+        api_response = None
         try:
             api_response = self.subscription_obj.apply(body=subscription_body)
         except ApiException as e:
             logger.exception("Exception when calling method create_subscription: %s\n" % e)
         return api_response
 
-    def get_subscription(self, operator_name, namespace):
+    def get_subscription(self, operator_name: str, namespace: str) -> Optional[ResourceInstance]:
         """
         A method to get a subscription by name from a namespace
         :param operator_name: (required | str) Subscriptions have a one to one mapping to any one
@@ -491,13 +526,14 @@ class Subscription(OcpBase):
         :param namespace: (required | str) The namespace where the subscription is created
         :param return: A Subscription object
         """
+        api_response = None
         try:
             api_response = self.subscription_obj.get(name=operator_name, namespace=namespace)
         except ApiException as e:
             logger.exception("Exception when calling method get_subscription: %s\n" % e)
         return api_response
 
-    def delete_subscription(self, operator_name, namespace):
+    def delete_subscription(self, operator_name: str, namespace: str) -> ResourceInstance:
         """
         A method to delete a subscription by name from a namespace
         :param operator_name: (required | str) Subscriptions have a one to one mapping to any one
@@ -511,7 +547,7 @@ class Subscription(OcpBase):
             logger.exception("Exception when calling method delete_subscription: %s\n" % e)
         return api_response
 
-    def watch_subscription_ready(self, operator_name, namespace, timeout):
+    def watch_subscription_ready(self, operator_name: str, namespace: str, timeout: int = 60) -> bool:
         logger.info("Watching %s subscription for readiness" % operator_name)
         is_operator_ready = False
         field_selector = "metadata.name={}".format(operator_name)
@@ -541,7 +577,9 @@ class OperatorGroup(OcpBase):
         self.kind = "OperatorGroup"
         self.operator_group_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_operator_group(self, og_name, namespace, target_namespaces=[]):
+    def create_operator_group(self, og_name: str,
+                              namespace: str,
+                              target_namespaces: Union[list, str] = []) -> ResourceInstance:
         """
         A method to create an OperatorGroup object. If 'spec' is left out, it means that by default
         this operator group will target all namespaces for deployment. Otherwise, spec will contain
@@ -554,11 +592,12 @@ class OperatorGroup(OcpBase):
         :param og_name: (required | str) The name of the operator group to be created
         :param namespace: (required | str) The namespace where the operator group
                           is to be created.
-        :param target_namespaces:
+        :param target_namespaces: (required | list) When set to '*', it will install clusterwide
+                                  otherwise, target namespaces will be a list.
         """
-        # Verify that if target_namespaces default is overriden, it is of type list.
-        if not isinstance(target_namespaces, list):
-            err_msg = "'target_namespaces' argument must be provided in list format"
+        # Verify that if target_namespaces default is overriden, it is of type list or '*'.
+        if not (isinstance(target_namespaces, list) or target_namespaces == '*'):
+            err_msg = "'target_namespaces' argument must be provided in either list format or be exactly '*'"
             logger.exception(err_msg)
             raise ValueError(err_msg)
         # TODO: Do further investigation to determine how to use kubernetes models
@@ -568,8 +607,10 @@ class OperatorGroup(OcpBase):
             "kind": self.kind,
             "metadata": {"name": og_name, "namespace": namespace},
         }
-        # If target_namespaces is not the default [], added to the body as part of 'spec'
-        if target_namespaces:
+        # If target_namespaces is not the default [], add it to the body as part of 'spec'
+        if target_namespaces == []:
+            og_body.update({"spec": {"targetNamespaces": [namespace]}})
+        elif target_namespaces != '*':
             og_body.update({"spec": {"targetNamespaces": target_namespaces}})
         try:
             api_response = self.operator_group_obj.apply(body=og_body)
@@ -577,7 +618,7 @@ class OperatorGroup(OcpBase):
             logger.exception("Exception when calling method create_operator_group: %s\n" % e)
         return api_response
 
-    def get_operator_group(self, og_name, namespace):
+    def get_operator_group(self, og_name: str, namespace: str) -> Optional[ResourceInstance]:
         """
         A method to get an operator group by name from a namespace
         :param og_name: (requrired | str) The name of the operator group
@@ -585,13 +626,14 @@ class OperatorGroup(OcpBase):
                           operator group
         :param return: An object of type OperatorGroup
         """
+        api_response = None
         try:
             api_response = self.operator_group_obj.get(name=og_name, namespace=namespace)
         except ApiException as e:
             logger.exception("Exception when calling method get_operator_group: %s\n" % e)
         return api_response
 
-    def delete_operator_group(self, og_name, namespace):
+    def delete_operator_group(self, og_name: str, namespace: str) -> Optional[ResourceInstance]:
         """
         A method to get an operator group by name from a namespace
         :param og_name: (requrired | str) The name of the operator group to be deleted
@@ -599,6 +641,7 @@ class OperatorGroup(OcpBase):
                           operator group to be deleted
         :param return: An object of type OperatorGroup
         """
+        api_response = None
         try:
             api_response = self.operator_group_obj.delete(name=og_name, namespace=namespace)
         except ApiException as e:
@@ -624,7 +667,7 @@ class ClusterServiceVersion(OcpBase):
         self.kind = "ClusterServiceVersion"
         self.csv_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def get_cluster_service_version(self, csv_name, namespace):
+    def get_cluster_service_version(self, csv_name: str, namespace: str) -> Optional[ResourceInstance]:
         """
         A method that gets a CSV by name from a namespace.
         :param csv_name: (required | str) The name of the CSV to be obtained. When a CSV is
@@ -636,13 +679,14 @@ class ClusterServiceVersion(OcpBase):
         :param namespace: The name of the namespace containing the CSV
         :param return: A ClusterServiceVersion object
         """
+        api_response = None
         try:
             api_response = self.csv_obj.get(name=csv_name, namespace=namespace)
         except ApiException as e:
             logger.exception("Exception when calling method get_cluster_service_version: %s\n" % e)
         return api_response
 
-    def is_cluster_service_version_present(self, csv_name, namespace, timeout=30):
+    def is_cluster_service_version_present(self, csv_name: str, namespace: str, timeout: int = 60) -> bool:
         """
         A method that verifies that a cluster service version was created in a namespace.
         :param cs_name: (required | str) The name of the cluster service version to be retrieved
@@ -664,17 +708,16 @@ class ClusterServiceVersion(OcpBase):
         )
         return False
 
-    def delete(self, csv_name: str, namespace: str) -> bool:
+    def delete_cluster_service_version(self, csv_name: str, namespace: str) -> bool:
         """
         A method to delete an existing CSV.
-        :param csv_name: (str)
-        :param namespace: (str)
-        :return: success (True) or failure (False)
+        :param csv_name: (required | str) The CSV name
+        :param namespace: (required | str) The namespace where the CSV resides
+        :return: A cluter service version object or None
         """
+        api_response = None
         try:
-            self.csv_obj.delete(name=csv_name, namespace=namespace)
+            api_response = self.csv_obj.delete(name=csv_name, namespace=namespace)
         except ApiException as e:
             logger.error(f"Failed to delete CSV due to: {e}")
-            return False
-
-        return True
+        return api_response
