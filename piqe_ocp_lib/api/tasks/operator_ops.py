@@ -1,7 +1,7 @@
 import logging
 
 from kubernetes.client.rest import ApiException
-from typing import Optional, Union, Tuple
+from typing import Union, Tuple, Optional, List
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
@@ -17,7 +17,7 @@ logger = logging.getLogger(__loggername__)
 
 
 class OperatorInstaller(OcpBase):
-    def __init__(self, kube_config_file=None):
+    def __init__(self, kube_config_file: Optional[str] = None):
         super(OperatorInstaller, self).__init__(kube_config_file=kube_config_file)
         self.og_obj = OperatorGroup(kube_config_file=self.kube_config_file)
         self.sub_obj = Subscription(kube_config_file=self.kube_config_file)
@@ -25,13 +25,14 @@ class OperatorInstaller(OcpBase):
         self.proj_obj = OcpProjects(kube_config_file=self.kube_config_file)
         self.csv = ClusterServiceVersion(self.kube_config_file)
 
-    def _derive_install_mode_from_target_namespaces(self, target_namespaces: Union[list, str]) -> str:
+    def _derive_install_mode_from_target_namespaces(self, target_namespaces: Union[List[str], str]) -> str:
         """
         Length of target_namespaces list enables us to derive the appropriate install mode
         Look at the length of the target_namespaces list:
-            1. If it's zero, then we verify if 'AllNamespaces' is supported.
-            2. If length is 1, then we verify if 'SingleNamespace' is supported.
-            3. If length > 1, then we verify 'MultiNamespace' is supported.
+            1. If the wildcard '*' is used, it gets interpreted as'AllNamespaces'.
+            2. If it's zero, we return 'OwnNamespace'.
+            3. If length is 1, we return 'SingleNamespace'.
+            4. If length > 1, we return 'MultiNamespace'.
         """
         if target_namespaces == '*':
             install_mode = "AllNamespaces"
@@ -78,7 +79,7 @@ class OperatorInstaller(OcpBase):
     def add_operator_to_cluster(self, operator_name: str,
                                 channel_name: str = '',
                                 operator_namespace: str = '',
-                                target_namespaces: Union[list, str] = []) -> bool:
+                                target_namespaces: Union[List[str], str] = []) -> bool:
         """
         Install an operator in a list of target namespaces
         :param operator_name: (required | str) The name of the operator to be installed
@@ -113,7 +114,6 @@ class OperatorInstaller(OcpBase):
         return: installed or not
         """
         return self.csv.get_cluster_service_version(operator_name, operator_namespace) is not None
-      
 
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
@@ -131,7 +131,7 @@ class OperatorInstaller(OcpBase):
 
         try:
             self.sub_obj.delete_subscription(operator_name, namespace)
-            self.csv.delete(csv_name, namespace)
+            self.csv.delete_cluster_service_version(csv_name, namespace)
         except ApiException:
             logger.error(f"Failed to uninstall operator {operator_name}")
             return False

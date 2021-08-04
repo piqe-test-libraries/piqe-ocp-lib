@@ -700,7 +700,7 @@ class ClusterServiceVersion(OcpBase):
         field_selector = "metadata.name={}".format(csv_name)
         for event in self.csv_obj.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
             if event["object"] and event["object"]["metadata"]["name"] == csv_name:
-                logger.info("ClusterServiceVersion {} in namescpace {} was found".format(csv_name, namespace))
+                logger.info("ClusterServiceVersion {} in namespace {} was found".format(csv_name, namespace))
                 return True
         logger.warning(
             "ClusterServiceVersion {} in namespace {} was not detected within a timeout interval"
