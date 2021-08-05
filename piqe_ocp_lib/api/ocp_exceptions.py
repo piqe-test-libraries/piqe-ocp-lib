@@ -68,3 +68,12 @@ class OcpUnsupportedVersion(Exception):
     def __init__(self, msg):
         Exception.__init__(self, msg)
         self.msg = msg
+
+
+class UnsupportedInstallMode(Exception):
+    """Raise this Exception when trying to install an operator
+    with an unsupported install mode"""
+
+    def __init__(self, msg):
+        Exception.__init__(self, msg)
+        self.msg = msg

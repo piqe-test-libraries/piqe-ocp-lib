@@ -72,11 +72,11 @@ class TestPopulateOcpCluster:
         assert len(cleanup_project_list) == 0
 
 
-class TestOperatorIntaller:
+class TestOperatorInstaller:
     @pytest.mark.unit
     @mock.patch.object(Subscription, "get_subscription")
     @mock.patch.object(Subscription, "delete_subscription")
-    @mock.patch.object(ClusterServiceVersion, "delete")
+    @mock.patch.object(ClusterServiceVersion, "delete_cluster_service_version")
     def test_delete_operator_from_cluster(self, mock_csv, mock_delete_sub, mock_get_sub, get_kubeconfig):
         expected_operator_name = "foo-name"
         expected_operator_namespace = "foo-namespace"
@@ -106,16 +106,14 @@ class TestOperatorIntaller:
 
         assert "Failed to retrieve subscription" in [m.message for m in caplog.records]
 
-
     def test_is_operator_installed(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
-        assert verify.is_operator_installed('packageserver','openshift-operator-lifecycle-manager') is True
-
+        assert verify.is_operator_installed('packageserver', 'openshift-operator-lifecycle-manager') is True
 
     @pytest.mark.unit
     @mock.patch.object(Subscription, "get_subscription")
     @mock.patch.object(Subscription, "delete_subscription", side_effect=[ApiException])
-    @mock.patch.object(ClusterServiceVersion, "delete")
+    @mock.patch.object(ClusterServiceVersion, "delete_cluster_service_version")
     def test_delete_operator_from_cluster_failed_to_delete_sub(self, _mock_delete, _mock_del_sub, mock_get_sub,
                                                                get_kubeconfig, caplog):
         caplog.set_level(logging.ERROR)
