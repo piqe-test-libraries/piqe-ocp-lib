@@ -86,7 +86,7 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.get(name=project_name)
         except ApiException as e:
-            logger.error("Exception when calling method get_a_project: %s\n" % e)
+            logger.error("Exception when calling method get_a_project: %s\n" % e.reason)
         return api_response
 
     def delete_a_project(self, project_name):
