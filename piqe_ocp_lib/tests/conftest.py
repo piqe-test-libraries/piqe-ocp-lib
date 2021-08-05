@@ -217,7 +217,6 @@ def get_openshift_cluster_info(request, load_config_file):
     # TODO'S Get master, nodes, OcpAppMgmt instance here.
 
     g.update_config(openshift_cluster_config)
-    g.log.info("openshift tests default configs:\n%s", g.config)
 
 
 @pytest.fixture(scope="function", autouse=True)
