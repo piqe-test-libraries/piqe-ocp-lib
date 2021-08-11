@@ -25,14 +25,14 @@ def populate_ocp_cluster(ocp_smoke_args):
         # support a library specific variable than use WORKSPACE
         # since in the Jenkins context WORKSPACE doesn't necessarily mean the
         # PWD which can lead to trouble
-        cluster_config = os.path.abspath(os.path.expandvars(os.path.expanduser(os.environ['PIQE_OCP_LIB_CLUSTER_CONF'])
-                                                            )
-                                         )
-    elif os.path.exists(os.path.join('/'.join(__file__.split(os.sep)[:-2]), 'config/', 'smoke_ocp_config.yaml')):
+        cluster_config = os.path.abspath(
+            os.path.expandvars(os.path.expanduser(os.environ["PIQE_OCP_LIB_CLUSTER_CONF"]))
+        )
+    elif os.path.exists(os.path.join("/".join(__file__.split(os.sep)[:-2]), "config/", "smoke_ocp_config.yaml")):
         # This is a reliable way to default to finding the ocp_config.yml in the test/config directory
         # by working our way up the parent directory from the location of this test file rather
         # than relying on the on the WORKSPACE env and assuming the relative path.
-        cluster_config = os.path.join('/'.join(__file__.split(os.sep)[:-2]), 'config/', 'smoke_ocp_config.yaml')
+        cluster_config = os.path.join("/".join(__file__.split(os.sep)[:-2]), "config/", "smoke_ocp_config.yaml")
     else:
         raise ValueError(
             "A path to the cluster config yaml was expected, or a PIQE_OCP_LIB_CLUSTER_CONF env variable"
@@ -108,14 +108,15 @@ class TestOperatorInstaller:
 
     def test_is_operator_installed(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
-        assert verify.is_operator_installed('packageserver', 'openshift-operator-lifecycle-manager') is True
+        assert verify.is_operator_installed("packageserver", "openshift-operator-lifecycle-manager") is True
 
     @pytest.mark.unit
     @mock.patch.object(Subscription, "get_subscription")
     @mock.patch.object(Subscription, "delete_subscription", side_effect=[ApiException])
     @mock.patch.object(ClusterServiceVersion, "delete_cluster_service_version")
-    def test_delete_operator_from_cluster_failed_to_delete_sub(self, _mock_delete, _mock_del_sub, mock_get_sub,
-                                                               get_kubeconfig, caplog):
+    def test_delete_operator_from_cluster_failed_to_delete_sub(
+        self, _mock_delete, _mock_del_sub, mock_get_sub, get_kubeconfig, caplog
+    ):
         caplog.set_level(logging.ERROR)
 
         expected_operator_name = "foo-name"

@@ -1,11 +1,11 @@
+import json
 import logging
 from time import sleep
-import warnings
-import json
 from typing import Optional, Union
-from openshift.dynamic.resource import ResourceInstance, ResourceList, Subresource
+import warnings
 
 from kubernetes.client.rest import ApiException
+from openshift.dynamic.resource import ResourceInstance, ResourceList, Subresource
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources import OcpBase
@@ -141,8 +141,8 @@ class OperatorhubPackages(OcpBase):
         :return: (str) The name of the suggested operator namespace if present, otherwise it returns None.
         """
         channel = self.get_package_channel_by_name(package_name, channel_name)
-        if channel and hasattr(channel.currentCSVDesc.annotations, 'operatorframework.io/suggested-namespace'):
-            return channel.currentCSVDesc.annotations['operatorframework.io/suggested-namespace']
+        if channel and hasattr(channel.currentCSVDesc.annotations, "operatorframework.io/suggested-namespace"):
+            return channel.currentCSVDesc.annotations["operatorframework.io/suggested-namespace"]
         else:
             logger.error("No suggested namespace was found for this channel")
         return None
@@ -235,7 +235,7 @@ class OperatorhubPackages(OcpBase):
         :return: (str) The defualt channel name, otherwise it returns None.
         """
         package_namnifest = self.get_package_manifest(package_name)
-        if not hasattr(package_namnifest.status, 'defaultChannel'):
+        if not hasattr(package_namnifest.status, "defaultChannel"):
             return None
         else:
             return package_namnifest.status.defaultChannel
@@ -268,7 +268,7 @@ class OperatorhubPackages(OcpBase):
             if channel.name == channel_name:
                 target_channel = channel
                 break
-        alm = target_channel.currentCSVDesc.annotations['alm-examples']
+        alm = target_channel.currentCSVDesc.annotations["alm-examples"]
         alm_list = json.loads(alm)
         return alm_list
 
@@ -373,22 +373,19 @@ class CatalogSource(OcpBase):
         self.kind = "CatalogSource"
         self.catalog_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_catalog_source(self, cs_name,
-                              image,
-                              displayName="Optional operators",
-                              publisher="Red Hat",
-                              namespace="openshift-marketplace"):
+    def create_catalog_source(
+        self, cs_name, image, displayName="Optional operators", publisher="Red Hat", namespace="openshift-marketplace"
+    ):
         cs_body = {
-
             "apiVersion": self.api_version,
             "kind": self.kind,
             "metadata": {"name": cs_name, "namespace": namespace},
-            'spec': {
-                'displayName': displayName,
-                'icon': {'base64data': '', 'mediatype': ''},
-                'image': image,
-                'publisher': publisher,
-                'sourceType': 'grpc',
+            "spec": {
+                "displayName": displayName,
+                "icon": {"base64data": "", "mediatype": ""},
+                "image": image,
+                "publisher": publisher,
+                "sourceType": "grpc",
             },
         }
         api_response = None
@@ -437,9 +434,9 @@ class CatalogSource(OcpBase):
             logger.exception("Exception when calling method get_all_catalog_sources: %s\n" % e)
         return api_response
 
-    def is_catalog_source_present(self, cs_name: str,
-                                  namespace: str = "openshift-marketplace",
-                                  timeout: int = 30) -> bool:
+    def is_catalog_source_present(
+        self, cs_name: str, namespace: str = "openshift-marketplace", timeout: int = 30
+    ) -> bool:
         """
         A method that verifies that a catalog source was created in a namespace. By default it
         will be 'openshift-marketplace'
@@ -508,7 +505,7 @@ class Subscription(OcpBase):
                 "name": operator_name,
                 "source": cs_name,
                 "sourceNamespace": cs_namespace,
-                "startingCSV": csv_name
+                "startingCSV": csv_name,
             },
         }
         api_response = None
@@ -577,9 +574,9 @@ class OperatorGroup(OcpBase):
         self.kind = "OperatorGroup"
         self.operator_group_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_operator_group(self, og_name: str,
-                              namespace: str,
-                              target_namespaces: Union[list, str] = []) -> ResourceInstance:
+    def create_operator_group(
+        self, og_name: str, namespace: str, target_namespaces: Union[list, str] = []
+    ) -> ResourceInstance:
         """
         A method to create an OperatorGroup object. If 'spec' is left out, it means that by default
         this operator group will target all namespaces for deployment. Otherwise, spec will contain
@@ -596,7 +593,7 @@ class OperatorGroup(OcpBase):
                                   otherwise, target namespaces will be a list.
         """
         # Verify that if target_namespaces default is overriden, it is of type list or '*'.
-        if not (isinstance(target_namespaces, list) or target_namespaces == '*'):
+        if not (isinstance(target_namespaces, list) or target_namespaces == "*"):
             err_msg = "'target_namespaces' argument must be provided in either list format or be exactly '*'"
             logger.exception(err_msg)
             raise ValueError(err_msg)
@@ -610,7 +607,7 @@ class OperatorGroup(OcpBase):
         # If target_namespaces is not the default [], add it to the body as part of 'spec'
         if target_namespaces == []:
             og_body.update({"spec": {"targetNamespaces": [namespace]}})
-        elif target_namespaces != '*':
+        elif target_namespaces != "*":
             og_body.update({"spec": {"targetNamespaces": target_namespaces}})
         try:
             api_response = self.operator_group_obj.apply(body=og_body)
