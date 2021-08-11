@@ -30,7 +30,7 @@ def ocp_app(get_kubeconfig) -> OcpApps:
 def httpd_template() -> str:
     path = Path(__file__).parent / "templates/httpd.json"
 
-    with open(path, "r") as file:
+    with open(path) as file:
         yield json.load(file)
 
 

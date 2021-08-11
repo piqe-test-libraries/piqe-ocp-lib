@@ -132,7 +132,7 @@ class OcpPods(OcpBase):
         """
         logger.info("Watching pod %s for readiness" % pod_name)
         pod_ready = False
-        field_selector = "metadata.name={}".format(pod_name)
+        field_selector = f"metadata.name={pod_name}"
         for event in self.ocp_pods.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
             for pod_condition in event["object"]["status"]["conditions"]:
                 if pod_condition["status"] == "True" and pod_condition["type"] == "Ready":

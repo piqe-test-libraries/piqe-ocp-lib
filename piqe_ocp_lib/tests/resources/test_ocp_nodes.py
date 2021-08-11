@@ -15,7 +15,7 @@ def setup_params(get_kubeconfig):
     return params_dict
 
 
-class TestOcpNodes(object):
+class TestOcpNodes:
     def test_get_all_nodes(self, setup_params):
         """
         Verify that a list of all nodes is returned
@@ -28,7 +28,7 @@ class TestOcpNodes(object):
         # Get all nodes
         api_response = node_api_obj.get_all_nodes()
         node_count = len(api_response.items)
-        logger.info("{} nodes returned in the list".format(node_count))
+        logger.info(f"{node_count} nodes returned in the list")
         assert api_response.kind == "NodeList"
 
         # Get nodes matching a single label
@@ -36,7 +36,7 @@ class TestOcpNodes(object):
         list_items_single_label = len(api_response.items)
         # All nodes are expected to have this label, validate that the list counts match.
         assert list_items_single_label == node_count
-        logger.info("{} nodes matched the provided label".format(list_items_single_label))
+        logger.info(f"{list_items_single_label} nodes matched the provided label")
         assert api_response.kind == "NodeList"
         # Get nodes matching 2 labels
         api_response = node_api_obj.get_all_nodes(
@@ -45,7 +45,7 @@ class TestOcpNodes(object):
         list_items_two_labels = len(api_response.items)
         # All nodes are expected to have these labels, validate that the list counts match.
         assert list_items_two_labels == node_count
-        logger.info("{} nodes matched the provided label".format(list_items_two_labels))
+        logger.info(f"{list_items_two_labels} nodes matched the provided label")
         assert api_response.kind == "NodeList"
 
     def test_get_all_node_names(self, setup_params):
@@ -59,7 +59,7 @@ class TestOcpNodes(object):
         node_api_obj = setup_params["node_api_obj"]
         api_response = node_api_obj.get_all_node_names()
         assert type(api_response) is list
-        logger.info("Node name list: {}".format(api_response))
+        logger.info(f"Node name list: {api_response}")
         assert len(api_response) > 0
 
     def test_get_a_node(self, setup_params):
@@ -74,7 +74,7 @@ class TestOcpNodes(object):
         api_response_node_name_list = node_api_obj.get_all_node_names()
         number_of_nodes = len(api_response_node_name_list)
         assert number_of_nodes > 0
-        logger.info("{} Nodes returned".format(number_of_nodes))
+        logger.info(f"{number_of_nodes} Nodes returned")
         for node_name in api_response_node_name_list:
             # Use each node name from the list to get_a_node by mane.
             api_response = node_api_obj.get_a_node(node_name=node_name)
@@ -119,11 +119,11 @@ class TestOcpNodes(object):
         for node_name in api_response_node_name_list:
             # Use each node name from the list to get the node status by name
             api_response_node_roles = node_api_obj.get_node_roles(node_name=node_name)
-            logger.info("Retrieved {} roles for node {}".format(api_response_node_roles, node_name))
+            logger.info(f"Retrieved {api_response_node_roles} roles for node {node_name}")
             number_of_roles = len(api_response_node_roles)
             assert number_of_roles >= 1
             for role in api_response_node_roles:
-                logger.info("Node name: {} Role: {}".format(node_name, role))
+                logger.info(f"Node name: {node_name} Role: {role}")
                 assert role == "Master" or role == "Worker"
 
     def test_label_a_node(self, setup_params):
@@ -145,7 +145,7 @@ class TestOcpNodes(object):
             assert api_response.metadata.name == node_name
             # Label the node
             node_label = {"test.label.node": "true"}
-            logger.info("Label the Node with {}".format(node_label))
+            logger.info(f"Label the Node with {node_label}")
             label_api_response = node_api_obj.label_a_node(node_name=node_name, labels=node_label)
             assert label_api_response.kind == "Node"
             assert label_api_response.metadata.name == node_name
@@ -153,14 +153,14 @@ class TestOcpNodes(object):
             labelled_node_api_response = node_api_obj.get_all_nodes(
                 label_selector="test.label.node=true," "kubernetes.io/hostname=" + node_name
             )
-            logger.info("Retrieved the node by labels {}".format(labelled_node_api_response.items[0].metadata.name))
+            logger.info(f"Retrieved the node by labels {labelled_node_api_response.items[0].metadata.name}")
             assert len(labelled_node_api_response.items) == 1
             assert labelled_node_api_response.items[0].metadata.name == node_name
-            logger.info("Retrieved the node by labels {}".format(labelled_node_api_response.items[0].metadata.name))
+            logger.info(f"Retrieved the node by labels {labelled_node_api_response.items[0].metadata.name}")
             # Evaluate Use addresses list to find the type Hostname
             for address in labelled_node_api_response.items[0].status.addresses:
                 if address.type == "Hostname":
-                    logger.info("Address Type: {}  Address: {}".format(address.type, address.address))
+                    logger.info(f"Address Type: {address.type}  Address: {address.address}")
                     # Validate that the node name is the same as the hostname for the node.
                     assert address.address == node_name
 
@@ -193,7 +193,7 @@ class TestOcpNodes(object):
             api_response = node_api_obj.get_a_node(node_name=node_name)
             assert api_response.kind == "Node"
             assert api_response.metadata.name == node_name
-            logger.info("Execute command on Node {}".format(node_name))
+            logger.info(f"Execute command on Node {node_name}")
             command_api_response = node_api_obj.execute_command_on_a_node(
                 node_name=node_name, command_to_execute="whoami"
             )
@@ -205,14 +205,14 @@ class TestOcpNodes(object):
             assert command_api_response[1] == expected_stdout
             assert command_api_response[2] == expected_stderr
             decoded_str = command_api_response[1].decode("utf-8")
-            logger.info("Decoded stdout string {}".format(decoded_str))
+            logger.info(f"Decoded stdout string {decoded_str}")
 
         # Validate stderr
         for node_name in api_response_node_name_list:
             api_response = node_api_obj.get_a_node(node_name=node_name)
             assert api_response.kind == "Node"
             assert api_response.metadata.name == node_name
-            logger.info("Execute command on Node {}".format(node_name))
+            logger.info(f"Execute command on Node {node_name}")
             command_api_response = node_api_obj.execute_command_on_a_node(
                 node_name=node_name, command_to_execute="bogus"
             )
@@ -222,5 +222,5 @@ class TestOcpNodes(object):
             assert command_api_response[1] == expected_stdout
             assert type(command_api_response[2]) is bytes
             decoded_str = command_api_response[2].decode("utf-8")
-            logger.info("Decoded stderr string {}".format(decoded_str))
+            logger.info(f"Decoded stderr string {decoded_str}")
             assert decoded_str.find("executable file not found in $PATH") >= 1
