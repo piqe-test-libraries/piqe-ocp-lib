@@ -8,8 +8,8 @@ from glusto.core import Glusto as g
 import pytest
 
 from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.piqe_api_logger import piqe_api_logger
 from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
+from piqe_ocp_lib.piqe_api_logger import piqe_api_logger
 
 
 def pytest_addoption(parser):

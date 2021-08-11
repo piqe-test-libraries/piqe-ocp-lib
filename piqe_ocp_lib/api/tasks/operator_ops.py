@@ -1,11 +1,11 @@
 import logging
+from typing import List, Optional, Tuple, Union
 
 from kubernetes.client.rest import ApiException
-from typing import Union, Tuple, Optional, List
 
 from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
 from piqe_ocp_lib.api.ocp_exceptions import UnsupportedInstallMode
+from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
 from piqe_ocp_lib.api.resources.ocp_operators import (
     ClusterServiceVersion,
     OperatorGroup,
@@ -34,7 +34,7 @@ class OperatorInstaller(OcpBase):
             3. If length is 1, we return 'SingleNamespace'.
             4. If length > 1, we return 'MultiNamespace'.
         """
-        if target_namespaces == '*':
+        if target_namespaces == "*":
             install_mode = "AllNamespaces"
         else:
             target_namespaces_count = len(target_namespaces)
@@ -58,10 +58,9 @@ class OperatorInstaller(OcpBase):
         assert self.proj_obj.create_a_namespace(operator_namespace)
         return operator_namespace
 
-    def _create_og(self, operator_name: str,
-                   channel_name: str,
-                   operator_namespace: str,
-                   target_namespaces: Union[list, str]) -> Tuple[str, str]:
+    def _create_og(
+        self, operator_name: str, channel_name: str, operator_namespace: str, target_namespaces: Union[list, str]
+    ) -> Tuple[str, str]:
         """
         A helper method that creates the operator group in the generated operator namespace
         """
@@ -76,10 +75,13 @@ class OperatorInstaller(OcpBase):
             assert self.og_obj.create_operator_group(og_name, operator_namespace, target_namespaces)
         return og_name, operator_namespace
 
-    def add_operator_to_cluster(self, operator_name: str,
-                                channel_name: str = '',
-                                operator_namespace: str = '',
-                                target_namespaces: Union[List[str], str] = []) -> bool:
+    def add_operator_to_cluster(
+        self,
+        operator_name: str,
+        channel_name: str = "",
+        operator_namespace: str = "",
+        target_namespaces: Union[List[str], str] = [],
+    ) -> bool:
         """
         Install an operator in a list of target namespaces
         :param operator_name: (required | str) The name of the operator to be installed
