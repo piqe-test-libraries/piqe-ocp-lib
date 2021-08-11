@@ -90,12 +90,12 @@ class OcpNodes(OcpBase):
         :param timeout: (int) The time limit for polling status. Defaults to 300
         :return: (bool) True if it's Ready OR False otherwise
         """
-        field_selector = "metadata.name={}".format(node_name)
+        field_selector = f"metadata.name={node_name}"
         for event in self.ocp_nodes.watch(field_selector=field_selector, timeout=timeout):
             conditions_list = event["object"]["status"]["conditions"]
             latest_event = conditions_list[-1]
             if conditions_list and latest_event["type"] == "Ready" and latest_event["status"] == "True":
-                logger.debug("Node {} has reached 'Ready' state".format(node_name))
+                logger.debug(f"Node {node_name} has reached 'Ready' state")
                 return True
             else:
                 logger.debug(
@@ -112,11 +112,11 @@ class OcpNodes(OcpBase):
         :return: (bool) True if it's deleted OR False otherwise
         """
         if self.get_a_node(node_name) is None:
-            logger.info("Node {} is not present".format(node_name))
+            logger.info(f"Node {node_name} is not present")
             return True
         else:
             logger.debug("Node seems to be present, let's watch")
-            field_selector = "metadata.name={}".format(node_name)
+            field_selector = f"metadata.name={node_name}"
             for event in self.ocp_nodes.watch(field_selector=field_selector, timeout=timeout):
                 if self.get_a_node(node_name):
                     logger.debug("Node is still present")
@@ -248,7 +248,7 @@ class OcpNodes(OcpBase):
             if ret != 0:
                 return ret, out, err
         # Execute the command
-        command = "kubectl exec %s -- %s" % (pod_name, command_to_execute)
+        command = f"kubectl exec {pod_name} -- {command_to_execute}"
         logger.info("Executing command: %s", command)
         subp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = subp.communicate()

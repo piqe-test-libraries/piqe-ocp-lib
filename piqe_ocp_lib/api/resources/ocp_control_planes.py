@@ -17,7 +17,7 @@ class OcpControlPlane(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpControlPlane, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "v1"
         self.kind = "ComponentStatus"
         self.ocp_control_plane = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)

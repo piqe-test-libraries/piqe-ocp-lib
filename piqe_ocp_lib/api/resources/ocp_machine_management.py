@@ -21,7 +21,7 @@ class OcpMachineSet(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpMachineSet, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "machine.openshift.io/v1beta1"
         self.kind = "MachineSet"
         self.machineset = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -61,7 +61,7 @@ class OcpMachineSet(OcpBase):
         :param machine_set_name: (str) name of the machine set
         :return: Machine set role on success OR empty string on failure
         """
-        role = str()
+        role = ''
         machine_set = self.get_machine_set(machine_set_name)
         role = machine_set.metadata.labels["machine.openshift.io/cluster-api-machine-role"]
         return role
@@ -138,7 +138,7 @@ class OcpMachineSet(OcpBase):
             node_names_to_be_deleted = list()
             for machine in machine_names_to_be_deleted:
                 node_names_to_be_deleted.append(self.machine.get_machine_node_ref(machine))
-            logger.debug("Machines to be deleted are: {}".format(machine_names_to_be_deleted))
+            logger.debug(f"Machines to be deleted are: {machine_names_to_be_deleted}")
             excess_machines_deleted = True
             for machine_name in machine_names_to_be_deleted:
                 excess_machines_deleted = excess_machines_deleted and self.machine.is_machine_deleted(machine_name)
@@ -171,7 +171,7 @@ class OcpMachineSet(OcpBase):
             return False
 
         initial_machines = self.machine.get_machines_in_machineset(machine_set_name)
-        initial_machine_names = set([machine.metadata.name for machine in initial_machines.items])
+        initial_machine_names = {machine.metadata.name for machine in initial_machines.items}
         initial_machines_count = len(initial_machine_names)
         # If number of existing machine is the same as replicas, nothing to do.
         if initial_machines_count == replicas:
@@ -207,7 +207,7 @@ class OcpMachines(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpMachines, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "machine.openshift.io/v1beta1"
         self.kind = "Machine"
         self.machine = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -264,8 +264,8 @@ class OcpMachines(OcpBase):
         if "machine.openshift.io/cluster-api-machineset" in machine.metadata.labels.keys():
             return machine.metadata.labels["machine.openshift.io/cluster-api-machineset"]
         else:
-            logger.warning("machine {} with role {} is not part of machineset".format(machine_name, machine_role))
-            return str()
+            logger.warning(f"machine {machine_name} with role {machine_role} is not part of machineset")
+            return ''
 
     def get_machines_in_machineset(self, machine_set: str) -> ResourceList:
         """
@@ -294,12 +294,12 @@ class OcpMachines(OcpBase):
             try:
                 node_name = event["object"]["status"]["nodeRef"]["name"]
             except TypeError:
-                logger.warning("Machine {} doesn't have a nodeRef field yet ...".format(machine_name))
+                logger.warning(f"Machine {machine_name} doesn't have a nodeRef field yet ...")
                 continue
             else:
-                logger.debug("Machine ref detected with values: {}".format(node_name))
+                logger.debug(f"Machine ref detected with values: {node_name}")
                 return node_name
-        logger.error("Unable to obtain a nodeRef out of Machine: {}".format(machine_name))
+        logger.error(f"Unable to obtain a nodeRef out of Machine: {machine_name}")
         return None
 
     def is_machine_created(self, machine_name: str, timeout: int = TIMEOUT) -> bool:
@@ -315,12 +315,12 @@ class OcpMachines(OcpBase):
                 vm_state = event["object"]["status"]["providerStatus"]["vmState"]
                 provider_status_condition = event["object"]["status"]["providerStatus"]["conditions"]
             except TypeError:
-                logger.warning("Provider Status for machine {} has not yet been detected ...".format(machine_name))
+                logger.warning(f"Provider Status for machine {machine_name} has not yet been detected ...")
                 continue
             else:
                 if provider_status_condition[0]["type"] == "MachineCreated":
                     if vm_state == "Running":
-                        logger.debug("Machine {} has reached 'Running state'".format(machine_name))
+                        logger.debug(f"Machine {machine_name} has reached 'Running state'")
                         return True
                     else:
                         logger.debug(

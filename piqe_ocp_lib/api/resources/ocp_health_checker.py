@@ -42,7 +42,7 @@ class OcpHealthChecker(OcpBase):
 
     def __init__(self, kube_config_file):
         self.kube_config_file = kube_config_file
-        super(OcpHealthChecker, self).__init__(kube_config_file=self.kube_config_file)
+        super().__init__(kube_config_file=self.kube_config_file)
         self.ocp_node = OcpNodes(kube_config_file=self.kube_config_file)
         self.ocp_cluster_operator = OcpClusterOperator(kube_config_file=self.kube_config_file)
         self.ocp_control_plane = OcpControlPlane(kube_config_file=self.kube_config_file)

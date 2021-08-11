@@ -22,7 +22,7 @@ logger = logging.getLogger(__loggername__)
 Version = namedtuple("Version", ["major", "minor", "patch"])
 
 
-class OcpBase(object):
+class OcpBase:
     """
     This dict will hold kubeconfig as key and DynamicClient object as value
     """
@@ -112,19 +112,19 @@ class OcpBase(object):
         instpecting the Infastructure resource.
         :return: (str) The name of the infrastructure provider or None
         """
-        provider = str()
+        provider = ''
         try:
             api_response = self.dyn_client.resources.search(api_version="config.openshift.io/v1", kind="Infrastructure")
             assert isinstance(api_response, list)
         except ApiException as e:
-            logger.exception("Exception was encountered while trying to get the infrastructure resource: {}".format(e))
+            logger.exception(f"Exception was encountered while trying to get the infrastructure resource: {e}")
         if api_response and isinstance(api_response[0], Resource) and api_response[0].kind == "Infrastructure":
             api_response = api_response[0]
             infra_obj = api_response.get()
             try:
                 provider = infra_obj.items[0].spec.platformSpec.type
             except KeyError:
-                logger.error("Could not access the platformSpec key in Infrastructure: \n{}".format(infra_obj))
+                logger.error(f"Could not access the platformSpec key in Infrastructure: \n{infra_obj}")
         return provider
 
     def get_data_from_kubeconfig_v4(self):

@@ -11,7 +11,7 @@ from piqe_ocp_lib import __loggername__
 logger = logging.getLogger(__loggername__)
 
 
-class ocp_app(object):
+class ocp_app:
     """
     ocp_app class defines application's template, number of replicas and
     app_count of a ocp cluster
@@ -181,7 +181,7 @@ class ocp_app(object):
         self._app_params = app_params
 
 
-class ocp_project(object):
+class ocp_project:
     """ocp_project defines project in the ocp cluster i.e project_name
     and list of all apps of the project/namespace in ocp cluster.
     Each app in the projects list is of type 'ocp_app'
@@ -211,7 +211,7 @@ class ocp_project(object):
             apps = project.get("apps")
             if not isinstance(apps, self.ocp_project_config_types.get("apps")):
                 raise ValueError(
-                    "'apps': (Expected '%s', Actual '%s')" % (self.ocp_project_config_types["apps"], type(apps))
+                    "'apps': (Expected '{}', Actual '{}')".format(self.ocp_project_config_types["apps"], type(apps))
                 )
             else:
                 self._apps = []
@@ -294,7 +294,7 @@ class ocp_project(object):
         self._project_labels = project_labels
 
 
-class ocp_cluster_metadata(object):
+class ocp_cluster_metadata:
     """Class containing ocp cluster metadata"""
 
     ocp_cluster_metadata_types = {
@@ -488,7 +488,7 @@ class ocp_cluster_metadata(object):
         self._heketi = heketi
 
 
-class populate_ocp_cluster_config(object):
+class populate_ocp_cluster_config:
     """
     ocp_populate_cluster_config (dict): The key is attribute name
       and the value is attribute type.
@@ -516,7 +516,7 @@ class populate_ocp_cluster_config(object):
                 except Exception as yamlerror:
                     raise yaml.YAMLError("YAML Error:\n %s" % yamlerror)
         except Exception as ioerror:
-            raise IOError(ioerror)
+            raise OSError(ioerror)
 
         if cluster_config is None:
             raise ValueError("Invalid cluster config dict")
@@ -524,7 +524,7 @@ class populate_ocp_cluster_config(object):
         # get metadata
         cluster_metadata = cluster_config.get("metadata")
         if not isinstance(cluster_metadata, dict):
-            raise ValueError("'metadata': (Expected '%s', Actual '%s')" % (str(dict), type(cluster_metadata)))
+            raise ValueError(f"'metadata': (Expected '{str(dict)}', Actual '{type(cluster_metadata)}')")
         else:
             try:
                 self._metadata = ocp_cluster_metadata(cluster_metadata)

@@ -52,12 +52,12 @@ FILENAME = "piqe_api_logger_{}.log".format(datetime.now().strftime("%Y_%m_%d_%H_
 FILEPATH = os.path.join(LOG_DIR, FILENAME)
 
 
-class piqe_api_logger(object):
+class piqe_api_logger:
     _logger = None
 
     def __new__(cls, *args, **kwargs):
         if cls._logger is None:
-            cls._logger = super(piqe_api_logger, cls).__new__(cls)
+            cls._logger = super().__new__(cls)
             # Put any initialization here.
             cls._logger = logging.getLogger(args[0])
             cls._logger.setLevel(logging.DEBUG)

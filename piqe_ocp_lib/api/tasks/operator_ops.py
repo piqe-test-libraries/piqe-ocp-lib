@@ -18,7 +18,7 @@ logger = logging.getLogger(__loggername__)
 
 class OperatorInstaller(OcpBase):
     def __init__(self, kube_config_file: Optional[str] = None):
-        super(OperatorInstaller, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.og_obj = OperatorGroup(kube_config_file=self.kube_config_file)
         self.sub_obj = Subscription(kube_config_file=self.kube_config_file)
         self.ohp_obj = OperatorhubPackages(kube_config_file=self.kube_config_file)

@@ -23,7 +23,7 @@ class OperatorhubPackages(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OperatorhubPackages, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "packages.operators.coreos.com/v1"
         self.kind = "PackageManifest"
         self.package_manifest_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -48,7 +48,7 @@ class OperatorhubPackages(OcpBase):
             if not catalog:
                 packages_obj_list = self.package_manifest_obj.get()
             else:
-                packages_obj_list = self.package_manifest_obj.get(label_selector="catalog={}".format(catalog))
+                packages_obj_list = self.package_manifest_obj.get(label_selector=f"catalog={catalog}")
         except ApiException as e:
             logger.exception("Exception when calling method get_package_manifest_list: %s\n" % e)
         return packages_obj_list
@@ -62,13 +62,13 @@ class OperatorhubPackages(OcpBase):
         """
         package_obj = None
         try:
-            package_obj = self.package_manifest_obj.get(field_selector="metadata.name={}".format(package_name))
+            package_obj = self.package_manifest_obj.get(field_selector=f"metadata.name={package_name}")
         except ApiException as e:
             logger.exception("Exception when calling method get_package_manifest: %s\n" % e)
         if package_obj and len(package_obj.items) == 1:
             return package_obj.items[0]
         elif len(package_obj.items) == 0:
-            logger.exception("The package {}, could not be detected".format(package_name))
+            logger.exception(f"The package {package_name}, could not be detected")
             return None
         else:
             return package_obj.items
@@ -87,9 +87,9 @@ class OperatorhubPackages(OcpBase):
             if not self.get_package_manifest(package_name):
                 counter += 5
                 sleep(5)
-                logger.info("Waiting for package {} to be available in OperatorHub".format(package_name))
+                logger.info(f"Waiting for package {package_name} to be available in OperatorHub")
             else:
-                logger.info("Package {} was detected in OperatorHub".format(package_name))
+                logger.info(f"Package {package_name} was detected in OperatorHub")
                 return True
         return False
 
@@ -102,7 +102,7 @@ class OperatorhubPackages(OcpBase):
         :return: (list) A list of subscription channels.
         """
         if not self.watch_package_manifest_present(package_name):
-            logger.error("The package {} could not be detected".format(package_name))
+            logger.error(f"The package {package_name} could not be detected")
         else:
             channels_list = []
             channels_present = False
@@ -165,7 +165,7 @@ class OperatorhubPackages(OcpBase):
                 if im.type == "AllNamespaces" and im.supported is True:
                     clusterwide_channels.append(channel)
         if len(clusterwide_channels) == 0:
-            logger.info("No clusterwide channels were found for package: {}".format(package_name))
+            logger.info(f"No clusterwide channels were found for package: {package_name}")
         return clusterwide_channels
 
     def get_package_multinamespace_channels(self, package_name: str) -> list:
@@ -185,7 +185,7 @@ class OperatorhubPackages(OcpBase):
                 if im.type == "MultiNamespace" and im.supported is True:
                     multinamespace_channels.append(channel)
         if len(multinamespace_channels) == 0:
-            logger.info("No MultiNamespace channels were found for package: {}".format(package_name))
+            logger.info(f"No MultiNamespace channels were found for package: {package_name}")
         return multinamespace_channels
 
     def get_package_singlenamespace_channels(self, package_name: str) -> list:
@@ -205,7 +205,7 @@ class OperatorhubPackages(OcpBase):
                 if im.type == "SingleNamespace" and im.supported is True:
                     singlenamespace_channels.append(channel)
         if len(singlenamespace_channels) == 0:
-            logger.info("No SingleNamespace channels were found for package: {}".format(package_name))
+            logger.info(f"No SingleNamespace channels were found for package: {package_name}")
         return singlenamespace_channels
 
     def get_package_ownnamespace_channels(self, package_name: str) -> list:
@@ -225,7 +225,7 @@ class OperatorhubPackages(OcpBase):
                 if im.type == "OwnNamespace" and im.supported is True:
                     ownnamespace_channels.append(channel)
         if len(ownnamespace_channels) == 0:
-            logger.info("No OwnNamespace channels were found for package: {}".format(package_name))
+            logger.info(f"No OwnNamespace channels were found for package: {package_name}")
         return ownnamespace_channels
 
     def get_package_default_channel(self, package_name: str) -> Optional[str]:
@@ -287,7 +287,7 @@ class OperatorSource(OcpBase):
     )
 
     def __init__(self, kube_config_file=None):
-        super(OperatorSource, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "operators.coreos.com/v1"
         self.kind = "OperatorSource"
         self.operator_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -368,7 +368,7 @@ class CatalogSource(OcpBase):
     """
 
     def __init__(self, kube_config_file):
-        super(CatalogSource, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "operators.coreos.com/v1alpha1"
         self.kind = "CatalogSource"
         self.catalog_source_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -448,10 +448,10 @@ class CatalogSource(OcpBase):
         :param return: (bool) A boolean value to indicate whether a catalog source is
                        present or not.
         """
-        field_selector = "metadata.name={}".format(cs_name)
+        field_selector = f"metadata.name={cs_name}"
         for event in self.catalog_source_obj.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
             if event["object"] and event["object"]["metadata"]["name"] == cs_name:
-                logger.info("CatalogSource {} in namescpace {} was found".format(cs_name, namespace))
+                logger.info(f"CatalogSource {cs_name} in namescpace {namespace} was found")
                 return True
         logger.warning(
             "CatalogSource {} in namespace {} was not detected within a timeout interval"
@@ -472,7 +472,7 @@ class Subscription(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(Subscription, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "operators.coreos.com/v1alpha1"
         self.kind = "Subscription"
         self.subscription_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -547,7 +547,7 @@ class Subscription(OcpBase):
     def watch_subscription_ready(self, operator_name: str, namespace: str, timeout: int = 60) -> bool:
         logger.info("Watching %s subscription for readiness" % operator_name)
         is_operator_ready = False
-        field_selector = "metadata.name={}".format(operator_name)
+        field_selector = f"metadata.name={operator_name}"
         for event in self.subscription_obj.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
             for condition in event["object"]["status"]["conditions"]:
                 if condition["message"] == "all available catalogsources are healthy":
@@ -569,7 +569,7 @@ class OperatorGroup(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OperatorGroup, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "operators.coreos.com/v1"
         self.kind = "OperatorGroup"
         self.operator_group_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -659,7 +659,7 @@ class ClusterServiceVersion(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(ClusterServiceVersion, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "operators.coreos.com/v1alpha1"
         self.kind = "ClusterServiceVersion"
         self.csv_obj = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -694,10 +694,10 @@ class ClusterServiceVersion(OcpBase):
         :param return: (bool) A boolean value to indicate whether a catalog source is
                        present or not.
         """
-        field_selector = "metadata.name={}".format(csv_name)
+        field_selector = f"metadata.name={csv_name}"
         for event in self.csv_obj.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
             if event["object"] and event["object"]["metadata"]["name"] == csv_name:
-                logger.info("ClusterServiceVersion {} in namespace {} was found".format(csv_name, namespace))
+                logger.info(f"ClusterServiceVersion {csv_name} in namespace {namespace} was found")
                 return True
         logger.warning(
             "ClusterServiceVersion {} in namespace {} was not detected within a timeout interval"

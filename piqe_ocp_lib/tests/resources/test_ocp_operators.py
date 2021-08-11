@@ -119,7 +119,7 @@ class TestOcpOperatorHub:
         pkg_obj = get_test_objects.op_hub_obj
         pkg_list = pkg_obj.get_package_manifest_list()
         rand_pkg = random.choice(pkg_list.items)
-        logger.info("Package name is: {}".format(rand_pkg.metadata.name))
+        logger.info(f"Package name is: {rand_pkg.metadata.name}")
         cluster_wide_channels = pkg_obj.get_package_allnamespaces_channels(rand_pkg.metadata.name)
         if cluster_wide_channels:
             assert cluster_wide_channels[0]["currentCSVDesc"]["installModes"][3]["type"] == "AllNamespaces"
@@ -134,7 +134,7 @@ class TestOcpOperatorHub:
         pkg_obj = get_test_objects.op_hub_obj
         pkg_list = pkg_obj.get_package_manifest_list()
         rand_pkg = random.choice(pkg_list.items)
-        logger.info("Package name is: {}".format(rand_pkg.metadata.name))
+        logger.info(f"Package name is: {rand_pkg.metadata.name}")
         single_namespace_channels = pkg_obj.get_package_singlenamespace_channels(rand_pkg.metadata.name)
         if single_namespace_channels:
             assert single_namespace_channels[0]["currentCSVDesc"]["installModes"][1]["type"] == "SingleNamespace"

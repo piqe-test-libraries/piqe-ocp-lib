@@ -20,7 +20,7 @@ class OcpLimitRanges(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpLimitRanges, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "v1"
         self.kind = "LimitRange"
         self.ocp_limit_range = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -246,7 +246,7 @@ class OcpLimitRanges(OcpBase):
         )
 
 
-class OcpLimitRangeItem(object):
+class OcpLimitRangeItem:
     """
     OcpContainerLimit Class is a builder that encapsulates
     that kubernetes V1LimitRangeItem class so that it's easier to build with values
@@ -334,7 +334,7 @@ class OcpContainerLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpContainerLimit, self).__init__(type="Container")
+        super().__init__(type="Container")
 
     def cpu(
         self,
@@ -402,7 +402,7 @@ class OcpPodLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpPodLimit, self).__init__(type="Pod")
+        super().__init__(type="Pod")
 
     def cpu(
         self, min: Union[str, None] = None, max: Union[str, None] = None, max_limit_ratio: Union[str, None] = None
@@ -442,7 +442,7 @@ class OcpImageLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpImageLimit, self).__init__(type="openshift.io/Image")
+        super().__init__(type="openshift.io/Image")
 
     def storage(self, max: Union[str, None] = None) -> Type["OcpImageLimit"]:
         """
@@ -464,7 +464,7 @@ class OcpImageStreamLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpImageStreamLimit, self).__init__(type="openshift.io/ImageStream")
+        super().__init__(type="openshift.io/ImageStream")
 
     def image_tags(self, max: Union[str, None] = None) -> Type["OcpImageStreamLimit"]:
         """
@@ -498,7 +498,7 @@ class OcpPersistentVolumeClaimLimit(OcpLimitRangeItem):
 
     def __init__(self):
 
-        super(OcpPersistentVolumeClaimLimit, self).__init__(type="PersistentVolumeClaim")
+        super().__init__(type="PersistentVolumeClaim")
 
     def storage(
         self, min: Union[str, None] = None, max: Union[str, None] = None
