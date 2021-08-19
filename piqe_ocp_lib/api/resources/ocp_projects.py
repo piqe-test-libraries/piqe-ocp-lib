@@ -37,7 +37,7 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_created(project_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method create_project_request: %s\n" % e)
+            logger.error("Exception when calling method create_a_project: %s\n" % e.reason)
         if labels_dict is not None:
             self.label_a_project(project_name, labels_dict)
         return api_response
@@ -55,7 +55,7 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_created(namespace_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method create_project_request: %s\n" % e)
+            logger.error("Exception when calling method create_a_namespace: %s\n" % e.reason)
         if labels_dict is not None:
             self.label_a_project(namespace_name, labels_dict)
         return api_response
@@ -73,7 +73,7 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.patch(body=body, name=project_name)
         except ApiException as e:
-            logger.error("Exception when calling method patch_namespace: %s\n" % e)
+            logger.error("Exception when calling method label_a_project: %s\n" % e.reason)
         return api_response
 
     def get_a_project(self, project_name):
@@ -101,7 +101,7 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_deleted(project_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method delete_a_project: %s\n" % e)
+            logger.error("Exception when calling method delete_a_project: %s\n" % e.reason)
         return api_response
 
     def delete_a_namespace(self, namespace_name):
@@ -116,7 +116,7 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_deleted(namespace_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method delete_a_namespace: %s\n" % e)
+            logger.error("Exception when calling method delete_a_namespace: %s\n" % e.reason)
         return api_response
 
     def get_all_projects(self):
@@ -129,7 +129,7 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.get()
         except ApiException as e:
-            logger.error("Exception when calling method list_all_namespaces: %s\n" % e)
+            logger.error("Exception when calling method get_all_projects: %s\n" % e.reason)
         return api_response
 
     def does_project_exist(self, project_name):
