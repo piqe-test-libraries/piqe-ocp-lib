@@ -14,6 +14,7 @@ def setup_params(get_kubeconfig):
     params_dict["project_api_obj"] = OcpProjects(kube_config_file=get_kubeconfig)
     params_dict["template_api_obj"] = OcpTemplates(kube_config_file=get_kubeconfig)
     params_dict["test_project"] = "app-project"
+    params_dict["test_project_labels"] = {"css-test": "True"}
     params_dict["ident"] = randint(0, 10)
     params_dict["test_app_params"] = {"MEMORY_LIMIT": "768Mi"}
     params_dict["template_name"] = "httpd-example"
@@ -37,7 +38,7 @@ class TestOcpApps:
         app_api_obj = setup_params["app_api_obj"]
         project_api_obj = setup_params["project_api_obj"]
         template_api_obj = setup_params["template_api_obj"]
-        project_api_obj.create_a_project(setup_params["test_project"])
+        project_api_obj.create_a_project(setup_params["test_project"], labels_dict=setup_params["test_project_labels"])
         with open("piqe_ocp_lib/tests/resources/templates/httpd.json") as t:
             body = json.load(t)
         template_api_obj.create_a_template_in_a_namespace(body, project=setup_params["test_project"])

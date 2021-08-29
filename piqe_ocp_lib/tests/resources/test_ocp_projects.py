@@ -12,10 +12,10 @@ logger = logging.getLogger(__loggername__)
 def setup_params(get_kubeconfig):
     params_dict = {
         "project_api_obj": OcpProjects(kube_config_file=get_kubeconfig),
-        "project1": {"name": "test-project1", "label": {"test": "1"}},
-        "project2": {"name": "test-project2", "label": {"test": "2"}},
-        "project3": {"name": "openshift-test1", "label": {"test": "3"}},
-        "project4": {"name": "openshift-test2", "label": {"test": "4"}},
+        "project1": {"name": "test-project1", "label": {"test": "1", "css-test": "True"}},
+        "project2": {"name": "test-project2", "label": {"test": "2", "css-test": "True"}},
+        "project3": {"name": "openshift-test1", "label": {"test": "3", "css-test": "True"}},
+        "project4": {"name": "openshift-test2", "label": {"test": "4", "css-test": "True"}},
     }
     return params_dict
 
@@ -31,7 +31,9 @@ class TestOcpProjects:
            active phase.
         """
         project_api_obj = setup_params["project_api_obj"]
-        api_response = project_api_obj.create_a_project(setup_params["project1"]["name"])
+        api_response = project_api_obj.create_a_project(
+            setup_params["project1"]["name"], labels_dict=setup_params["project1"]["label"]
+        )
         assert api_response.kind == "Project"
         assert api_response.metadata.name == setup_params["project1"]["name"]
         assert api_response.status["phase"] == "Active"
@@ -46,7 +48,9 @@ class TestOcpProjects:
            active phase.
         """
         project_api_obj = setup_params["project_api_obj"]
-        api_response = project_api_obj.create_a_namespace(namespace_name=setup_params["project3"]["name"])
+        api_response = project_api_obj.create_a_namespace(
+            namespace_name=setup_params["project3"]["name"], labels_dict=setup_params["project3"]["label"]
+        )
         logger.info("API Response : %s", api_response)
         assert api_response.kind == "Namespace"
         assert api_response.metadata.name == setup_params["project3"]["name"]
@@ -169,7 +173,9 @@ class TestOcpProjects:
         api_response = project_api_obj.get_all_projects()
         original_project_count = len(api_response.items)
 
-        create_project_response = project_api_obj.create_a_project(setup_params["project1"]["name"])
+        create_project_response = project_api_obj.create_a_project(
+            setup_params["project1"]["name"], labels_dict=setup_params["project1"]["label"]
+        )
         assert create_project_response.status.phase == "Active"
 
         updated_api_response = project_api_obj.get_all_projects()
@@ -193,7 +199,8 @@ class TestOcpProjects:
         project_api_obj = setup_params["project_api_obj"]
 
         project_name = setup_params["project1"]["name"]
-        project_api_obj.create_a_project(project_name=project_name)
+        project_label = setup_params["project1"]["label"]
+        project_api_obj.create_a_project(project_name=project_name, labels_dict=project_label)
         is_created_project_present = project_api_obj.does_project_exist(project_name)
         assert is_created_project_present is True
 

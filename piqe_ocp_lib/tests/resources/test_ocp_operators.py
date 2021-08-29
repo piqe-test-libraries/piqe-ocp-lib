@@ -228,7 +228,7 @@ class TestSubscription:
     def test_create_subscription(self, get_test_objects):
         # Create a subscription and check kind and name
         # for correctness
-        get_test_objects.project_obj.create_a_project("test-project1")
+        get_test_objects.project_obj.create_a_project("test-project1", labels_dict={"css-test": "True"})
         nfd_default_channel = get_test_objects.op_hub_obj.get_package_default_channel("nfd")
         sub_resp_obj = get_test_objects.sub_obj.create_subscription("nfd", nfd_default_channel, "test-project1")
         assert sub_resp_obj.kind == "Subscription" and sub_resp_obj.metadata.name == "nfd"
@@ -255,8 +255,8 @@ class TestOperatorGroup:
     def test_create_operator_group(self, get_test_objects):
         # Create an operator group and check kind and name
         # for correctness
-        get_test_objects.project_obj.create_a_project("og-project")
-        get_test_objects.project_obj.create_a_project("test-project2")
+        get_test_objects.project_obj.create_a_project("og-project", labels_dict={"css-test": "True"})
+        get_test_objects.project_obj.create_a_project("test-project2", labels_dict={"css-test": "True"})
         og_resp_obj = get_test_objects.og_obj.create_operator_group("test-og", "og-project", ["test-project2"])
         assert og_resp_obj.kind == "OperatorGroup" and og_resp_obj.metadata.name == "test-og"
 
@@ -298,7 +298,7 @@ class TestClusterServiceVersion:
         # We obtain the CSV name from the subscription response object.
         # Finally we check kind and name for correctness and proceed with
         # cleaning up test artifacts.
-        get_test_objects.project_obj.create_a_project("test-project3")
+        get_test_objects.project_obj.create_a_project("test-project3", labels_dict={"css-test": "True"})
         # os_resp_obj = get_test_objects.os_obj.get_operator_source('community-operators')
         get_test_objects.og_obj.create_operator_group("test-og", "openshift-marketplace", ["test-project3"])
         get_test_objects.sub_obj.create_subscription("kong", "SingleNamespace", "openshift-marketplace")
@@ -364,7 +364,7 @@ class TestInstallOperatorWorkflow:
         project_resource.delete_a_project("test-ownnamespace")
 
     def test_add_operator_singlenamespace(self, project_resource, operator_installer, operator_hub, cluster_service):
-        project_resource.create_a_project("test-project4")
+        project_resource.create_a_project("test-project4", labels_dict={"css-test": "True"})
         operator_installer.add_operator_to_cluster(
             "amq-streams", "stable", "test-singlenamespace", target_namespaces=["test-project4"]
         )
@@ -375,8 +375,8 @@ class TestInstallOperatorWorkflow:
         project_resource.delete_a_project("test-project4")
 
     def test_add_operator_multinamespace(self, project_resource, operator_installer, operator_hub, cluster_service):
-        project_resource.create_a_project("test-project5")
-        project_resource.create_a_project("test-project6")
+        project_resource.create_a_project("test-project5", labels_dict={"css-test": "True"})
+        project_resource.create_a_project("test-project6", labels_dict={"css-test": "True"})
         operator_installer.add_operator_to_cluster(
             "amq-streams", "stable", "test-multinamespace", target_namespaces=["test-project5", "test-project6"]
         )
