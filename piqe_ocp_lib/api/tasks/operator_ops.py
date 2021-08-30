@@ -1,7 +1,8 @@
 import logging
 from kubernetes.client.rest import ApiException
-from typing import Dict, List, Optional, Tuple, Union
 from kubernetes.client.rest import ApiException
+from typing import Dict, List, Optional, Tuple, Union
+
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.ocp_exceptions import UnsupportedInstallMode
