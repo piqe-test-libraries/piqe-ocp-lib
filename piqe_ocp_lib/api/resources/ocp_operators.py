@@ -515,7 +515,6 @@ class Subscription(OcpBase):
             logger.exception("Exception when calling method create_subscription: %s\n" % e)
         return api_response
 
-
     def get_all_subscriptions(self) -> Optional[ResourceInstance]:
         """
         A method to get all the subscriptions
@@ -526,8 +525,7 @@ class Subscription(OcpBase):
             api_response = self.subscription_obj.get()
         except ApiException as e:
             logger.exception("Exception while calling method get_all_subscription: %s\n" % e)
-        return api_response  
-   
+        return api_response
 
     def get_subscription(self, operator_name: str, namespace: str) -> Optional[ResourceInstance]:
         """

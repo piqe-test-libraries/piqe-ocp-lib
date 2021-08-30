@@ -234,7 +234,7 @@ class TestSubscription:
         assert sub_resp_obj.kind == "Subscription" and sub_resp_obj.metadata.name == "nfd"
 
     def test_get_all_subscriptions(self, get_test_objects):
-        #get all the subscriptions from the cluster and check it's not none
+        # get all the subscriptions from the cluster and check it's not none
         assert get_test_objects.sub_obj.get_all_subscriptions() is not None
 
     def test_get_subscription(self, get_test_objects):

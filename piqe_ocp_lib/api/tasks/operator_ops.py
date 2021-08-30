@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from kubernetes.client.rest import ApiException
 
-
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.ocp_exceptions import UnsupportedInstallMode
 from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
@@ -111,28 +110,29 @@ class OperatorInstaller(OcpBase):
 
     def check_operator_installed(self, operator_name: str) -> Optional[Dict]:
         """
-        Check if operator is installed 
+        Check if operator is installed
         :param operator_name: name of the operator.
         return: object of spec of given operator's subscription
         """
         all_sub_resp_obj = self.sub_obj.get_all_subscriptions()
-        for i in range(0,len(all_sub_resp_obj.items)):
+        for i in range(0, len(all_sub_resp_obj.items)):
             if operator_name not in str(all_sub_resp_obj.items[i]):
                 return None
                 break
             else:
-                target_item = i 
-                csv_name = self.ohp_obj.get_package_channel_by_name(operator_name,
-                   all_sub_resp_obj.items[target_item]['spec']['channel']).currentCSV
-                operator_namespace = all_sub_resp_obj.items[target_item]['metadata']['namespace']
-                assert 'channel' in all_sub_resp_obj.items[target_item]['spec'].keys()
-                assert 'sourceNamespace' in all_sub_resp_obj.items[target_item]['spec'].keys()
-                assert 'startingCSV' in all_sub_resp_obj.items[target_item]['spec'].keys()
-                assert 'name' in all_sub_resp_obj.items[target_item]['spec'].keys()
-                assert all_sub_resp_obj.items[target_item]['spec']['name'] == operator_name
-                assert all_sub_resp_obj.items[target_item]['status']['state'] == 'AtLatestKnown'
+                target_item = i
+                csv_name = self.ohp_obj.get_package_channel_by_name(
+                    operator_name, all_sub_resp_obj.items[target_item]["spec"]["channel"]
+                ).currentCSV
+                operator_namespace = all_sub_resp_obj.items[target_item]["metadata"]["namespace"]
+                assert "channel" in all_sub_resp_obj.items[target_item]["spec"].keys()
+                assert "sourceNamespace" in all_sub_resp_obj.items[target_item]["spec"].keys()
+                assert "startingCSV" in all_sub_resp_obj.items[target_item]["spec"].keys()
+                assert "name" in all_sub_resp_obj.items[target_item]["spec"].keys()
+                assert all_sub_resp_obj.items[target_item]["spec"]["name"] == operator_name
+                assert all_sub_resp_obj.items[target_item]["status"]["state"] == "AtLatestKnown"
                 assert self.csv.is_cluster_service_version_present(csv_name, operator_namespace)
-                return all_sub_resp_obj.items[target_item]['spec']    
+                return all_sub_resp_obj.items[target_item]["spec"]
 
     def get_version_of_operator(self, operator_name: str) -> Optional[str]:
         """
@@ -143,11 +143,10 @@ class OperatorInstaller(OcpBase):
         """
         ioi = self.check_operator_installed(operator_name)
         if ioi is not None:
-            return self.ohp_obj.get_package_channel_by_name(operator_name, 
-             ioi['channel'])['currentCSVDesc']['version']
+            return self.ohp_obj.get_package_channel_by_name(operator_name, ioi["channel"])["currentCSVDesc"]["version"]
         else:
             logger.info("%s operator is not installed", operator_name)
-            return None   
+            return None
 
     def get_channel_of_operator(self, operator_name: str) -> Optional[str]:
         """
@@ -158,11 +157,11 @@ class OperatorInstaller(OcpBase):
         """
         ioi = self.check_operator_installed(operator_name)
         if ioi is not None:
-            return ioi['channel']
+            return ioi["channel"]
         else:
             logger.info("%s operator is not installed", operator_name)
             return None
-          
+
     def delete_operator_from_cluster(self, operator_name: str, namespace: str) -> bool:
         """
         Uninstall an operator from a cluster
