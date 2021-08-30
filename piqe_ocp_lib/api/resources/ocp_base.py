@@ -2,10 +2,12 @@ from collections import namedtuple
 import logging
 import os
 from threading import RLock
+from typing import Dict, Optional
 import warnings
 
 import jmespath
 from kubernetes import config
+from kubernetes.client.api_client import ApiClient as K8sClient
 from kubernetes.client.rest import ApiException
 from openshift.dynamic import DynamicClient, Resource
 from urllib3.exceptions import InsecureRequestWarning
@@ -21,32 +23,40 @@ logger = logging.getLogger(__loggername__)
 
 Version = namedtuple("Version", ["major", "minor", "patch"])
 
-class OcpBase(object):
+
+class OcpBase:
     """
     This dict will hold kubeconfig as key and DynamicClient object as value
     """
 
-    _dyn_clients = {}
+    _dyn_clients: Dict[str, DynamicClient] = {}
 
     """
-    This dict will hold kubeconfig as key and  kubernetes object, k8_client as value
+    This dict will hold kubeconfig as key and kubernetes object, k8_client as value
     """
-    k8s_clients = {}
+    k8s_clients: Dict[str, K8sClient] = {}
 
     # For thread safe
-    _lock = RLock()
+    _lock: RLock = RLock()
 
-    def __init__(self, kube_config_file=None):
+    kube_config_file: str
+
+    def __init__(self, kube_config_file: Optional[str] = None):
         """
         The init method for the base class
         :return: None
         """
         # Lock the thread in case of multi-threading
         with OcpBase._lock:
-            self.kube_config_file = kube_config_file or os.environ.get("KUBECONFIG")
+            if kube_config_file is None:
+                kube_config_file = os.environ.get("KUBECONFIG")
+                if kube_config_file is None:
+                    raise Exception("failed to find kubeconfig")
+
+            self.kube_config_file = kube_config_file
 
     @property
-    def k8s_client(self):
+    def k8s_client(self) -> K8sClient:
         """
         Return k8s_client instance for specific openshift cluster based on kube_config_file attribute
         :return: Instance of K8s_client
@@ -56,7 +66,7 @@ class OcpBase(object):
         return OcpBase.k8s_clients.get(self.kube_config_file)
 
     @property
-    def dyn_client(self):
+    def dyn_client(self) -> DynamicClient:
         """
         Return dyn_client instance for specific openshift cluster based on kube_config_file attribute
         :return: Instance of DynamicClient
@@ -68,7 +78,7 @@ class OcpBase(object):
             return OcpBase._dyn_clients.get(self.kube_config_file)
 
     @property
-    def ocp_version(self):
+    def ocp_version(self) -> Optional[Version]:
         """
         Return tuple of cluster version in the form (major, minor, z-stream)
         :return: (tuple) cluster version
@@ -76,7 +86,7 @@ class OcpBase(object):
         return self._get_ocp_version()
 
     @property
-    def provider(self):
+    def provider(self) -> str:
         """
         Return the name of the infrastructure provider if discoverable
         :return: (str) The infrastructure provider as described by
@@ -84,7 +94,7 @@ class OcpBase(object):
         """
         return self._get_infrastructure_provider()
 
-    def _get_ocp_version(self):
+    def _get_ocp_version(self) -> Optional[Version]:
         """
         Method that discovers the server version and returns it in the form of a tuple
         containing major and minor version.
@@ -98,43 +108,43 @@ class OcpBase(object):
         except ApiException as e:
             logger.exception(f"Exception was encountered while trying to obtain cluster version: {e}")
             return None
-         
+
         version_query = "sort_by(status.history[?state=='Completed'], &completionTime)[::-1].version"
         version = jmespath.search(version_query, version.to_dict())
-        if 'nightly'in version[0]:
-            version=[(version[0].split('-'))[0]]
+        if "nightly" in version[0]:
+            version = [(version[0].split("-"))[0]]
         return Version(*map(int, version[0].split(".")))
 
-    def _get_infrastructure_provider(self):
+    def _get_infrastructure_provider(self) -> str:
         """
         Returns the infrastructure provided for this cluster by
         instpecting the Infastructure resource.
         :return: (str) The name of the infrastructure provider or None
         """
-        provider = str()
+        provider = ""
         try:
             api_response = self.dyn_client.resources.search(api_version="config.openshift.io/v1", kind="Infrastructure")
             assert isinstance(api_response, list)
         except ApiException as e:
-            logger.exception("Exception was encountered while trying to get the infrastructure resource: {}".format(e))
+            logger.exception(f"Exception was encountered while trying to get the infrastructure resource: {e}")
         if api_response and isinstance(api_response[0], Resource) and api_response[0].kind == "Infrastructure":
             api_response = api_response[0]
             infra_obj = api_response.get()
             try:
                 provider = infra_obj.items[0].spec.platformSpec.type
             except KeyError:
-                logger.error("Could not access the platformSpec key in Infrastructure: \n{}".format(infra_obj))
+                logger.error(f"Could not access the platformSpec key in Infrastructure: \n{infra_obj}")
         return provider
 
-    def get_data_from_kubeconfig_v4(self):
+    def get_data_from_kubeconfig_v4(self) -> Dict[str, str]:
         """
         Get required data from kubeconfig file provided by openshift
         - API Server URL
         - Access Token
         :return: (dict) Return dict in form of kubeconfig_data
         """
+        api_server_url: str = ""
         kubeconfig_data = dict()
-        api_server_url = None
 
         with open(self.kube_config_file) as f:
             kcfg = yaml.load(f, Loader=yaml.FullLoader)

@@ -10,7 +10,7 @@ logger = logging.getLogger(__loggername__)
 
 five_digit_number = "".join(random.sample("0123456789", 5))
 NAMESPACE = "default"
-SA_TOKEN_NAME = "test-sa-token-{}".format(five_digit_number)
+SA_TOKEN_NAME = f"test-sa-token-{five_digit_number}"
 SA_TOKEN = (
     "ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklpSjkuZXlKcGMzTWlPaUpyZFdKbGNtNWxkR1Z6TDNObGNuWnBZMlZoWT"
     "JOdmRXNTBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5dVlXMWxjM0JoWTJVaU9pSnZjR1Z1"
@@ -54,7 +54,7 @@ class TestOcpSecrets:
         ):
             logger.info("Secret token created successfully")
         else:
-            assert False, "Failed to create {} service access secret token".format(SA_TOKEN_NAME)
+            assert False, f"Failed to create {SA_TOKEN_NAME} service access secret token"
 
     def test_get_secret_token(self, ocp_secret):
         secret_token = ocp_secret.get_secret_token(secret_name=SA_TOKEN_NAME, namespace=NAMESPACE)

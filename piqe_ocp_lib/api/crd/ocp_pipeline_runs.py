@@ -22,7 +22,7 @@ class OcpPipelines(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpPipelines, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "tekton.dev/v1beta1"
         self.kind = "Pipeline"
         self.ocp_pipeline = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -123,7 +123,7 @@ class OcpPipelineRuns(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpPipelineRuns, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "tekton.dev/v1beta1"
         self.kind = "PipelineRun"
         self.ocp_pipeline_runs = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -224,7 +224,7 @@ class OcpPipelineRuns(OcpBase):
         """
         logger.info(f"Watching pod {pipeline_run_name} for readiness")
         pipeline_run_ready = False
-        field_selector = "metadata.name={}".format(pipeline_run_name)
+        field_selector = f"metadata.name={pipeline_run_name}"
         for event in self.ocp_pipeline_runs.watch(namespace=namespace, field_selector=field_selector, timeout=timeout):
             for pipeline_run_condition in event["object"]["status"]["conditions"]:
                 if pipeline_run_condition["status"] == "True" and pipeline_run_condition["type"] == "Succeeded":

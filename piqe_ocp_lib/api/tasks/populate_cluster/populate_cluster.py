@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+import os
 import random
 from random import randint
 import sys
@@ -8,7 +9,6 @@ import threading
 from threading import Lock
 import time
 from time import sleep
-import os
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api import ocp_exceptions
@@ -229,9 +229,7 @@ class PopulateOcpCluster:
                 logger.info("Python version is %s", self.python_version)
                 threads = list()
                 for project in filtered_projects:
-                    thread = threading.Thread(
-                        target=populate, name="Thread_{}".format(project.project_name), args=(project,)
-                    )
+                    thread = threading.Thread(target=populate, name=f"Thread_{project.project_name}", args=(project,))
                     threads.append(thread)
                     thread.start()
                 for thread in threads:
@@ -435,14 +433,12 @@ def argument_parser():
 
     # Define arguments
     parser = argparse.ArgumentParser(description="Process inputs for populate_ocp_cluster")
-    if 'PIQE_OCP_LIB_CLUSTER_CONF' in os.environ and os.environ['PIQE_OCP_LIB_CLUSTER_CONF']:
-        cfg_path = os.path.abspath(os.path.expandvars(os.path.expanduser(os.environ['PIQE_OCP_LIB_CLUSTER_CONF'])))
-        confopt = {'default': cfg_path}
+    if "PIQE_OCP_LIB_CLUSTER_CONF" in os.environ and os.environ["PIQE_OCP_LIB_CLUSTER_CONF"]:
+        cfg_path = os.path.abspath(os.path.expandvars(os.path.expanduser(os.environ["PIQE_OCP_LIB_CLUSTER_CONF"])))
+        confopt = {"default": cfg_path}
     else:
-        confopt = {'required': True}
-    parser.add_argument(
-        "-c", "--config", action="store", help="YAML Config file that describes the cluster", **confopt
-    )
+        confopt = {"required": True}
+    parser.add_argument("-c", "--config", action="store", help="YAML Config file that describes the cluster", **confopt)
     parser.add_argument(
         "-d",
         "--debug",

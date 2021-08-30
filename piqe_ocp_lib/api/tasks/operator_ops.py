@@ -1,10 +1,11 @@
 import logging
 from kubernetes.client.rest import ApiException
-from typing import Dict, List, Optional, Tuple, Union 
+from typing import Dict, List, Optional, Tuple, Union
+from kubernetes.client.rest import ApiException
 
 from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
 from piqe_ocp_lib.api.ocp_exceptions import UnsupportedInstallMode
+from piqe_ocp_lib.api.resources import OcpBase, OcpProjects
 from piqe_ocp_lib.api.resources.ocp_operators import (
     ClusterServiceVersion,
     OperatorGroup,
@@ -17,7 +18,7 @@ logger = logging.getLogger(__loggername__)
 
 class OperatorInstaller(OcpBase):
     def __init__(self, kube_config_file: Optional[str] = None):
-        super(OperatorInstaller, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.og_obj = OperatorGroup(kube_config_file=self.kube_config_file)
         self.sub_obj = Subscription(kube_config_file=self.kube_config_file)
         self.ohp_obj = OperatorhubPackages(kube_config_file=self.kube_config_file)
@@ -33,7 +34,7 @@ class OperatorInstaller(OcpBase):
             3. If length is 1, we return 'SingleNamespace'.
             4. If length > 1, we return 'MultiNamespace'.
         """
-        if target_namespaces == '*':
+        if target_namespaces == "*":
             install_mode = "AllNamespaces"
         else:
             target_namespaces_count = len(target_namespaces)
@@ -57,10 +58,9 @@ class OperatorInstaller(OcpBase):
         assert self.proj_obj.create_a_namespace(operator_namespace)
         return operator_namespace
 
-    def _create_og(self, operator_name: str,
-                   channel_name: str,
-                   operator_namespace: str,
-                   target_namespaces: Union[list, str]) -> Tuple[str, str]:
+    def _create_og(
+        self, operator_name: str, channel_name: str, operator_namespace: str, target_namespaces: Union[list, str]
+    ) -> Tuple[str, str]:
         """
         A helper method that creates the operator group in the generated operator namespace
         """
@@ -75,10 +75,13 @@ class OperatorInstaller(OcpBase):
             assert self.og_obj.create_operator_group(og_name, operator_namespace, target_namespaces)
         return og_name, operator_namespace
 
-    def add_operator_to_cluster(self, operator_name: str,
-                                channel_name: str = '',
-                                operator_namespace: str = '',
-                                target_namespaces: Union[List[str], str] = []) -> bool:
+    def add_operator_to_cluster(
+        self,
+        operator_name: str,
+        channel_name: str = "",
+        operator_namespace: str = "",
+        target_namespaces: Union[List[str], str] = [],
+    ) -> bool:
         """
         Install an operator in a list of target namespaces
         :param operator_name: (required | str) The name of the operator to be installed
@@ -107,9 +110,9 @@ class OperatorInstaller(OcpBase):
 
     def check_operator_installed(self, operator_name: str) -> Optional[Dict]:
         """
-        Check if operator is installed and returned true or false
+        Check if operator is installed 
         :param operator_name: name of the operator.
-        return: object of spec of respective operator's subscription
+        return: object of spec of given operator's subscription
         """
         all_sub_resp_obj = self.sub_obj.get_all_subscriptions()
         for i in range(0,len(all_sub_resp_obj.items)):

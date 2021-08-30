@@ -50,7 +50,7 @@ class OcpPrometheusClient(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpPrometheusClient, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.ocp_route = OcpRoutes(kube_config_file=kube_config_file)
         self.ocp_secret = OcpSecret(kube_config_file=kube_config_file)
         self._prometheus_cache = dict()

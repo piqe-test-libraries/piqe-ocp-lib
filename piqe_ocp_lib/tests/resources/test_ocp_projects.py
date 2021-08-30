@@ -20,7 +20,7 @@ def setup_params(get_kubeconfig):
     return params_dict
 
 
-class TestOcpProjects(object):
+class TestOcpProjects:
     def test_create_a_project(self, setup_params):
         """
         1. Create a test project
