@@ -1,0 +1,23 @@
+#!/bin/bash
+# quick script to allow us to run the poetry lint commands together without having
+# Make bomb out on the first poetry command without running the others or getting
+# complicated with the CI github actions with a job for each lint tool.
+
+LINT_RC=0
+
+poetry run flake8 piqe_ocp_lib/*
+if [ $? -eq 1 ] && [ $LINT_RC -eq 0 ]; then
+  LINT_RC=1
+fi
+
+poetry run black --check --diff piqe_ocp_lib/
+if [ $? -eq 1 ] && [ $LINT_RC -eq 0 ]; then
+  LINT_RC=1
+fi
+
+poetry run isort --check-only --diff piqe_ocp_lib/
+if [ $? -eq 1 ] && [ $LINT_RC -eq 0 ]; then
+  LINT_RC=1
+fi
+
+exit $LINT_RC

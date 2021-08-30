@@ -13,9 +13,7 @@ format:
 	poetry run black piqe_ocp_lib/
 
 lint:
-	poetry run flake8 piqe_ocp_lib/*; \
-	poetry run black --check --diff piqe_ocp_lib/; \
-	poetry run isort --check-only --diff piqe_ocp_lib/
+	chmod +x lint_check && ./lint_check
 
 test:
 	poetry run pytest
