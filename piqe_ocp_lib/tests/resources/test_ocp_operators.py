@@ -9,11 +9,11 @@ import pytest
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources import OcpProjects
 from piqe_ocp_lib.api.resources.ocp_operators import (
+    CatalogSource,
     ClusterServiceVersion,
     OperatorGroup,
     OperatorhubPackages,
     OperatorSource,
-    CatalogSource,
     Subscription,
 )
 from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
@@ -109,7 +109,7 @@ class TestOcpOperatorHub:
     def test_get_channel_suggested_namespace(self, get_test_objects):
         pkg_obj = get_test_objects.op_hub_obj
         expected_namespace = "openshift-cnv"
-        suggested_namespace = pkg_obj.get_channel_suggested_namespace('kubevirt-hyperconverged', 'stable')
+        suggested_namespace = pkg_obj.get_channel_suggested_namespace("kubevirt-hyperconverged", "stable")
         assert expected_namespace == suggested_namespace
 
     def test_get_package_allnamespaces_channels(self, get_test_objects):
@@ -119,7 +119,7 @@ class TestOcpOperatorHub:
         pkg_obj = get_test_objects.op_hub_obj
         pkg_list = pkg_obj.get_package_manifest_list()
         rand_pkg = random.choice(pkg_list.items)
-        logger.info("Package name is: {}".format(rand_pkg.metadata.name))
+        logger.info(f"Package name is: {rand_pkg.metadata.name}")
         cluster_wide_channels = pkg_obj.get_package_allnamespaces_channels(rand_pkg.metadata.name)
         if cluster_wide_channels:
             assert cluster_wide_channels[0]["currentCSVDesc"]["installModes"][3]["type"] == "AllNamespaces"
@@ -134,7 +134,7 @@ class TestOcpOperatorHub:
         pkg_obj = get_test_objects.op_hub_obj
         pkg_list = pkg_obj.get_package_manifest_list()
         rand_pkg = random.choice(pkg_list.items)
-        logger.info("Package name is: {}".format(rand_pkg.metadata.name))
+        logger.info(f"Package name is: {rand_pkg.metadata.name}")
         single_namespace_channels = pkg_obj.get_package_singlenamespace_channels(rand_pkg.metadata.name)
         if single_namespace_channels:
             assert single_namespace_channels[0]["currentCSVDesc"]["installModes"][1]["type"] == "SingleNamespace"
@@ -144,12 +144,12 @@ class TestOcpOperatorHub:
 
     def test_get_crd_models_from_manifest(self, get_test_objects):
         cmfm_obj = get_test_objects.op_hub_obj
-        alm_list = cmfm_obj.get_crd_models_from_manifest('amq-streams', 'stable')
+        alm_list = cmfm_obj.get_crd_models_from_manifest("amq-streams", "stable")
         assert len(alm_list) != 0
         for i in range(0, len(alm_list)):
-            assert 'apiVersion' in alm_list[i].keys()
+            assert "apiVersion" in alm_list[i].keys()
         for i in range(0, len(alm_list)):
-            assert 'kind' in alm_list[i].keys()
+            assert "kind" in alm_list[i].keys()
 
     def test_get_package_default_channel(self, get_test_objects):
         pkg_obj = get_test_objects.op_hub_obj
@@ -199,7 +199,7 @@ class TestOperatorSource:
 
 
 class TestCatalogSource:
-    cs_name = 'test-'+'-'+''.join(random.choice(string.ascii_lowercase) for i in range(4))
+    cs_name = "test-" + "-" + "".join(random.choice(string.ascii_lowercase) for i in range(4))
 
     def test_create_catalog_source(self, get_test_objects):
         image = "quay.io/openshift-qe-optional-operators/ocp4-index:latest"
@@ -229,7 +229,7 @@ class TestSubscription:
         # Create a subscription and check kind and name
         # for correctness
         get_test_objects.project_obj.create_a_project("test-project1")
-        nfd_default_channel = get_test_objects.op_hub_obj.get_package_default_channel('nfd')
+        nfd_default_channel = get_test_objects.op_hub_obj.get_package_default_channel("nfd")
         sub_resp_obj = get_test_objects.sub_obj.create_subscription("nfd", nfd_default_channel, "test-project1")
         assert sub_resp_obj.kind == "Subscription" and sub_resp_obj.metadata.name == "nfd"
 
@@ -329,42 +329,42 @@ class TestInstallOperatorWorkflow:
     of an operator is implemented, and this test will be updated.
     """
 
-    def test_add_random_operator_using_default_channel(self, project_resource,
-                                                       operator_installer,
-                                                       operator_hub,
-                                                       cluster_service):
-        pkg_list = operator_hub.get_package_manifest_list(catalog='redhat-operators')
+    def test_add_random_operator_using_default_channel(
+        self, project_resource, operator_installer, operator_hub, cluster_service
+    ):
+        pkg_list = operator_hub.get_package_manifest_list(catalog="redhat-operators")
         rand_pkg = random.choice(pkg_list.items)
         operator = rand_pkg.metadata.name
         default_channel = operator_hub.get_package_default_channel(operator)
-        if not operator_hub.is_install_mode_supported_by_channel(operator, default_channel, 'OwnNamespace'):
-            logger.info(f"""Channel {default_channel} for Operator {operator} does not support
-                            install mode 'OwnNamespace' ... skipping test.""")
+        if not operator_hub.is_install_mode_supported_by_channel(operator, default_channel, "OwnNamespace"):
+            logger.info(
+                f"""Channel {default_channel} for Operator {operator} does not support
+                            install mode 'OwnNamespace' ... skipping test."""
+            )
             return
         else:
             operator_installer.add_operator_to_cluster(operator)
             operator_namespace = operator_hub.get_channel_suggested_namespace(rand_pkg.metadata.name, default_channel)
             if not operator_namespace:
-                operator_namespace = f'openshift-{rand_pkg.metadata.name}'
+                operator_namespace = f"openshift-{rand_pkg.metadata.name}"
             csv_name = operator_hub.get_package_channel_by_name(rand_pkg.metadata.name, default_channel).currentCSV
             assert cluster_service.is_cluster_service_version_present(csv_name, operator_namespace, timeout=120)
             # TODO: update when delete_operator_from_cluster is implemented
             project_resource.delete_a_project(operator_namespace)
 
     def test_add_operator_ownnamespace(self, project_resource, operator_installer, operator_hub, cluster_service):
-        operator_installer.add_operator_to_cluster("amq-streams", 'stable', 'test-ownnamespace')
-        csv_name = operator_hub.get_package_channel_by_name('amq-streams', 'stable').currentCSV
+        operator_installer.add_operator_to_cluster("amq-streams", "stable", "test-ownnamespace")
+        csv_name = operator_hub.get_package_channel_by_name("amq-streams", "stable").currentCSV
         assert cluster_service.is_cluster_service_version_present(csv_name, "test-ownnamespace")
         # TODO: update when delete_operator_from_cluster is implemented
         project_resource.delete_a_project("test-ownnamespace")
 
     def test_add_operator_singlenamespace(self, project_resource, operator_installer, operator_hub, cluster_service):
         project_resource.create_a_project("test-project4")
-        operator_installer.add_operator_to_cluster("amq-streams",
-                                                   'stable',
-                                                   'test-singlenamespace',
-                                                   target_namespaces=["test-project4"])
-        csv_name = operator_hub.get_package_channel_by_name('amq-streams', 'stable').currentCSV
+        operator_installer.add_operator_to_cluster(
+            "amq-streams", "stable", "test-singlenamespace", target_namespaces=["test-project4"]
+        )
+        csv_name = operator_hub.get_package_channel_by_name("amq-streams", "stable").currentCSV
         assert cluster_service.is_cluster_service_version_present(csv_name, "test-project4")
         # TODO: update when delete_operator_from_cluster is implemented
         project_resource.delete_a_project("test-singlenamespace")
@@ -373,12 +373,11 @@ class TestInstallOperatorWorkflow:
     def test_add_operator_multinamespace(self, project_resource, operator_installer, operator_hub, cluster_service):
         project_resource.create_a_project("test-project5")
         project_resource.create_a_project("test-project6")
-        operator_installer.add_operator_to_cluster("amq-streams",
-                                                   'stable',
-                                                   'test-multinamespace',
-                                                   target_namespaces=["test-project5", "test-project6"])
+        operator_installer.add_operator_to_cluster(
+            "amq-streams", "stable", "test-multinamespace", target_namespaces=["test-project5", "test-project6"]
+        )
 
-        csv_name = operator_hub.get_package_channel_by_name('amq-streams', 'stable').currentCSV
+        csv_name = operator_hub.get_package_channel_by_name("amq-streams", "stable").currentCSV
 
         # increased timeout because on slow virtual clusters the default 30 seconds may not be enough
         assert cluster_service.is_cluster_service_version_present(csv_name, "test-project5", timeout=60)
@@ -390,8 +389,8 @@ class TestInstallOperatorWorkflow:
         project_resource.delete_a_project("test-project6")
 
     def test_add_operator_clusterwide(self, project_resource, operator_installer, operator_hub, cluster_service):
-        operator_installer.add_operator_to_cluster("amq-streams", 'stable', 'test-clusterwide', target_namespaces='*')
-        csv_name = operator_hub.get_package_channel_by_name('amq-streams', 'stable').currentCSV
+        operator_installer.add_operator_to_cluster("amq-streams", "stable", "test-clusterwide", target_namespaces="*")
+        csv_name = operator_hub.get_package_channel_by_name("amq-streams", "stable").currentCSV
         all_projects = project_resource.get_all_projects()
 
         for project in all_projects.items:

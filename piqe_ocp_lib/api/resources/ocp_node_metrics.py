@@ -17,7 +17,7 @@ class OcpNodeMetrics(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpNodeMetrics, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "metrics.k8s.io/v1beta1"
         self.kind = "NodeMetrics"
         self.ocp_nodes = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)

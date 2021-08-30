@@ -19,7 +19,7 @@ class OcpDeploymentconfigs(OcpBase):
     """
 
     def __init__(self, kind="DeploymentConfig", kube_config_file=None):
-        super(OcpDeploymentconfigs, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "v1"
         self.ocp_dcs = self.dyn_client.resources.get(api_version=self.api_version, kind=kind)
 

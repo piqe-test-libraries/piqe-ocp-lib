@@ -23,7 +23,7 @@ def setup_params(get_kubeconfig):
     return params_dict
 
 
-class TestOcpApps(object):
+class TestOcpApps:
     def test_create_app_from_template(self, setup_params):
         """
         1. Create a test project

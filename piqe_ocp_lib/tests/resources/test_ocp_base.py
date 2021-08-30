@@ -9,7 +9,7 @@ from piqe_ocp_lib.api.resources.ocp_base import Version
 logger = logging.getLogger(__loggername__)
 
 
-class TestOcpBase(object):
+class TestOcpBase:
     def test_init(self, get_kubeconfig):
         base_api_obj = OcpBase(kube_config_file=get_kubeconfig)
         assert base_api_obj.kube_config_file is not None

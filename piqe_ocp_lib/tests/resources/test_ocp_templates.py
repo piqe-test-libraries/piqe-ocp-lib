@@ -21,7 +21,7 @@ def setup_params(get_kubeconfig):
     return params_dict
 
 
-class TestOcpTemplates(object):
+class TestOcpTemplates:
     def __setup(self, setup_params):
         """
         Creates a project required by all tests.
@@ -31,7 +31,7 @@ class TestOcpTemplates(object):
         project_api_obj = setup_params["project_api_obj"]
         api_response = project_api_obj.create_a_project(setup_params["test_project"])
         assert api_response.metadata.name == setup_params["test_project"]
-        logger.info("Project : {}, succesfully created".format(api_response.metadata.name))
+        logger.info(f"Project : {api_response.metadata.name}, succesfully created")
 
     def __cleanup(self, setup_params):
         """
@@ -69,7 +69,7 @@ class TestOcpTemplates(object):
         api_response = template_api_obj.create_a_template_in_a_namespace(body, project=setup_params["test_project"])
         assert api_response.kind == "Template"
         assert api_response.metadata.name == setup_params["app_name"]
-        logger.info("API Response kind : {}, Name: {}".format(api_response.kind, api_response.metadata.name))
+        logger.info(f"API Response kind : {api_response.kind}, Name: {api_response.metadata.name}")
 
         #
         # Cleanup
@@ -132,7 +132,7 @@ class TestOcpTemplates(object):
         api_response = template_api_obj.get_all_templates_in_a_namespace(project=setup_params["test_project"])
         assert api_response.kind == "TemplateList"
         assert api_response.items[0].metadata.name == setup_params["app_name"]
-        logger.info("API Response kind : {}, Name: {}".format(api_response.kind, api_response.items[0].metadata.name))
+        logger.info(f"API Response kind : {api_response.kind}, Name: {api_response.items[0].metadata.name}")
 
         #
         # Cleanup

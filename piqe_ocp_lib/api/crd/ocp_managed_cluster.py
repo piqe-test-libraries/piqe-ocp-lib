@@ -17,7 +17,7 @@ class OcpManagedCluster(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super(OcpManagedCluster, self).__init__(kube_config_file=kube_config_file)
+        super().__init__(kube_config_file=kube_config_file)
         self.api_version = "cluster.open-cluster-management.io/v1"
         self.kind = "ManagedCluster"
         self.ocp_managed_cluster = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
