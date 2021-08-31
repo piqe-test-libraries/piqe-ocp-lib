@@ -42,7 +42,7 @@ class OcpHealthChecker(OcpBase):
 
     def __init__(self, kube_config_file):
         self.kube_config_file = kube_config_file
-        super().__init__(kube_config_file=self.kube_config_file)
+        super(OcpHealthChecker, self).__init__(kube_config_file=self.kube_config_file)
         self.ocp_node = OcpNodes(kube_config_file=self.kube_config_file)
         self.ocp_cluster_operator = OcpClusterOperator(kube_config_file=self.kube_config_file)
         self.ocp_control_plane = OcpControlPlane(kube_config_file=self.kube_config_file)
@@ -309,14 +309,14 @@ class OcpHealthChecker(OcpBase):
         :return: (boolean) Return
         """
         logger.info("Check health of ClusterVersion operator")
-        is_cluster_version_operator_healthy = False
+        is_cluster_version_operator_healthy = True
 
         cluster_version_response = self.ocp_cluster_version.get_cluster_version()
-        for cluster_version in cluster_version_response.items:
-            if cluster_version["metadata"]["name"] == "version":
-                for condition in cluster_version["status"]["conditions"]:
-                    if condition["type"] == "Available" and condition["status"] == "True":
-                        is_cluster_version_operator_healthy = True
+        if cluster_version_response["metadata"]["name"] == "version":
+            for condition in cluster_version_response["status"]["conditions"]:
+                logger.info("iteration one")
+                if condition["type"] == "Progressing" and condition["status"] == "True":
+                    is_cluster_version_operator_healthy = False
 
         return is_cluster_version_operator_healthy
 
