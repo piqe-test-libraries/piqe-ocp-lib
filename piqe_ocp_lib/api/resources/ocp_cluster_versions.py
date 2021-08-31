@@ -21,7 +21,7 @@ class OcpClusterVersion(OcpBase):
     """
 
     def __init__(self, kube_config_file=None):
-        super().__init__(kube_config_file=kube_config_file)
+        super(OcpClusterVersion, self).__init__(kube_config_file=kube_config_file)
         self.api_version = "config.openshift.io/v1"
         self.kind = "ClusterVersion"
         self.ocp_cv = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
@@ -129,7 +129,7 @@ class OcpClusterVersion(OcpBase):
                 lambda updates: any(kind in channel for channel in updates["channels"]), available_channels
             )
 
-        available_channels = set().union(*(e["channels"] for e in available_channels))
+        available_channels = set().union(*[e["channels"] for e in available_channels])
 
         return available_channels
 
@@ -170,12 +170,17 @@ class OcpClusterVersion(OcpBase):
             :return: CVO object OR None
             """
             ends_at = datetime.now() + timedelta(minutes=timeout)
-            health_checker = OcpHealthChecker()
+            health_checker = OcpHealthChecker(self.kube_config_file)
+
+            cluster_version = self.get_cluster_version()
+            for condition in cluster_version["status"]["conditions"]:
+                if condition["type"] == "Progressing" and condition["status"] == "True":
+                    break
 
             while datetime.now() < ends_at:
-                cluster_version = self.get_cluster_version()
 
                 if health_checker.check_cluster_version_operator_health():
+                    cluster_version = self.get_cluster_version()
                     logger.info("Cluster upgraded successfully.")
                     return cluster_version
                 else:
