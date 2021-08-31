@@ -148,7 +148,7 @@ class OcpNodes(OcpBase):
         """
         Return the status of a node based on the condition type Ready.
         :param node_name:
-        :return: The status for the condition. Either True or False
+        :return: (str) The status for the condition. Either True or False
         """
         node_object = None
         try:
@@ -344,3 +344,39 @@ class OcpNodes(OcpBase):
             except ApiException as e:
                 logger.error("Exception encountered while marking node unschedulable: %s\n", e)
         return api_response
+
+    def are_all_nodes_ready(self) -> bool:
+        """
+        Return the status of all node based on the condition type Ready.
+        :return: (bool) The status for the condition. Either True or False
+        """
+        node_names = self.get_all_node_names()
+        for node in node_names:
+            if self.get_node_status(node) == "False":
+                return False
+        else:
+            return True
+
+    def are_master_nodes_ready(self) -> bool:
+        """
+        Return the status of master nodes based on the condition type Ready.
+        :return: (bool) The status for the condition. Either True or False
+        """
+        node_names = self.get_all_node_names()
+        for node in node_names:
+            if "master" in node and self.get_node_status(node) == "False":
+                return False
+        else:
+            return True
+
+    def are_worker_nodes_ready(self) -> bool:
+        """
+        Return the status of worker nodes based on the condition type Ready.
+        :return: (bool) The status for the condition. Either True or False
+        """
+        node_names = self.get_all_node_names()
+        for node in node_names:
+            if "worker" in node and self.get_node_status(node) == "False":
+                return False
+        else:
+            return True

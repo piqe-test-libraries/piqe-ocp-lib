@@ -339,3 +339,33 @@ class TestOcpNodes:
         for worker_node_name in worker_node_list.items:
             api_response = node_api_obj.mark_node_schedulable(node_name=worker_node_name.metadata.name)
             assert api_response.kind == "Node"
+
+    def test_are_all_nodes_ready(self, setup_params):
+        """
+        Verify that all nodes status is Ready.
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        api_response_node_status = node_api_obj.are_all_nodes_ready()
+        assert api_response_node_status is True
+
+    def test_are_master_nodes_ready(self, setup_params):
+        """
+        Verify that all master nodes status is Ready.
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        api_response_node_status = node_api_obj.are_master_nodes_ready()
+        assert api_response_node_status is True
+
+    def test_are_worker_nodes_ready(self, setup_params):
+        """
+        Verify that all worker nodes status is Ready.
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        api_response_node_status = node_api_obj.are_worker_nodes_ready()
+        assert api_response_node_status is True
