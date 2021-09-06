@@ -7,7 +7,6 @@ import pytest
 
 from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
 
-
 logger = logging.getLogger(__loggername__)
 
 
@@ -48,3 +47,22 @@ class TestLocalStorageOperator:
 
     def test_watch_local_volume(self, get_test_objects):
         assert get_test_objects.lv.watch_local_volume('example') is not False
+<<<<<<< HEAD
+=======
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> d22e68d557c75140c4427647f80f71c754aadc7c
