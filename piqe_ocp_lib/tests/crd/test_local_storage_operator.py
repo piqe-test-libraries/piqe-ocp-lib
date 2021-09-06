@@ -46,4 +46,4 @@ class TestLocalStorageOperator:
         assert get_test_objects.lv.delete_local_volume() is not None
 
     def test_watch_local_volume(self, get_test_objects):
-        assert get_test_objects.lv.watch_local_volume('example') is not False
+        assert get_test_objects.lv.watch_local_volume("example") is not False

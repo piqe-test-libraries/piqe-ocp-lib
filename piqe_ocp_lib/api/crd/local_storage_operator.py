@@ -19,12 +19,13 @@ class LocalStorageOperator(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super().__init__(kube_config_file=kube_config_file)
         self.oi_obj = OperatorInstaller()
-        self.check_operator_install = self.oi_obj.check_operator_installed('local-storage-operator')
-        self.version = self.oi_obj.get_version_of_operator('local-storage-operator')
-        self.channel = self.oi_obj.get_channel_of_operator('local-storage-operator')
+        self.check_operator_install = self.oi_obj.check_operator_installed("local-storage-operator")
+        self.version = self.oi_obj.get_version_of_operator("local-storage-operator")
+        self.channel = self.oi_obj.get_channel_of_operator("local-storage-operator")
 
 
 class LocalVolume(LocalStorageOperator):
@@ -34,6 +35,7 @@ class LocalVolume(LocalStorageOperator):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+
     def __init__(self, kube_config_file=None):
         super().__init__(kube_config_file=kube_config_file)
         self.api_version = "local.storage.openshift.io/v1"
@@ -45,18 +47,19 @@ class LocalVolume(LocalStorageOperator):
         create local volume
         :return: api reponse
         """
-        if (self.check_operator_install is not None and self.version is not None and self.channel is not None):
+        if self.check_operator_install is not None and self.version is not None and self.channel is not None:
             csv = ClusterServiceVersion()
-            csv_obj = csv.get_cluster_service_version('local-storage-operator.' + self.version, 
-'openshift-local-storage')
-            crd = csv_obj.metadata.annotations['alm-examples']
+            csv_obj = csv.get_cluster_service_version(
+                "local-storage-operator." + self.version, "openshift-local-storage"
+            )
+            crd = csv_obj.metadata.annotations["alm-examples"]
             for i in range(0, len(eval(crd))):
                 if "'kind': 'LocalVolume', 'metadata'" in str(eval(crd)[i]):
                     target_item = i
             body = eval(crd)[target_item]
             api_response = None
             try:
-                api_response = self.lv.create(namespace='openshift-local-storage', body=body)
+                api_response = self.lv.create(namespace="openshift-local-storage", body=body)
             except ApiException as e:
                 logger.exception(f"Exception while creating Local Volume : {e}\n")
         else:
@@ -86,7 +89,7 @@ class LocalVolume(LocalStorageOperator):
         """
         is_local_volume_ready = False
         field_selector = f"metadata.name={local_volume_name}"
-        for event in self.lv.watch(namespace='openshift-local-storage', field_selector=field_selector, timeout=60):
+        for event in self.lv.watch(namespace="openshift-local-storage", field_selector=field_selector, timeout=60):
             for condition in event["object"]["status"]["conditions"]:
                 if condition["message"] == "Ready":
                     logger.info("local volume %s created successfully", local_volume_name)
@@ -103,7 +106,7 @@ class LocalVolume(LocalStorageOperator):
         if self.create_local_volume is not None:
             api_response = None
             try:
-                api_response = self.lv.delete(name='example', namespace='openshift-local-storage')
+                api_response = self.lv.delete(name="example", namespace="openshift-local-storage")
             except ApiException as e:
                 logger.exception(f"Exception while deleting Local Volume : {e}\n")
         else:
