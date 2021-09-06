@@ -46,13 +46,13 @@ class LocalVolume(LocalStorageOperator):
         :return: api reponse
         """
         if (self.check_operator_install is not None and self.version is not None and self.channel is not None):
-            csv =  ClusterServiceVersion()
-            csv_obj = csv.get_cluster_service_version('local-storage-operator.'+self.version, 'openshift-local-storage')
+            csv = ClusterServiceVersion()
+            csv_obj = csv.get_cluster_service_version('local-storage-operator.' + self.version, 'openshift-local-storage')
             crd = csv_obj.metadata.annotations['alm-examples']
             for i in range(0, len(eval(crd))):
                 if "'kind': 'LocalVolume', 'metadata'" in str(eval(crd)[i]):
                     target_item = i
-            body=eval(crd)[target_item]
+            body = eval(crd)[target_item]
             api_response = None
             try:
                 api_response = self.lv.create(namespace='openshift-local-storage', body=body)
@@ -106,5 +106,5 @@ class LocalVolume(LocalStorageOperator):
             except ApiException as e:
                 logger.exception(f"Exception while deleting Local Volume : {e}\n")
         else:
-             logger.info("local volume is not create")
+            logger.info("local volume is not create")
         return api_response
