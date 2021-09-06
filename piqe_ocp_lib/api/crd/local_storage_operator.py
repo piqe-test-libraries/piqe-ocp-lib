@@ -1,13 +1,16 @@
-from kubernetes.client.rest import ApiException
-from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
 import logging
-from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 from typing import Optional
+
+from kubernetes.client.rest import ApiException
+
+from piqe_ocp_lib import __loggername__
+from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
+from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
 from openshift.dynamic.resource import ResourceInstance
 
-from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
 logger = logging.getLogger(__loggername__)
+
 
 class LocalStorageOperator(OcpBase):
     """
@@ -22,6 +25,7 @@ class LocalStorageOperator(OcpBase):
         self.check_operator_install = self.oi_obj.check_operator_installed('local-storage-operator')
         self.version = self.oi_obj.get_version_of_operator('local-storage-operator')
         self.channel = self.oi_obj.get_channel_of_operator('local-storage-operator')
+
 
 class LocalVolume(LocalStorageOperator):
     """
@@ -45,13 +49,13 @@ class LocalVolume(LocalStorageOperator):
             csv =  ClusterServiceVersion()
             csv_obj = csv.get_cluster_service_version('local-storage-operator.'+self.version, 'openshift-local-storage')
             crd = csv_obj.metadata.annotations['alm-examples']
-            for i in range (0,len(eval(crd))):
+            for i in range(0, len(eval(crd))):
                 if "'kind': 'LocalVolume', 'metadata'" in str(eval(crd)[i]):
                     target_item = i
             body=eval(crd)[target_item]
             api_response = None
             try:
-               api_response = self.lv.create(namespace='openshift-local-storage',body=body)
+                api_response = self.lv.create(namespace='openshift-local-storage', body=body)
             except ApiException as e:
                 logger.exception(f"Exception while creating Local Volume : {e}\n")
         else:
@@ -66,7 +70,7 @@ class LocalVolume(LocalStorageOperator):
         if self.create_local_volume is not None:
             api_response = None
             try:
-               api_response = self.lv.get()
+                api_response = self.lv.get()
             except ApiException as e:
                 logger.exception(f"Exception while creating Local Volume : {e}\n")
         else:
@@ -98,10 +102,9 @@ class LocalVolume(LocalStorageOperator):
         if self.create_local_volume is not None:
             api_response = None
             try:
-               api_response = self.lv.delete(name='example',namespace='openshift-local-storage')
+                api_response = self.lv.delete(name='example', namespace='openshift-local-storage')
             except ApiException as e:
                 logger.exception(f"Exception while deleting Local Volume : {e}\n")
         else:
              logger.info("local volume is not create")
         return api_response
-
