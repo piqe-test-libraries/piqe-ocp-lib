@@ -3,7 +3,6 @@ import logging
 import pytest
 
 from piqe_ocp_lib import __loggername__
-
 from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
 from piqe_ocp_lib.api.crd.local_storage_operator import LocalStorageOperator, LocalVolume
 

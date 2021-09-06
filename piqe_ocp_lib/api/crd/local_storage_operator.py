@@ -2,12 +2,11 @@ import logging
 from typing import Optional
 
 from kubernetes.client.rest import ApiException
-
-from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
-from piqe_ocp_lib.api.resources.ocp_base import OcpBase
-from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
 from openshift.dynamic.resource import ResourceInstance
+
+from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
+from piqe_ocp_lib.api.tasks.operator_ops import OperatorInstaller
+from piqe_ocp_lib.api.resources.ocp_base import OcpBase
 
 logger = logging.getLogger(__loggername__)
 
