@@ -7,9 +7,7 @@ import pytest
 
 from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
 
-
 logger = logging.getLogger(__loggername__)
-
 
 @pytest.fixture(scope="session")
 def get_test_objects(get_kubeconfig):
@@ -30,7 +28,7 @@ def get_test_objects(get_kubeconfig):
     @pytest.fixture(scope="module")
     def local_storage_operator(get_kubeconfig) -> LocalStorageOperator:
         return LocalStorageOperator(kube_config_file=get_kubeconfig)
-    
+
     @pytest.fixture(scope="module")
     def local_volume(get_kubeconfig) -> LocalVolume:
         return LocalVolume(kube_config_file=get_kubeconfig)
@@ -41,10 +39,10 @@ class TestLocalStorageOperator:
 
     def test_get_local_volume(self, get_test_objects):
         api_response = get_test_objects.lv.get_local_volume()
-        assert len(api_response.items) !=0 
+        assert len(api_response.items) !=0
 
     def test_delete_local_volume(self, get_test_objects):
-        assert get_test_objects.lv.delete_local_volume() is not None 
+        assert get_test_objects.lv.delete_local_volume() is not None
 
     def test_watch_local_volume(self, get_test_objects):
         assert get_test_objects.lv.watch_local_volume('example') is not False
