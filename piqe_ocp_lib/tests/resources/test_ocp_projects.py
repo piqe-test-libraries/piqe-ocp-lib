@@ -158,6 +158,52 @@ class TestOcpProjects:
         assert api_response.kind == "Namespace"
         assert api_response.status.phase == "Terminating"
 
+    def test_delete_labelled_projects(self, setup_params):
+        """
+        1. Delete labelled projects
+        2. Verify the response kind
+        3 Verify the state transition to terminating
+
+        :param setup_params: (dict)
+        :return: None
+        """
+        project_api_obj = setup_params["project_api_obj"]
+        response = project_api_obj.delete_labelled_projects(label_name="css-test=True")
+        for project in response:
+            assert project.kind == "Namespace"
+            assert project.status.phase == "Terminating"
+
+    def test_get_labelled_projects(self, setup_params):
+        """
+        1. Get all labelled projects and determine the count.
+        2. Create another project.
+        3. Get all projects, determine the updated count and assert that it equals the original plus 1.
+        4. Delete the created project, get all projects and assert that the original and final counts
+           are equal.
+
+        :param setup_params:
+        :return:
+        """
+        project_api_obj = setup_params["project_api_obj"]
+        api_response = project_api_obj.get_labelled_projects(label_selector="css-test=True")
+        original_project_count = len(api_response.items)
+
+        create_project_response = project_api_obj.create_a_project(
+            setup_params["project1"]["name"], labels_dict=setup_params["project1"]["label"]
+        )
+        assert create_project_response.status.phase == "Active"
+
+        updated_api_response = project_api_obj.get_labelled_projects(label_selector="css-test=True")
+        updated_project_count = len(updated_api_response.items)
+        assert updated_project_count == (original_project_count + 1)
+
+        delete_project_response = project_api_obj.delete_a_project(setup_params["project1"]["name"])
+        assert delete_project_response.status.phase == "Terminating"
+
+        final_api_response = project_api_obj.get_labelled_projects(label_selector="css-test=True")
+        final_project_count = len(final_api_response.items)
+        assert final_project_count == original_project_count
+
     def test_get_all_projects(self, setup_params):
         """
         1. Get all projects and determine the count.

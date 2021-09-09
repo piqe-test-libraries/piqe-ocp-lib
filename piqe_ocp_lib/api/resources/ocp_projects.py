@@ -119,6 +119,36 @@ class OcpProjects(OcpBase):
             logger.error("Exception when calling method delete_a_namespace: %s\n" % e.reason)
         return api_response
 
+    def delete_labelled_projects(self, label_name):
+        """
+        Method that deletes all projects with the specified label.
+        :param label_name: (required | str) label of the projects to be deleted.
+        :return: A list containing objects of type V1Namespace
+        """
+        deleted_projects = []
+        labelled_projects = self.get_labelled_projects(label_selector=label_name)
+        for project in labelled_projects.items:
+            try:
+                api_response = self.ocp_projects.delete(name=project.metadata.name)
+                if self._watch_is_project_deleted(project.metadata.name):
+                    deleted_projects.append(api_response)
+            except ApiException as e:
+                logger.error("Exception when calling method delete_labelled_projects: %s\n" % e)
+        return deleted_projects
+
+    def get_labelled_projects(self, label_selector):
+        """
+        Method that returns all projects with a label selector.
+        :param : label_selector
+        :return: An object of type V1NamespaceList
+        """
+        api_response = None
+        try:
+            api_response = self.ocp_projects.get(label_selector=label_selector)
+        except ApiException as e:
+            logger.error("Exception when calling method get_labelled_projects: %s\n" % e)
+        return api_response
+
     def get_all_projects(self):
         """
         Method that returns all projects in a cluster.

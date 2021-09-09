@@ -9,6 +9,7 @@ import pytest
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api.resources.ocp_cluster_operators import OcpClusterOperator
+from piqe_ocp_lib.api.resources.ocp_projects import OcpProjects
 from piqe_ocp_lib.piqe_api_logger import piqe_api_logger
 
 
@@ -234,3 +235,11 @@ def log_start_test_case(request):
 def setup_logger():
     logger = piqe_api_logger(__loggername__)
     return logger
+
+
+@pytest.fixture(scope="session", autouse=True)
+def delete_css_tagged_projects():
+    """ Fixture to delete all projects with the 'css-test:True' label """
+    yield
+    project_api_obj = OcpProjects()
+    project_api_obj.delete_labelled_projects(label_name="css-test=True")
