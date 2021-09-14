@@ -369,3 +369,18 @@ class TestOcpNodes:
         node_api_obj = setup_params["node_api_obj"]
         api_response_node_status = node_api_obj.are_worker_nodes_ready()
         assert api_response_node_status is True
+
+    def test_get_total_allocatable_mem_cpu(self, setup_params):
+        """
+        Verify that method returns total allocatable memory/cpu
+            of cluster by adding all allocatable memory/cpu from each cluster nodes
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        total_allocatable_memory, total_allocatable_cpu = node_api_obj.get_total_allocatable_mem_cpu()
+        if not total_allocatable_memory:
+            assert False, "Failed to get total allocatable memory from cluster"
+        assert isinstance(total_allocatable_memory, int)
+        if not total_allocatable_cpu:
+            assert False, "Failed to get total allocatable cpu from cluster"
+        assert isinstance(total_allocatable_cpu, int)
