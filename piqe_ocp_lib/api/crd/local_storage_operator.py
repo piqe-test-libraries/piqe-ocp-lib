@@ -67,7 +67,7 @@ class LocalVolume(LocalStorageOperator):
                 if "'kind': 'LocalVolume', 'metadata'" in str(eval(crd)[i]):
                     target_item = i
             body = eval(crd)[target_item]
-            if fsType == None and volumeMode == None:
+            if fsType is None and volumeMode is None:
                 body["metadata"]["name"] = local_volume_name
                 body["spec"]["storageClassDevices"][0]["storageClassName"] = storage_class_name
             else:
