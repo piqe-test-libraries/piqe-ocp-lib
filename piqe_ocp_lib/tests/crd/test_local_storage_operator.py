@@ -35,15 +35,21 @@ def get_test_objects(get_kubeconfig):
 
 
 class TestLocalStorageOperator:
+    lv_name = "testlvname"
+
     def test_create_local_volume(self, get_test_objects):
-        assert get_test_objects.lv.create_local_volume() is not None
+        api_reponse = get_test_objects.lv.create_local_volume(
+            local_volume_name=TestLocalStorageOperator.lv_name, storage_class_name="teststoragevlass"
+        )
+        assert api_reponse is not None
+        assert api_reponse.kind == "LocalVolume"
 
     def test_get_local_volume(self, get_test_objects):
         api_response = get_test_objects.lv.get_local_volume()
         assert len(api_response.items) != 0
 
-    def test_delete_local_volume(self, get_test_objects):
-        assert get_test_objects.lv.delete_local_volume() is not None
-
     def test_watch_local_volume(self, get_test_objects):
-        assert get_test_objects.lv.watch_local_volume("example") is not False
+        assert get_test_objects.lv.watch_local_volume(TestLocalStorageOperator.lv_name) is not False
+
+    def test_delete_local_volume(self, get_test_objects):
+        assert get_test_objects.lv.delete_local_volume(TestLocalStorageOperator.lv_name) is not None
