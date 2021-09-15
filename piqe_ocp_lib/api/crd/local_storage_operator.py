@@ -1,5 +1,4 @@
 import logging
-from time import sleep
 from typing import Optional
 
 from kubernetes.client.rest import ApiException
