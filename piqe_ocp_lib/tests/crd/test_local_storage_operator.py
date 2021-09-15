@@ -44,12 +44,12 @@ class TestLocalStorageOperator:
         assert api_reponse is not None
         assert api_reponse.kind == "LocalVolume"
 
+    def test_watch_local_volume(self, get_test_objects):
+        assert get_test_objects.lv.watch_local_volume(TestLocalStorageOperator.lv_name) is not False
+  
     def test_get_local_volume(self, get_test_objects):
         api_response = get_test_objects.lv.get_local_volume()
         assert len(api_response.items) != 0
-
-    def test_watch_local_volume(self, get_test_objects):
-        assert get_test_objects.lv.watch_local_volume(TestLocalStorageOperator.lv_name) is not False
 
     def test_delete_local_volume(self, get_test_objects):
         assert get_test_objects.lv.delete_local_volume(TestLocalStorageOperator.lv_name) is not None

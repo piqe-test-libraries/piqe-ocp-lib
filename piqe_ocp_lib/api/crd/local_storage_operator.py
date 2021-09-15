@@ -56,7 +56,6 @@ class LocalVolume(LocalStorageOperator):
 
         :return api reponse
         """
-        sleep(60)
         if not [x for x in (self.check_operator_install, self.operator_version, self.channel) if x is None]:
             csv = ClusterServiceVersion()
             csv_obj = csv.get_cluster_service_version(
