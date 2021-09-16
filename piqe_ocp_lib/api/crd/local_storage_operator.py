@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from typing import Optional
 
 from kubernetes.client.rest import ApiException
@@ -103,9 +104,10 @@ class LocalVolume(LocalStorageOperator):
         :param local_volume_name: name of the local volume
         return: is local volume ready (True | FALSE)
         """
+        sleep(60)
         is_local_volume_ready = False
         field_selector = f"metadata.name={local_volume_name}"
-        for event in self.lv.watch(namespace="openshift-local-storage", field_selector=field_selector, timeout=120):
+        for event in self.lv.watch(namespace="openshift-local-storage", field_selector=field_selector, timeout=60):
             for condition in event["object"]["status"]["conditions"]:
                 if condition["message"] == "Ready":
                     logger.info("local volume %s created successfully", local_volume_name)
