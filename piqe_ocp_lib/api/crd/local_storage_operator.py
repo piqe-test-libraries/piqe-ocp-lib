@@ -1,5 +1,5 @@
 import logging
-from time import sleep
+from time import time
 from typing import Optional
 
 from kubernetes.client.rest import ApiException
@@ -54,7 +54,7 @@ class LocalVolume(LocalStorageOperator):
         create local volume
         :param local_volume_name:(required) name  of the local volume
 
-        :return api reponse
+        :return api response
         """
         if not [x for x in (self.check_operator_install, self.operator_version, self.channel) if x is None]:
             csv = ClusterServiceVersion()
@@ -104,16 +104,32 @@ class LocalVolume(LocalStorageOperator):
         :param local_volume_name: name of the local volume
         return: is local volume ready (True | FALSE)
         """
-        sleep(60)
-        is_local_volume_ready = False
-        field_selector = f"metadata.name={local_volume_name}"
-        for event in self.lv.watch(namespace="openshift-local-storage", field_selector=field_selector, timeout=60):
-            for condition in event["object"]["status"]["conditions"]:
-                if condition["message"] == "Ready":
-                    logger.info("local volume %s created successfully", local_volume_name)
-                    is_local_volume_ready = True
-                    return is_local_volume_ready
-        logger.error("local volume %s failed", local_volume_name)
+        run_watch = "No"
+        end = time() + 60
+        while time() < end:
+            try:
+                api_response = self.lv.get()
+            except ApiException as e:
+                logger.error("Exception while getting local volumes: %s\n", e)
+            if api_response is None:
+                logger.info("response of get is not ready")
+            else:
+                status_message = api_response.items[0]["status"]["conditions"][0]["message"]
+            if status_message == "Ready":
+                run_watch = "Yes"
+            else:
+                logger.info("Run for watch is not ready")
+        if run_watch == "Yes":
+            is_local_volume_ready = False
+            field_selector = f"metadata.name={local_volume_name}"
+            for event in self.lv.watch(namespace="openshift-local-storage", field_selector=field_selector, timeout=60):
+                for condition in event["object"]["status"]["conditions"]:
+                    if condition["message"] == "Ready":
+                        logger.info("local volume %s created successfully", local_volume_name)
+                        is_local_volume_ready = True
+                        return is_local_volume_ready
+        else:
+            logger.error("local volume %s failed", local_volume_name)
         return is_local_volume_ready
 
     def delete_local_volume(self, local_volume_name) -> Optional[ResourceInstance]:
