@@ -83,56 +83,49 @@ class LocalVolume(LocalStorageOperator):
             logger.info("local storage operator is not installed")
         return api_response
 
-    def get_local_volume(self) -> Optional[ResourceInstance]:
+    def get_local_volume(self, namespace: str, local_volume_name: str) -> Optional[ResourceInstance]:
         """
         get local volume
+        param namespace: namespace of the local volume
+        param local_volume_name: name of the local volume
         return: api response
         """
-        if self.create_local_volume is not None:
-            api_response = None
-            try:
-                api_response = self.lv.get()
-            except ApiException as e:
-                logger.exception(f"Exception while creating Local Volume : {e}\n")
-        else:
-            logger.info("local volume is not created")
+        api_response = None
+        try:
+            api_response = self.lv.get(namespace=namespace, name=local_volume_name)
+        except ApiException as e:
+            logger.exception(f"Exception while creating Local Volume : {e}\n")
         return api_response
 
-    def watch_local_volume(self, local_volume_name: str) -> bool:
+    def watch_local_volume(self, namespace: str, local_volume_name: str) -> bool:
         """
         watch local volume
-        :param local_volume_name: name of the local volume
+        param namespace: namespace of the local volume
+        param local_volume_name: name of the local volume
         return: is local volume ready (True | FALSE)
         """
-        run_watch = "No"
         end = time() + 60
-        while time() < end:
-            try:
-                api_response = self.lv.get()
-            except ApiException as e:
-                logger.error("Exception while getting local volumes: %s\n", e)
-            if api_response is None:
-                logger.info("response of get is not ready")
-            else:
-                status_message = api_response.items[0]["status"]["conditions"][0]["message"]
-            if status_message == "Ready":
-                run_watch = "Yes"
-            else:
-                logger.info("Run for watch is not ready")
-        if run_watch == "Yes":
-            is_local_volume_ready = False
-            field_selector = f"metadata.name={local_volume_name}"
-            for event in self.lv.watch(namespace="openshift-local-storage", field_selector=field_selector, timeout=60):
-                for condition in event["object"]["status"]["conditions"]:
-                    if condition["message"] == "Ready":
-                        logger.info("local volume %s created successfully", local_volume_name)
-                        is_local_volume_ready = True
-                        return is_local_volume_ready
+        try:
+            api_response = self.get_local_volume(namespace=namespace, local_volume_name=local_volume_name)
+        except ApiException as e:
+            logger.error("Exception while getting local volumes: %s\n", e)
+        if len(api_response.status.conditions) != 0:
+            while time() < end:
+                is_local_volume_ready = False
+                field_selector = f"metadata.name={local_volume_name}"
+                for event in self.lv.watch(
+                    namespace="openshift-local-storage", field_selector=field_selector, timeout=60
+                ):
+                    for condition in event["object"]["status"]["conditions"]:
+                        if condition["message"] == "Ready":
+                            logger.info("local volume %s created successfully", local_volume_name)
+                            is_local_volume_ready = True
+                            return is_local_volume_ready
         else:
-            logger.error("local volume %s failed", local_volume_name)
+            logger.error("local volume watch %s failed", local_volume_name)
         return is_local_volume_ready
 
-    def delete_local_volume(self, local_volume_name) -> Optional[ResourceInstance]:
+    def delete_local_volume(self, local_volume_name: str) -> Optional[ResourceInstance]:
         """
         delete local volume
         return: api response
