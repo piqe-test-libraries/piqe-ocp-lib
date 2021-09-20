@@ -105,24 +105,28 @@ class LocalVolume(LocalStorageOperator):
         return: is local volume ready (True | FALSE)
         """
         end = time() + 60
-        try:
-            api_response = self.get_local_volume(namespace=namespace, local_volume_name=local_volume_name)
-        except ApiException as e:
-            logger.error("Exception while getting local volumes: %s\n", e)
+        while time() < end:
+            try:
+                api_response = self.get_local_volume(namespace=namespace, local_volume_name=local_volume_name)
+            except ApiException as e:
+                logger.error("Exception while getting local volumes: %s\n", e)
+            if api_response.status is not None:
+                break
+            else:
+                continue
         if len(api_response.status.conditions) != 0:
-            while time() < end:
-                is_local_volume_ready = False
-                field_selector = f"metadata.name={local_volume_name}"
-                for event in self.lv.watch(
-                    namespace="openshift-local-storage", field_selector=field_selector, timeout=60
-                ):
-                    for condition in event["object"]["status"]["conditions"]:
-                        if condition["message"] == "Ready":
-                            logger.info("local volume %s created successfully", local_volume_name)
-                            is_local_volume_ready = True
-                            return is_local_volume_ready
+            is_local_volume_ready = False
+            field_selector = f"metadata.name={local_volume_name}"
+            for event in self.lv.watch(namespace="openshift-local-storage", field_selector=field_selector, timeout=60):
+                for condition in event["object"]["status"]["conditions"]:
+                    if condition["message"] == "Ready":
+                        logger.info("local volume %s created successfully", local_volume_name)
+                        is_local_volume_ready = True
+                        return is_local_volume_ready
+                    else:
+                        logger.error("local volume watch %s failed", local_volume_name)
         else:
-            logger.error("local volume watch %s failed", local_volume_name)
+            logger.error("status receving for %s volume failed", local_volume_name)
         return is_local_volume_ready
 
     def delete_local_volume(self, local_volume_name: str) -> Optional[ResourceInstance]:
