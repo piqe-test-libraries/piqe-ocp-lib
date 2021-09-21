@@ -108,7 +108,7 @@ class TestOperatorInstaller:
 
     def test_check_operator_installed(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
-        assert verify.check_operator_installed("local-storage-operator") is None
+        assert verify.check_operator_installed("local-storage-operator") is not None
 
     def test_get_version_of_operator(self, get_kubeconfig):
         verify = OperatorInstaller(get_kubeconfig)
