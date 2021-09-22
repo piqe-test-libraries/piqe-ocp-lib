@@ -1,6 +1,8 @@
 import logging
+from typing import Optional
 
 from kubernetes.client.rest import ApiException
+from openshift.dynamic.resource import ResourceInstance
 
 from piqe_ocp_lib import __loggername__
 
@@ -17,14 +19,14 @@ class OcpProjects(OcpBase):
     :return: None
     """
 
-    def __init__(self, kube_config_file=None):
+    def __init__(self, kube_config_file: Optional[str] = None):
         self.kube_config_file = kube_config_file
         OcpBase.__init__(self, kube_config_file=self.kube_config_file)
         self.api_version = "v1"
         self.ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="Namespace")
         self.create_ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="ProjectRequest")
 
-    def create_a_project(self, project_name, labels_dict=None):
+    def create_a_project(self, project_name: str, labels_dict: Optional[dict] = None) -> Optional[ResourceInstance]:
         """
         Method to create a project
         :param project_name: (required | str) Name of project to be created.
@@ -42,7 +44,7 @@ class OcpProjects(OcpBase):
             self.label_a_project(project_name, labels_dict)
         return api_response
 
-    def create_a_namespace(self, namespace_name, labels_dict=None):
+    def create_a_namespace(self, namespace_name: str, labels_dict: Optional[dict] = None) -> Optional[ResourceInstance]:
         """
         Method to create a project/namespace with "openshift" in the beginning of the name.
         :param namespace_name: (required | str) Name of project to be created.
@@ -60,7 +62,7 @@ class OcpProjects(OcpBase):
             self.label_a_project(namespace_name, labels_dict)
         return api_response
 
-    def label_a_project(self, project_name, labels_dict):
+    def label_a_project(self, project_name: str, labels_dict: dict) -> Optional[ResourceInstance]:
         """
         Method that patches a project with user
         defined labels
@@ -76,7 +78,7 @@ class OcpProjects(OcpBase):
             logger.error("Exception when calling method label_a_project: %s\n" % e.reason)
         return api_response
 
-    def get_a_project(self, project_name):
+    def get_a_project(self, project_name: str) -> Optional[ResourceInstance]:
         """
         Method that returns a project by name.
         :param project_name: (required | str) Name of the project to be patched.
@@ -89,7 +91,7 @@ class OcpProjects(OcpBase):
             logger.error("Exception when calling method get_a_project: %s\n" % e.reason)
         return api_response
 
-    def delete_a_project(self, project_name):
+    def delete_a_project(self, project_name: str) -> Optional[ResourceInstance]:
         """
         Method that deletes a project by name.
         :param project_name: (required | str) Name of the project to be deleted.
@@ -104,7 +106,7 @@ class OcpProjects(OcpBase):
             logger.error("Exception when calling method delete_a_project: %s\n" % e.reason)
         return api_response
 
-    def delete_a_namespace(self, namespace_name):
+    def delete_a_namespace(self, namespace_name: str) -> Optional[ResourceInstance]:
         """
         Method that deletes a project by name.
         :param namespace_name: (required | str) Name of the namespace to be deleted.
@@ -119,7 +121,7 @@ class OcpProjects(OcpBase):
             logger.error("Exception when calling method delete_a_namespace: %s\n" % e.reason)
         return api_response
 
-    def delete_labelled_projects(self, label_name):
+    def delete_labelled_projects(self, label_name: str) -> list:
         """
         Method that deletes all projects with the specified label.
         :param label_name: (required | str) label of the projects to be deleted.
@@ -136,10 +138,10 @@ class OcpProjects(OcpBase):
                 logger.error("Exception when calling method delete_labelled_projects: %s\n" % e)
         return deleted_projects
 
-    def get_labelled_projects(self, label_selector):
+    def get_labelled_projects(self, label_selector: str) -> Optional[ResourceInstance]:
         """
         Method that returns all projects with a label selector.
-        :param : label_selector
+        :param label_selector: (required | str) label for the projects to be fetched.
         :return: An object of type V1NamespaceList
         """
         api_response = None
@@ -149,7 +151,7 @@ class OcpProjects(OcpBase):
             logger.error("Exception when calling method get_labelled_projects: %s\n" % e)
         return api_response
 
-    def get_all_projects(self):
+    def get_all_projects(self) -> Optional[ResourceInstance]:
         """
         Method that returns all projects in a cluster.
         :param : None
@@ -162,21 +164,20 @@ class OcpProjects(OcpBase):
             logger.error("Exception when calling method get_all_projects: %s\n" % e.reason)
         return api_response
 
-    def does_project_exist(self, project_name):
+    def does_project_exist(self, project_name: str) -> bool:
         """
         Determine if the specified project exists.
-        :param project_name:
+        :param project_name: (required | str) Name of project to be checked.
         :return: True if the project is found. False if the project is not found.
         """
         has_project = self.get_a_project(project_name)
         return bool(has_project)
 
-    def _watch_is_project_created(self, project_name):
+    def _watch_is_project_created(self, project_name: str) -> bool:
         """
         Provide a watch mechanism to follow project create operations.
 
-        :param: project_name:
-        :param: timeout: The timeout (in seconds) passed to the watch().
+        :param: project_name: (required | str) Name of project to be checked.
         :return: True if the project is Created, False if the project is not found or the
                  state cannot be determined.
         """
@@ -187,12 +188,11 @@ class OcpProjects(OcpBase):
                 return True
         return False
 
-    def _watch_is_project_deleted(self, project_name):
+    def _watch_is_project_deleted(self, project_name: str) -> bool:
         """
         Provide a watch mechanism to follow project delete operations.
 
-        :param: project_name:
-        :param: timeout: The timeout (in seconds) passed to the watch().
+        :param: project_name: (required | str) Name of project to be checked.
         :return: True if the project has been deleted, False if the project is not found.
         """
         field_selector = "status.phase=Terminating"
