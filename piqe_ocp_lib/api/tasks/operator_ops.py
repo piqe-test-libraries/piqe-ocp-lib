@@ -130,7 +130,6 @@ class OperatorInstaller(OcpBase):
                 assert "startingCSV" in all_sub_resp_obj.items[target_item]["spec"].keys()
                 assert "name" in all_sub_resp_obj.items[target_item]["spec"].keys()
                 assert all_sub_resp_obj.items[target_item]["spec"]["name"] == operator_name
-                assert all_sub_resp_obj.items[target_item]["status"]["state"] == "AtLatestKnown"
                 assert self.csv.is_cluster_service_version_present(csv_name, operator_namespace)
                 return all_sub_resp_obj.items[target_item]["spec"]
 
