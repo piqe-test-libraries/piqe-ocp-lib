@@ -37,7 +37,8 @@ def httpd_template() -> str:
 @pytest.fixture
 def project(ocp_project) -> str:
     project_name = "test-services"
-    ocp_project.create_a_project(project_name)
+    project_label = {"css-test": "True"}
+    ocp_project.create_a_project(project_name=project_name, labels_dict=project_label)
 
     yield project_name
 

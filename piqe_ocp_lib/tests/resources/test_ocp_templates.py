@@ -14,6 +14,7 @@ logger = logging.getLogger(__loggername__)
 def setup_params(get_kubeconfig):
     params_dict = {}
     params_dict["test_project"] = "template-project"
+    params_dict["project_label"] = {"css-test": "True"}
     params_dict["project_api_obj"] = OcpProjects(kube_config_file=get_kubeconfig)
     params_dict["template_api_obj"] = OcpTemplates(kube_config_file=get_kubeconfig)
     params_dict["ident"] = randint(0, 10)
@@ -29,7 +30,9 @@ class TestOcpTemplates:
         :return:
         """
         project_api_obj = setup_params["project_api_obj"]
-        api_response = project_api_obj.create_a_project(setup_params["test_project"])
+        api_response = project_api_obj.create_a_project(
+            setup_params["test_project"], labels_dict=setup_params["project_label"]
+        )
         assert api_response.metadata.name == setup_params["test_project"]
         logger.info(f"Project : {api_response.metadata.name}, succesfully created")
 
