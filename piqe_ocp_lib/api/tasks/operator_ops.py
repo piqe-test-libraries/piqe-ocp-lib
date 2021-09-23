@@ -108,10 +108,11 @@ class OperatorInstaller(OcpBase):
         sub_resp = self.sub_obj.create_subscription(operator_name, channel_name, operator_namespace)
         return sub_resp is not None
 
-    def check_operator_installed(self, operator_name: str) -> Optional[Dict]:
+    def check_operator_installed(self, operator_name: str, operator_version: Optional[str] = None) -> Optional[Dict]:
         """
         Check if operator is installed
-        :param operator_name: name of the operator.
+        :param operator_name:(required) name of the operator.
+        :param operator_version: (optional) version of the operator.
         return: object of spec of given operator's subscription
         """
         all_sub_resp_obj = self.sub_obj.get_all_subscriptions()
@@ -119,7 +120,7 @@ class OperatorInstaller(OcpBase):
             if operator_name not in str(all_sub_resp_obj.items[i]):
                 return None
                 break
-            else:
+            elif operator_version == None:
                 target_item = i
                 csv_name = self.ohp_obj.get_package_channel_by_name(
                     operator_name, all_sub_resp_obj.items[target_item]["spec"]["channel"]
@@ -132,6 +133,12 @@ class OperatorInstaller(OcpBase):
                 assert all_sub_resp_obj.items[target_item]["spec"]["name"] == operator_name
                 assert self.csv.is_cluster_service_version_present(csv_name, operator_namespace)
                 return all_sub_resp_obj.items[target_item]["spec"]
+            else:
+                target_item = i
+                csv_name = self.ohp_obj.get_package_channel_by_name(
+                    operator_name, all_sub_resp_obj.items[target_item]["spec"]["channel"]
+                ).currentCSV
+                return all_sub_resp_obj.items[target_item]["spec"]["startingCSV"]
 
     def get_version_of_operator(self, operator_name: str) -> Optional[str]:
         """
