@@ -120,7 +120,7 @@ class OperatorInstaller(OcpBase):
             if operator_name not in str(all_sub_resp_obj.items[i]):
                 return None
                 break
-            elif operator_version == None:
+            elif operator_version is None:
                 target_item = i
                 csv_name = self.ohp_obj.get_package_channel_by_name(
                     operator_name, all_sub_resp_obj.items[target_item]["spec"]["channel"]
