@@ -151,7 +151,7 @@ class OperatorInstaller(OcpBase):
         return: version of the operator
         """
         ioi = self.is_operator_installed(operator_name)
-        if ioi is False:
+        if ioi is True:
             all_sub_resp_obj = self.sub_obj.get_all_subscriptions()
             for i in range(0, len(all_sub_resp_obj.items)):
                 target_item = i
@@ -170,7 +170,7 @@ class OperatorInstaller(OcpBase):
         return: channel of the operator
         """
         ioi = self.is_operator_installed(operator_name)
-        if ioi is False:
+        if ioi is True:
             all_sub_resp_obj = self.sub_obj.get_all_subscriptions()
             for i in range(0, len(all_sub_resp_obj.items)):
                 target_item = i

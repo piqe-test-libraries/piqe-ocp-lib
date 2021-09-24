@@ -56,7 +56,7 @@ class LocalVolume(LocalStorageOperator):
 
         :return api response
         """
-        if not [x for x in (self.operator_version, self.channel) if x is None]:
+        if self.operator_version is not None and self.channel is not None and self.check_operator_install is True:
             csv = ClusterServiceVersion()
             csv_obj = csv.get_cluster_service_version(
                 "local-storage-operator." + self.operator_version, "openshift-local-storage"
