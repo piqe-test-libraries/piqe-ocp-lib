@@ -135,7 +135,7 @@ class OperatorInstaller(OcpBase):
                     ):
                         return True
                     else:
-                        return Flase
+                        return False
                 else:
                     target_item = i
                     if all_sub_resp_obj.items[target_item]["spec"]["channel"] == operator_channel:
