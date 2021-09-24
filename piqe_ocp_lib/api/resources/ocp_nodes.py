@@ -296,10 +296,8 @@ class OcpNodes(OcpBase):
         try:
             node_object = self.ocp_nodes.get(name=node_name)
             if node_object.spec.unschedulable:
-                logger.info("Node %s status is unschedulable" % node_name)
                 return False
             else:
-                logger.info("Node %s status is schedulable" % node_name)
                 return True
         except ApiException as e:
             logger.error("Exception encountered while determining the node schedulable status: %s\n", e)
@@ -380,3 +378,35 @@ class OcpNodes(OcpBase):
                 return False
         else:
             return True
+
+    def get_total_allocatable_mem_cpu(self) -> int:
+        """
+        Get total cluster allocatable memory/cpu by adding memory/cpu from all Nodes
+        :return: (int) Total memory in byte, cpu in m on success OR 0 on Failure
+        """
+        total_allocatable_memory_in_bytes = 0
+        total_allocatable_cpu_in_m = 0
+        node_response = self.get_all_nodes()
+        if node_response:
+            for node in node_response.items:
+                schedulable = self.is_node_schedulable(node["metadata"]["name"])
+                if schedulable:
+                    if node["status"]["allocatable"]["memory"][-2:] == "Ki":
+                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * 1024
+                    if node["status"]["allocatable"]["memory"][-2:] == "Mi":
+                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (
+                            1024 * 1024
+                        )
+                    if node["status"]["allocatable"]["memory"][-2:] == "Gi":
+                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (
+                            1024 * 1024
+                        )
+                    if node["status"]["allocatable"]["cpu"][-1:] == "m":
+                        total_allocatable_cpu_in_m += int(node["status"]["allocatable"]["cpu"][:-1])
+                    if node["status"]["allocatable"]["cpu"][-1:] == "":
+                        total_allocatable_cpu_in_m += int(node["status"]["allocatable"]["cpu"][:-1]) * 1000
+                else:
+                    logger.info("Not counting in resources from %s node as it is unschedulable", node.metadata.name)
+            logger.info("Total allocatable memory in bytes : %s", total_allocatable_memory_in_bytes)
+            logger.info("Total allocatable cpu in m : %s", total_allocatable_cpu_in_m)
+        return total_allocatable_memory_in_bytes, total_allocatable_cpu_in_m
