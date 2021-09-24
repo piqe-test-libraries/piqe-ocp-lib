@@ -24,7 +24,7 @@ class LocalStorageOperator(OcpBase):
     def __init__(self, kube_config_file=None):
         super().__init__(kube_config_file=kube_config_file)
         self.oi_obj = OperatorInstaller()
-        self.check_operator_install = self.oi_obj.check_operator_installed("local-storage-operator")
+        self.check_operator_install = self.oi_obj.is_operator_installed("local-storage-operator")
         if self.check_operator_install is None:
             self.oi_obj.add_operator_to_cluster(operator_name="local-storage-operator")
             logger.info("local-storage-operator successfully installed")
