@@ -41,6 +41,7 @@ projects:
           scalable: 'True'
     project_labels:
       deployment_phase: 'first'
+      css-test: 'True'
   - project_name: project1
     apps:
       - app_template: httpd-example
@@ -50,3 +51,4 @@ projects:
           scalable: 'True'
     project_labels:
       deployment_phase: 'second'
+      css-test: 'True'
