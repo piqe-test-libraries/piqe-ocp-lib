@@ -52,7 +52,7 @@ class TestLocalStorageOperator:
     def test_watch_local_volume(self, get_test_objects):
         assert (
             get_test_objects.lv.watch_local_volume(
-                "openshift-local-storage", TestLocalStorageOperator.lv_name, timeout=60
+                "openshift-local-storage", TestLocalStorageOperator.lv_name, timeout=120
             )
             is not False
         )

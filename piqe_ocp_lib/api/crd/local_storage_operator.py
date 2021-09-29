@@ -24,8 +24,8 @@ class LocalStorageOperator(OcpBase):
     def __init__(self, kube_config_file=None):
         super().__init__(kube_config_file=kube_config_file)
         self.oi_obj = OperatorInstaller()
-        self.check_operator_install = self.oi_obj.check_operator_installed("local-storage-operator")
-        if self.check_operator_install is None:
+        self.check_operator_install = self.oi_obj.is_operator_installed("local-storage-operator")
+        if self.check_operator_install is False:
             self.oi_obj.add_operator_to_cluster(operator_name="local-storage-operator")
             logger.info("local-storage-operator successfully installed")
         else:
@@ -56,7 +56,7 @@ class LocalVolume(LocalStorageOperator):
 
         :return api response
         """
-        if not [x for x in (self.check_operator_install, self.operator_version, self.channel) if x is None]:
+        if self.operator_version is not None and self.channel is not None and self.check_operator_install is True:
             csv = ClusterServiceVersion()
             csv_obj = csv.get_cluster_service_version(
                 "local-storage-operator." + self.operator_version, "openshift-local-storage"
