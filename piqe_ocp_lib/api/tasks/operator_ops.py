@@ -55,7 +55,7 @@ class OperatorInstaller(OcpBase):
             operator_namespace = self.ohp_obj.get_channel_suggested_namespace(operator_name, channel_name)
         if not operator_namespace:
             operator_namespace = f"openshift-{operator_name}"
-        assert self.proj_obj.create_a_namespace(operator_namespace)
+        assert self.proj_obj.create_a_namespace(operator_namespace, labels_dict={"css-test": "True"})
         return operator_namespace
 
     def _create_og(

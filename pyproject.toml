@@ -31,7 +31,7 @@ ipdb = "^0.13.7"
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-s -rxs"
-testpaths = ["./piqe_ocp_lib/tests"]
+testpaths = ["./piqe_ocp_lib/tests/resources"]
 markers = [
     "populate",
     "longevity",
