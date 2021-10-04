@@ -353,3 +353,95 @@ class OcpMachines(OcpBase):
                     logger.info("Machine is no longer here")
                     return True
         return False
+
+
+class OcpMachineHealthCheck(OcpBase):
+    """
+    OcpMachineHealthCheck class extends OcpBase and encapsulates all methods
+    related to managing Openshift Machine Health Check.
+    :param kube_config_file: A kubernetes config file.
+    :return: None
+    """
+
+    def __init__(self, kube_config_file=None):
+        super(OcpMachineHealthCheck, self).__init__(kube_config_file=kube_config_file)
+        self.api_version = "machine.openshift.io/v1beta1"
+        self.kind = "MachineHealthCheck"
+        self.machinehealthcheck = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
+        self.machineset = OcpMachineSet(kube_config_file=kube_config_file)
+        self.machine = OcpMachines(kube_config_file=kube_config_file)
+        self.node = OcpNodes(kube_config_file=kube_config_file)
+
+    def get_all_machine_health_checks(self) -> ResourceList:
+        """
+        Get all defined Machine health check
+        :return: MachineHealthCheck on success OR an empty list on failure
+        """
+        api_response = list()
+        try:
+            api_response = self.machinehealthcheck.get(namespace=MACHINE_NAMESPACE)
+        except ApiException as e:
+            logger.error("Exception while getting all Machine Health Checks: %s\n", e)
+            raise Exception(e)
+        return api_response
+
+    def get_machine_health_check(self, machine_health_check_name: str) -> ResourceInstance:
+        """
+        Get a Machine health check set by name
+        :param machine_health_check_name: (str) name of the machine set
+        :return: MachineHealthCheck object on success OR None on failure
+        """
+        api_response = None
+        try:
+            api_response = self.machinehealthcheck.get(name=machine_health_check_name, namespace=MACHINE_NAMESPACE)
+        except ApiException as e:
+            logger.error("Exception while getting Machine Health Check: %s\n", e)
+            raise Exception(e)
+        return api_response
+
+    def create_machine_health_check(
+        self, machine_set_name: str, machine_health_check_name: str, mhc_data: dict
+    ) -> ResourceInstance:
+        mhc_instance = None
+        try:
+            mhc_instance = self.machinehealthcheck.create(body=mhc_data, namespace="openshift-machine-api")
+        except ApiException as e:
+            logger.error("Exception while creating Machine Health Check: %s\n", e)
+            raise Exception(e)
+        logger.info(f"MachineHealthCheck: {machine_health_check_name} created for Machineset:{machine_set_name}")
+        return mhc_instance
+
+    def delete_machine_health_check(self, machine_health_check_name: str) -> ResourceInstance:
+        try:
+            field_selector = f"metadata.name={machine_health_check_name}"
+            mhc_instance_del = self.machinehealthcheck.delete(
+                name=machine_health_check_name, field_selector=field_selector, namespace="openshift-machine-api"
+            )
+        except ApiException as e:
+            logger.error("Exception while deleting Machine Health Check: %s\n", e)
+            raise Exception(e)
+        logger.info(f"Deleted MachineHealthCheck: {machine_health_check_name}")
+        return mhc_instance_del
+
+    def is_machine_health_check_configured(self, machine_set_name: str, machine_health_check_name: str) -> bool:
+        """
+        if machine health check is configured on particular machineset, the status would be updated
+        """
+        field_selector = f"metadata.name={machine_health_check_name}"
+        TIMEOUT = 300
+        try:
+            for event in self.machinehealthcheck.watch(
+                namespace="openshift-machine-api", field_selector=field_selector, timeout=TIMEOUT
+            ):
+                currentHealthy = event["raw_object"]["status"]["currentHealthy"]
+                if currentHealthy != 0:
+                    logger.info(
+                        f"{currentHealthy} machines in Machineset: {machine_set_name} \
+                            configured with machine health check"
+                    )
+                    return True
+                logger.error(f"None machines in Machinset: {machine_set_name} configured")
+                return False
+        except ApiException as e:
+            logger.error("Exception while watching events of Machine Health Check: %s\n", e)
+            return False

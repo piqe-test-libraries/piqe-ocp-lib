@@ -4,7 +4,7 @@ from openshift.dynamic.resource import ResourceInstance
 import pytest
 
 from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.resources import OcpMachines, OcpMachineSet, OcpNodes
+from piqe_ocp_lib.api.resources import OcpMachineHealthCheck, OcpMachines, OcpMachineSet, OcpNodes
 
 logger = logging.getLogger(__loggername__)
 
@@ -18,6 +18,7 @@ def get_test_objects(get_kubeconfig):
 
     class TestObjects:
         def __init__(self):
+            self.machine_health_check = OcpMachineHealthCheck(kube_config_file=get_kubeconfig)
             self.machine_set = OcpMachineSet(kube_config_file=get_kubeconfig)
             self.machine = OcpMachines(kube_config_file=get_kubeconfig)
             self.node = OcpNodes(kube_config_file=get_kubeconfig)
@@ -150,3 +151,74 @@ class TestOcpMachines:
         node_obj = node_obj.get_a_node(node_name)
         assert node_obj.kind == "Node"
         assert node_obj.metadata.name == node_name
+
+
+@pytest.mark.skip_if_not_provider("BareMetal")
+class TestOcpMachineHealthCheck:
+    def test_get_all_machine_health_checks(self, get_test_objects):
+        mhc_obj = get_test_objects.machine_health_check
+        machine_health_check_list = mhc_obj.get_all_machine_health_checks()
+        assert isinstance(machine_health_check_list, ResourceInstance)
+        assert machine_health_check_list.kind == "MachineHealthCheckList"
+
+    def test_get_machine_health_check(self, get_test_objects):
+        mhc_obj = get_test_objects.machine_health_check
+        machine_health_check_list = mhc_obj.get_all_machine_health_checks()
+        machine_health_check_name = machine_health_check_list.items[0].metadata.name
+        mhc_response_obj = mhc_obj.get_machine_health_check(machine_health_check_name)
+        assert mhc_response_obj.kind == "MachineHealthCheck"
+        assert mhc_response_obj.metadata.name == machine_health_check_name
+
+    def test_machine_health_check_is_configured(self, get_test_objects):
+        machine_health_check_name = "new-mhc"
+        ms_obj = get_test_objects.machine_set
+        machine_set_list = ms_obj.get_machine_sets()
+        machine_set_name = machine_set_list.items[0].metadata.name
+        is_mhc_configured = self._configure_machine_health_check(
+            get_test_objects, machine_set_name, machine_health_check_name
+        )
+        assert is_mhc_configured is True
+
+    def test_machine_health_check_is_not_configured(self, get_test_objects):
+        machine_health_check_name = "new-mhc"
+        # set random incorrect machine_set_name
+        machine_set_name = "wrong_machine_set_name"
+        is_mhc_configured = self._configure_machine_health_check(
+            get_test_objects, machine_set_name, machine_health_check_name
+        )
+        assert is_mhc_configured is False
+
+    def _configure_machine_health_check(
+        self, get_test_objects, machine_set_name: str, machine_health_check_name: str
+    ) -> bool:
+        """
+        Configure Machine Health Check for a machineset.
+        :param machine_health_check_name: (str) name of the machine health check
+        :param machine_set_name: (str) name of machine set name
+        :return: (bool) True when successfully configured a Machine Heath Check object OR False otherwise
+        """
+        mhc_obj = get_test_objects.machine_health_check
+        mhc_data = {
+            "kind": "MachineHealthCheck",
+            "spec": {
+                "unhealthyConditions": [
+                    {"status": "False", "type": "Ready", "timeout": "300s"},
+                    {"status": "Unknown", "type": "Ready", "timeout": "300s"},
+                ],
+                "maxUnhealthy": "40%",
+                "nodeStartupTimeout": "10m",
+                "selector": {"matchLabels": {"machine.openshift.io/cluster-api-machineset": f"{machine_set_name}"}},
+            },
+            "apiVersion": "machine.openshift.io/v1beta1",
+            "metadata": {"namespace": "openshift-machine-api", "name": f"{machine_health_check_name}"},
+        }
+        try:
+            mhc_obj.create_machine_health_check(machine_set_name, machine_health_check_name, mhc_data)
+            if not mhc_obj.is_machine_health_check_configured(machine_set_name, machine_health_check_name):
+                logger.error("The Machine Health Check is not configured as none of the machines are healthy")
+                return False
+        except Exception:
+            raise
+        finally:
+            mhc_obj.delete_machine_health_check(machine_health_check_name)
+        return True
