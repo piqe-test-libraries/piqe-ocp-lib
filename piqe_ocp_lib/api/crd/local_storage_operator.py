@@ -187,7 +187,6 @@ class LocalVolumeSet(LocalStorageOperator):
                 body["spec"]["volumeMode"] = kwargs["volumeMode"]
             api_response = None
             try:
-                # api_response = self.lvs.create(body=body)
                 api_response = self.lvs.create(namespace="openshift-local-storage", body=body)
             except ApiException as e:
                 logger.exception(f"Exception while creating Local Volumeset : {e}\n")
