@@ -84,6 +84,8 @@ class TestLocalStorageOperator:
             deviceTypes=["disk", "part"],
             volumeMode="Block",
         )
+        assert api_response.kind == "LocalVolumeSet"
+        assert api_response.metadata.name == TestLocalStorageOperator.lvs_name
 
     def test_get_local_volume_set(self, get_test_objects):
         api_response = get_test_objects.lvs.get_local_volume_set(
@@ -104,6 +106,8 @@ class TestLocalStorageOperator:
 
     def test_create_local_volume_discovery(self, get_test_objects):
         api_response = get_test_objects.lvd.create_local_volume_discovery()
+        assert api_response.kind == "LocalVolumeDiscovery"
+        assert api_response.metadata.name == TestLocalStorageOperator.lvd_name
 
     def test_get_local_volume_discovery(self, get_test_objects):
         api_response = get_test_objects.lvd.get_local_volume_discovery(
