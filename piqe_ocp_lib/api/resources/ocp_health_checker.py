@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 import warnings
 
 import requests
@@ -95,6 +96,90 @@ class OcpHealthChecker(OcpBase):
             all_nodes_healthy = True
 
         return all_nodes_healthy, unhealthy_node_info
+
+    def check_master_nodes_health(self) -> Tuple[bool, dict]:
+        """
+        Check health of each master node
+        Methods checks for:
+            - DiskPressure: All have sufficient disk space.
+            - MemoryPressure: All have sufficient memory
+            - PIDPressure: All have sufficient number processes are running
+            - If ALL above is False and NodeReadyStatus is True, then node is in ready(healthy) state
+        :return: Return tuple of all_master_nodes_healthy(boolean) and
+        node_health_info(dict of node name and failure reason)
+        """
+        logger.info("Checking master nodes health")
+        unhealthy_node_info = dict()
+        all_master_nodes_healthy = False
+        individual_node_health_status_list = list()
+        node_list_info = self.ocp_node.get_master_nodes()
+        if node_list_info:
+            for node_info in node_list_info.items:
+                temp_list = list()
+                for condition in node_info.status.conditions:
+                    if condition["type"] == "Ready":
+                        individual_node_health_status_list.append(condition["status"])
+                    if condition["type"] == "Ready" and condition["status"] != "True":
+                        temp_list.append({"NodeReadyStatus": condition["status"]})
+                    elif condition["type"] == "MemoryPressure" and condition["status"] == "True":
+                        temp_list.append({"MemoryPressure": "The node memory is low"})
+                    elif condition["type"] == "DiskPressure" and condition["status"] == "True":
+                        temp_list.append({"DiskPressure": "The disk capacity is low"})
+                    elif condition["type"] == "PIDPressure" and condition["status"] == "True":
+                        temp_list.append({"PIDPressure": "There are too many processes on the node"})
+
+                unhealthy_node_info[node_info["metadata"]["name"]] = temp_list
+
+        logger.info("Check overall health of master nodes by checking each node health")
+        if (
+            len(set(individual_node_health_status_list)) == 1
+            and list(set(individual_node_health_status_list))[0] == "True"
+        ):
+            all_master_nodes_healthy = True
+
+        return all_master_nodes_healthy, unhealthy_node_info
+
+    def check_worker_nodes_health(self) -> Tuple[bool, dict]:
+        """
+        Check health of each worker nodes
+        Methods checks for:
+            - DiskPressure: All have sufficient disk space.
+            - MemoryPressure: All have sufficient memory
+            - PIDPressure: All have sufficient number processes are running
+            - If ALL above is False and NodeReadyStatus is True, then node is in ready(healthy) state
+        :return: Return tuple of all_worker_nodes_healthy(boolean) and
+        node_health_info(dict of node name and failure reason)
+        """
+        logger.info("Checking all worker nodes health")
+        unhealthy_node_info = dict()
+        all_worker_nodes_healthy = False
+        individual_node_health_status_list = list()
+        node_list_info = self.ocp_node.get_worker_nodes()
+        if node_list_info:
+            for node_info in node_list_info.items:
+                temp_list = list()
+                for condition in node_info.status.conditions:
+                    if condition["type"] == "Ready":
+                        individual_node_health_status_list.append(condition["status"])
+                    if condition["type"] == "Ready" and condition["status"] != "True":
+                        temp_list.append({"NodeReadyStatus": condition["status"]})
+                    elif condition["type"] == "MemoryPressure" and condition["status"] == "True":
+                        temp_list.append({"MemoryPressure": "The node memory is low"})
+                    elif condition["type"] == "DiskPressure" and condition["status"] == "True":
+                        temp_list.append({"DiskPressure": "The disk capacity is low"})
+                    elif condition["type"] == "PIDPressure" and condition["status"] == "True":
+                        temp_list.append({"PIDPressure": "There are too many processes on the node"})
+
+                unhealthy_node_info[node_info["metadata"]["name"]] = temp_list
+
+        logger.info("Check overall health of worker nodes by checking each node health")
+        if (
+            len(set(individual_node_health_status_list)) == 1
+            and list(set(individual_node_health_status_list))[0] == "True"
+        ):
+            all_worker_nodes_healthy = True
+
+        return all_worker_nodes_healthy, unhealthy_node_info
 
     def check_router_health(self):
         """

@@ -34,6 +34,46 @@ class TestOcpHealthChecker:
                 failure_values.append(value)
             assert len(failure_values) > 0
 
+    def test_check_master_nodes_health(self, ocp_health):
+        """
+        Verify the node health status (bool) and failure nodes (dict) if any are returned
+        :param ocp_health: OcpHealthChecker class object
+        :return: None
+        """
+        logger.info("Check health of openshift master nodes")
+        all_master_nodes_healthy, node_health_info = ocp_health.check_master_nodes_health()
+        assert isinstance(all_master_nodes_healthy, bool)
+        assert isinstance(node_health_info, dict)
+        # if all_master_nodes_healthy is False, There has to be values of failure nodes in node_health_info dict
+        if all_master_nodes_healthy:
+            for key, value in node_health_info.items():
+                assert len(value) == 0
+        else:
+            failure_values = list()
+            for key, value in node_health_info.items():
+                failure_values.append(value)
+            assert len(failure_values) > 0
+
+    def test_check_worker_nodes_health(self, ocp_health):
+        """
+        Verify the node health status (bool) and failure nodes (dict) if any are returned
+        :param ocp_health: OcpHealthChecker class object
+        :return: None
+        """
+        logger.info("Check health of openshift worker nodes")
+        all_worker_nodes_healthy, node_health_info = ocp_health.check_worker_nodes_health()
+        assert isinstance(all_worker_nodes_healthy, bool)
+        assert isinstance(node_health_info, dict)
+        # if all_worker_nodes_healthy is False, There has to be values of failure nodes in node_health_info dict
+        if all_worker_nodes_healthy:
+            for key, value in node_health_info.items():
+                assert len(value) == 0
+        else:
+            failure_values = list()
+            for key, value in node_health_info.items():
+                failure_values.append(value)
+            assert len(failure_values) > 0
+
     def test_check_router_health(self, ocp_health):
         """
         Verify the openshift router health status (bool) and failure (dict) are returned
