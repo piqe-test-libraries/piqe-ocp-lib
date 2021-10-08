@@ -271,7 +271,7 @@ class LocalVolumeDiscovery(LocalStorageOperator):
         self.kind = "LocalVolumeDiscovery"
         self.lvd = self.dyn_client.resources.get(api_version=self.api_version, kind=self.kind)
 
-    def create_local_volume_discovery(self) -> Optional[ResourceInstance]:
+    def create_local_volume_discovery(self, node_values: list) -> Optional[ResourceInstance]:
         """
         create local volume discovery
         :param local_volume_discovery_name:(required) name  of the local volume
@@ -288,6 +288,7 @@ class LocalVolumeDiscovery(LocalStorageOperator):
                 if "'kind': 'LocalVolumeDiscovery', 'metadata'" in str(eval(crd)[i]):
                     target_item = i
             body = eval(crd)[target_item]
+            body["spec"]["nodeSelector"]["nodeSelectorTerms"][0]["matchExpressions"][0]["values"] = node_values
             api_response = None
             try:
                 api_response = self.lvd.create(namespace="openshift-local-storage", body=body)

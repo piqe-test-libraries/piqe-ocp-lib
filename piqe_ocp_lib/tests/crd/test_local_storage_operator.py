@@ -105,7 +105,9 @@ class TestLocalStorageOperator:
         assert get_test_objects.lvs.delete_local_volume_set(TestLocalStorageOperator.lvs_name) is not None
 
     def test_create_local_volume_discovery(self, get_test_objects):
-        api_response = get_test_objects.lvd.create_local_volume_discovery()
+        api_response = get_test_objects.lvd.create_local_volume_discovery(
+            node_values=["worker-0-0", "worker-0-1", "worker-0-2"]
+        )
         assert api_response.kind == "LocalVolumeDiscovery"
         assert api_response.metadata.name == TestLocalStorageOperator.lvd_name
 
