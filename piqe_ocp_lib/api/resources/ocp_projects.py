@@ -4,6 +4,8 @@ from typing import Optional
 from kubernetes.client.rest import ApiException
 from openshift.dynamic.resource import ResourceInstance
 
+from piqe_ocp_lib.api.constants import HttpStatusCode
+from piqe_ocp_lib.api import ocp_exceptions
 from piqe_ocp_lib import __loggername__
 
 from .ocp_base import OcpBase
@@ -18,14 +20,37 @@ class OcpProjects(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
+    #To handle Ocp exceptions while watching a project
+    _watch_project_flag = False
 
     def __init__(self, kube_config_file: Optional[str] = None):
+        """
+        The init method for the OcpProjects class
+        :return: None
+        """
         self.kube_config_file = kube_config_file
         OcpBase.__init__(self, kube_config_file=self.kube_config_file)
         self.api_version = "v1"
         self.ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="Namespace")
         self.create_ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="ProjectRequest")
 
+    def handle_namespace_exception(self, exception:Exception)-> None:
+        """
+        Method to handle various Ocp Namespace or Project Exceptions
+        :param exception: (required | Exception) Exception to be handled
+        :return: None
+        """
+        if exception.status == HttpStatusCode.NotFound.value:
+            err_msg = 'Namespace not found or does not exist.'
+            logger.exception(err_msg, exc_info=False)
+            raise ocp_exceptions.OcpResourceNotFoundException(err_msg) from None
+        elif exception.status == HttpStatusCode.Conflict.value:
+            err_msg = 'Namespace already exist.'
+            logger.exception(err_msg, exc_info=False)
+            raise ocp_exceptions.OcpResourceAlreadyExistsException(err_msg) from None
+        else:
+            raise exception
+        
     def create_a_project(self, project_name: str, labels_dict: Optional[dict] = None) -> Optional[ResourceInstance]:
         """
         Method to create a project
@@ -39,7 +64,10 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_created(project_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method create_a_project: %s\n" % e.reason)
+            logger.exception(
+                "Exception when calling method create_a_project: "
+                "'%s' :%s\n", project_name, e.reason, exc_info=False)
+            self.handle_namespace_exception(e)
         if labels_dict is not None:
             self.label_a_project(project_name, labels_dict)
         return api_response
@@ -57,7 +85,10 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_created(namespace_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method create_a_namespace: %s\n" % e.reason)
+            logger.exception(
+                "Exception when calling method create_a_namespace: "
+                "'%s' :%s\n", namespace_name, e.reason, exc_info=False)
+            self.handle_namespace_exception(e)
         if labels_dict is not None:
             self.label_a_project(namespace_name, labels_dict)
         return api_response
@@ -75,7 +106,10 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.patch(body=body, name=project_name)
         except ApiException as e:
-            logger.error("Exception when calling method label_a_project: %s\n" % e.reason)
+            logger.exception(
+                "Exception when calling method label_a_project: "
+                "'%s' %s\n", project_name, e.reason, exc_info=False)
+            self.handle_namespace_exception(e)
         return api_response
 
     def get_a_project(self, project_name: str) -> Optional[ResourceInstance]:
@@ -88,7 +122,11 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.get(name=project_name)
         except ApiException as e:
-            logger.error("Exception when calling method get_a_project: %s\n" % e.reason)
+            if not self._watch_project_flag:
+                logger.exception(
+                    "Exception when calling method get_a_project: "
+                    "'%s' %s\n", project_name, e.reason, exc_info=False)
+                self.handle_namespace_exception(e)
         return api_response
 
     def delete_a_project(self, project_name: str) -> Optional[ResourceInstance]:
@@ -103,7 +141,10 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_deleted(project_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method delete_a_project: %s\n" % e.reason)
+            logger.exception(
+                "Exception when calling method delete_a_project: "
+                "'%s' %s\n", project_name, e.reason, exc_info=False)
+            self.handle_namespace_exception(e)
         return api_response
 
     def delete_a_namespace(self, namespace_name: str) -> Optional[ResourceInstance]:
@@ -118,7 +159,10 @@ class OcpProjects(OcpBase):
             if self._watch_is_project_deleted(namespace_name) is False:
                 return None
         except ApiException as e:
-            logger.error("Exception when calling method delete_a_namespace: %s\n" % e.reason)
+            logger.error(
+                "Exception when calling method delete_a_namespace: "
+                "'%s' %s\n", namespace_name, e.reason, exc_info=False)
+            self.handle_namespace_exception(e)
         return api_response
 
     def delete_labelled_projects(self, label_name: str) -> list:
@@ -135,7 +179,10 @@ class OcpProjects(OcpBase):
                 if self._watch_is_project_deleted(project.metadata.name):
                     deleted_projects.append(api_response)
             except ApiException as e:
-                logger.error("Exception when calling method delete_labelled_projects: %s\n" % e)
+                logger.exception(
+                    "Exception when calling method delete_labelled_projects: "
+                    "Project(s) with label '%s' %s\n", label_name, e.reason, exc_info=False)
+                self.handle_namespace_exception(e)
         return deleted_projects
 
     def get_labelled_projects(self, label_selector: str) -> Optional[ResourceInstance]:
@@ -148,7 +195,10 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.get(label_selector=label_selector)
         except ApiException as e:
-            logger.error("Exception when calling method get_labelled_projects: %s\n" % e)
+                logger.exception(
+                    "Exception when calling method get_labelled_projects: "
+                    "Project(s) with label '%s' %s\n", label_selector, e.reason, exc_info=False)
+                self.handle_namespace_exception(e)
         return api_response
 
     def get_all_projects(self) -> Optional[ResourceInstance]:
@@ -161,7 +211,7 @@ class OcpProjects(OcpBase):
         try:
             api_response = self.ocp_projects.get()
         except ApiException as e:
-            logger.error("Exception when calling method get_all_projects: %s\n" % e.reason)
+            logger.exception("Exception when calling method get_all_projects: %s\n" % e.reason, exc_info=False)
         return api_response
 
     def does_project_exist(self, project_name: str) -> bool:
@@ -170,7 +220,10 @@ class OcpProjects(OcpBase):
         :param project_name: (required | str) Name of project to be checked.
         :return: True if the project is found. False if the project is not found.
         """
-        has_project = self.get_a_project(project_name)
+        try:
+            has_project = self.get_a_project(project_name)
+        except ocp_exceptions.OcpResourceNotFoundException:
+            return False
         return bool(has_project)
 
     def _watch_is_project_created(self, project_name: str) -> bool:
@@ -181,6 +234,7 @@ class OcpProjects(OcpBase):
         :return: True if the project is Created, False if the project is not found or the
                  state cannot be determined.
         """
+        self._watch_project_flag = True
         field_selector = "status.phase=Active"
         for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
             logger.info("Project : {}, Creation phase : {}".format(project_name, event["object"]["status"]["phase"]))
@@ -195,6 +249,7 @@ class OcpProjects(OcpBase):
         :param: project_name: (required | str) Name of project to be checked.
         :return: True if the project has been deleted, False if the project is not found.
         """
+        self._watch_project_flag = True
         field_selector = "status.phase=Terminating"
         for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
             logger.info("Project : {}, Deletion phase : {}".format(project_name, event["object"]["status"]["phase"]))
