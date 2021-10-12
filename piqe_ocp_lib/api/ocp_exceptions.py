@@ -28,28 +28,33 @@ class OcpException(Exception):
 class OcpResourceAlreadyExistsException(OcpException):
     """Raise this Exception when trying to access a resource
     that already exists"""
+
     pass
 
 
 class OcpResourceNotFoundException(OcpException):
     """Raise this Exception when trying to access a resource
     which does not exist"""
+
     pass
 
 
 class OcpServiceUnavailable(OcpException):
     """Raise this Exception when trying to access unavailable
     service"""
+
     pass
 
 
 class OcpDeploymentConfigInvalidStateError(OcpException):
     """Raise this Exception when Deployment config in OCP Cluster is
     in invalid state"""
+
     pass
 
 
 class UnsupportedInstallMode(OcpException):
     """Raise this Exception when trying to install an operator
     with an unsupported install mode"""
+
     pass
