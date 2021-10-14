@@ -3,7 +3,12 @@ import logging
 import pytest
 
 from piqe_ocp_lib import __loggername__
-from piqe_ocp_lib.api.crd.local_storage_operator import LocalStorageOperator, LocalVolume
+from piqe_ocp_lib.api.crd.local_storage_operator import (
+    LocalStorageOperator,
+    LocalVolume,
+    LocalVolumeDiscovery,
+    LocalVolumeSet,
+)
 from piqe_ocp_lib.api.resources.ocp_operators import ClusterServiceVersion
 
 logger = logging.getLogger(__loggername__)
@@ -21,6 +26,8 @@ def get_test_objects(get_kubeconfig):
             self.csv_obj = ClusterServiceVersion(kube_config_file=get_kubeconfig)
             self.lso = LocalStorageOperator(kube_config_file=get_kubeconfig)
             self.lv = LocalVolume(kube_config_file=get_kubeconfig)
+            self.lvs = LocalVolumeSet(kube_config_file=get_kubeconfig)
+            self.lvd = LocalVolumeDiscovery(kube_config_file=get_kubeconfig)
 
     test_objs = TestObjects()
     return test_objs
@@ -33,9 +40,19 @@ def get_test_objects(get_kubeconfig):
     def local_volume(get_kubeconfig) -> LocalVolume:
         return LocalVolume(kube_config_file=get_kubeconfig)
 
+    @pytest.fixture(scope="module")
+    def local_volume_set(get_kubeconfig) -> LocalVolume:
+        return LocalVolumeSet(kube_config_file=get_kubeconfig)
+
+    @pytest.fixture(scope="module")
+    def local_volume_discovery(get_kubeconfig) -> LocalVolume:
+        return LocalVolumeDiscovery(kube_config_file=get_kubeconfig)
+
 
 class TestLocalStorageOperator:
     lv_name = "testlvname"
+    lvs_name = "testlvsname"
+    lvd_name = "auto-discover-devices"
 
     def test_create_local_volume(self, get_test_objects):
         api_response = get_test_objects.lv.create_local_volume(
@@ -59,3 +76,54 @@ class TestLocalStorageOperator:
 
     def test_delete_local_volume(self, get_test_objects):
         assert get_test_objects.lv.delete_local_volume(TestLocalStorageOperator.lv_name) is not None
+
+    def test_create_local_volume_set(self, get_test_objects):
+        api_response = get_test_objects.lvs.create_local_volume_set(
+            name=TestLocalStorageOperator.lvs_name,
+            storageClassName="teststoragelvsclass",
+            deviceTypes=["disk", "part"],
+            volumeMode="Block",
+        )
+        assert api_response.kind == "LocalVolumeSet"
+        assert api_response.metadata.name == TestLocalStorageOperator.lvs_name
+
+    def test_get_local_volume_set(self, get_test_objects):
+        api_response = get_test_objects.lvs.get_local_volume_set(
+            "openshift-local-storage", TestLocalStorageOperator.lvs_name
+        )
+        assert api_response.kind == "LocalVolumeSet"
+
+    def test_watch_local_volume_set(self, get_test_objects):
+        assert (
+            get_test_objects.lvs.watch_local_volume_set(
+                "openshift-local-storage", TestLocalStorageOperator.lvs_name, timeout=120
+            )
+            is not False
+        )
+
+    def test_delete_local_volume_set(self, get_test_objects):
+        assert get_test_objects.lvs.delete_local_volume_set(TestLocalStorageOperator.lvs_name) is not None
+
+    def test_create_local_volume_discovery(self, get_test_objects):
+        api_response = get_test_objects.lvd.create_local_volume_discovery(
+            node_values=["worker-0-0", "worker-0-1", "worker-0-2"]
+        )
+        assert api_response.kind == "LocalVolumeDiscovery"
+        assert api_response.metadata.name == TestLocalStorageOperator.lvd_name
+
+    def test_get_local_volume_discovery(self, get_test_objects):
+        api_response = get_test_objects.lvd.get_local_volume_discovery(
+            "openshift-local-storage", TestLocalStorageOperator.lvd_name
+        )
+        assert api_response.kind == "LocalVolumeDiscovery"
+
+    def test_watch_local_volume_discovery(self, get_test_objects):
+        assert (
+            get_test_objects.lvd.watch_local_volume_discovery(
+                "openshift-local-storage", TestLocalStorageOperator.lvd_name, timeout=120
+            )
+            is not False
+        )
+
+    def test_delete_local_volume_discovery(self, get_test_objects):
+        assert get_test_objects.lvd.delete_local_volume_discovery(TestLocalStorageOperator.lvd_name) is not None
