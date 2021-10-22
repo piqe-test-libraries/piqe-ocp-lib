@@ -39,6 +39,20 @@ class OcpResourceNotFoundException(OcpException):
     pass
 
 
+class OcpInvalidParameterException(OcpException):
+    """Raise this Exception when trying to access a resource
+    which does not exist"""
+
+    pass
+
+
+class OcpWatchTimeoutException(OcpException):
+    """Raise this Exception after timeout while watching a Ocp
+    resource"""
+
+    pass
+
+
 class OcpServiceUnavailable(OcpException):
     """Raise this Exception when trying to access unavailable
     service"""

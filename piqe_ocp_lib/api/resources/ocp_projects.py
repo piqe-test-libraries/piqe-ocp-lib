@@ -6,7 +6,7 @@ from openshift.dynamic.resource import ResourceInstance
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api import ocp_exceptions
-from piqe_ocp_lib.api.constants import HttpStatusCode
+from piqe_ocp_lib.api.ocp_exception_handler import handle_exception
 
 from .ocp_base import OcpBase
 
@@ -35,23 +35,6 @@ class OcpProjects(OcpBase):
         self.ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="Namespace")
         self.create_ocp_projects = self.dyn_client.resources.get(api_version=self.api_version, kind="ProjectRequest")
 
-    def handle_namespace_exception(self, exception: Exception) -> None:
-        """
-        Method to handle various Ocp Namespace or Project Exceptions
-        :param exception: (required | Exception) Exception to be handled
-        :return: None
-        """
-        if exception.status == HttpStatusCode.NotFound.value:
-            err_msg = "Namespace not found or does not exist."
-            logger.exception(err_msg, exc_info=False)
-            raise ocp_exceptions.OcpResourceNotFoundException(err_msg) from None
-        elif exception.status == HttpStatusCode.Conflict.value:
-            err_msg = "Namespace already exist."
-            logger.exception(err_msg, exc_info=False)
-            raise ocp_exceptions.OcpResourceAlreadyExistsException(err_msg) from None
-        else:
-            raise exception
-
     def create_a_project(self, project_name: str, labels_dict: Optional[dict] = None) -> Optional[ResourceInstance]:
         """
         Method to create a project
@@ -59,19 +42,14 @@ class OcpProjects(OcpBase):
         :param labels_dict: (optional | dict) a dictionary of key/val label pairs.
         :return: A V1ProjectRequest object on success. None on failure
         """
-        api_response = None
-        try:
+        with handle_exception():
             api_response = self.create_ocp_projects.create(body={"metadata": {"name": project_name}})
             if self._watch_is_project_created(project_name) is False:
+                logger.error("Failed to create the project: %s\n", project_name)
                 return None
-        except ApiException as e:
-            logger.exception(
-                "Exception when calling method create_a_project: " "'%s' :%s\n", project_name, e.reason, exc_info=False
-            )
-            self.handle_namespace_exception(e)
-        if labels_dict is not None:
-            self.label_a_project(project_name, labels_dict)
-        return api_response
+            if labels_dict is not None:
+                self.label_a_project(project_name, labels_dict)
+            return api_response
 
     def create_a_namespace(self, namespace_name: str, labels_dict: Optional[dict] = None) -> Optional[ResourceInstance]:
         """
@@ -80,22 +58,14 @@ class OcpProjects(OcpBase):
         :param labels_dict: (optional | dict) a dictionary of key/val label pairs.
         :return: A V1ProjectRequest object on success. None on failure
         """
-        api_response = None
-        try:
+        with handle_exception():
             api_response = self.ocp_projects.create(body={"metadata": {"name": namespace_name}})
             if self._watch_is_project_created(namespace_name) is False:
+                logger.error("Failed to create the namespace: %s\n", namespace_name)
                 return None
-        except ApiException as e:
-            logger.exception(
-                "Exception when calling method create_a_namespace: " "'%s' :%s\n",
-                namespace_name,
-                e.reason,
-                exc_info=False,
-            )
-            self.handle_namespace_exception(e)
-        if labels_dict is not None:
-            self.label_a_project(namespace_name, labels_dict)
-        return api_response
+            if labels_dict is not None:
+                self.label_a_project(namespace_name, labels_dict)
+            return api_response
 
     def label_a_project(self, project_name: str, labels_dict: dict) -> Optional[ResourceInstance]:
         """
@@ -105,16 +75,10 @@ class OcpProjects(OcpBase):
         :param labels_dict: (required | dict) An object of type dict(str: str)
         :return: An object of type V1Namespace
         """
-        api_response = None
         body = {"metadata": {"labels": labels_dict}}
-        try:
+        with handle_exception():
             api_response = self.ocp_projects.patch(body=body, name=project_name)
-        except ApiException as e:
-            logger.exception(
-                "Exception when calling method label_a_project: " "'%s' %s\n", project_name, e.reason, exc_info=False
-            )
-            self.handle_namespace_exception(e)
-        return api_response
+            return api_response
 
     def get_a_project(self, project_name: str) -> Optional[ResourceInstance]:
         """
@@ -122,16 +86,9 @@ class OcpProjects(OcpBase):
         :param project_name: (required | str) Name of the project to be patched.
         :return: An object of type V1Namespace
         """
-        api_response = None
-        try:
+        with handle_exception():
             api_response = self.ocp_projects.get(name=project_name)
-        except ApiException as e:
-            if not self._watch_project_flag:
-                logger.exception(
-                    "Exception when calling method get_a_project: " "'%s' %s\n", project_name, e.reason, exc_info=False
-                )
-                self.handle_namespace_exception(e)
-        return api_response
+            return api_response
 
     def delete_a_project(self, project_name: str) -> Optional[ResourceInstance]:
         """
@@ -139,17 +96,11 @@ class OcpProjects(OcpBase):
         :param project_name: (required | str) Name of the project to be deleted.
         :return: An object of type V1Namespace
         """
-        api_response = None
-        try:
+        with handle_exception():
             api_response = self.ocp_projects.delete(name=project_name)
             if self._watch_is_project_deleted(project_name) is False:
                 return None
-        except ApiException as e:
-            logger.exception(
-                "Exception when calling method delete_a_project: " "'%s' %s\n", project_name, e.reason, exc_info=False
-            )
-            self.handle_namespace_exception(e)
-        return api_response
+            return api_response
 
     def delete_a_namespace(self, namespace_name: str) -> Optional[ResourceInstance]:
         """
@@ -157,20 +108,11 @@ class OcpProjects(OcpBase):
         :param namespace_name: (required | str) Name of the namespace to be deleted.
         :return: An object of type V1Namespace
         """
-        api_response = None
-        try:
+        with handle_exception():
             api_response = self.ocp_projects.delete(name=namespace_name)
             if self._watch_is_project_deleted(namespace_name) is False:
                 return None
-        except ApiException as e:
-            logger.error(
-                "Exception when calling method delete_a_namespace: " "'%s' %s\n",
-                namespace_name,
-                e.reason,
-                exc_info=False,
-            )
-            self.handle_namespace_exception(e)
-        return api_response
+            return api_response
 
     def delete_labelled_projects(self, label_name: str) -> list:
         """
@@ -201,18 +143,9 @@ class OcpProjects(OcpBase):
         :param label_selector: (required | str) label for the projects to be fetched.
         :return: An object of type V1NamespaceList
         """
-        api_response = None
-        try:
+        with handle_exception():
             api_response = self.ocp_projects.get(label_selector=label_selector)
-        except ApiException as e:
-            logger.exception(
-                "Exception when calling method get_labelled_projects: " "Project(s) with label '%s' %s\n",
-                label_selector,
-                e.reason,
-                exc_info=False,
-            )
-            self.handle_namespace_exception(e)
-        return api_response
+            return api_response
 
     def get_all_projects(self) -> Optional[ResourceInstance]:
         """
@@ -220,12 +153,9 @@ class OcpProjects(OcpBase):
         :param : None
         :return: An object of type V1NamespaceList
         """
-        api_response = None
-        try:
+        with handle_exception():
             api_response = self.ocp_projects.get()
-        except ApiException as e:
-            logger.exception("Exception when calling method get_all_projects: %s\n" % e.reason, exc_info=False)
-        return api_response
+            return api_response
 
     def does_project_exist(self, project_name: str) -> bool:
         """
@@ -249,10 +179,13 @@ class OcpProjects(OcpBase):
         """
         self._watch_project_flag = True
         field_selector = "status.phase=Active"
-        for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
-            logger.info("Project : {}, Creation phase : {}".format(project_name, event["object"]["status"]["phase"]))
-            if self.does_project_exist(project_name):
-                return True
+        with handle_exception():
+            for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
+                logger.info(
+                    "Project : {}, Creation phase : {}".format(project_name, event["object"]["status"]["phase"])
+                )
+                if self.does_project_exist(project_name):
+                    return True
         return False
 
     def _watch_is_project_deleted(self, project_name: str) -> bool:
@@ -264,8 +197,11 @@ class OcpProjects(OcpBase):
         """
         self._watch_project_flag = True
         field_selector = "status.phase=Terminating"
-        for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
-            logger.info("Project : {}, Deletion phase : {}".format(project_name, event["object"]["status"]["phase"]))
-            if not self.does_project_exist(project_name):
-                return True
+        with handle_exception():
+            for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
+                logger.info(
+                    "Project : {}, Deletion phase : {}".format(project_name, event["object"]["status"]["phase"])
+                )
+                if not self.does_project_exist(project_name):
+                    return True
         return False
