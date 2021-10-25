@@ -1,7 +1,6 @@
 import logging
 from typing import Optional
 
-from kubernetes.client.rest import ApiException
 from openshift.dynamic.resource import ResourceInstance
 
 from piqe_ocp_lib import __loggername__
@@ -20,9 +19,6 @@ class OcpProjects(OcpBase):
     :param kube_config_file: A kubernetes config file.
     :return: None
     """
-
-    # To handle Ocp exceptions while watching a project
-    _watch_project_flag = False
 
     def __init__(self, kube_config_file: Optional[str] = None):
         """
@@ -121,20 +117,12 @@ class OcpProjects(OcpBase):
         :return: A list containing objects of type V1Namespace
         """
         deleted_projects = []
-        labelled_projects = self.get_labelled_projects(label_selector=label_name)
-        for project in labelled_projects.items:
-            try:
+        with handle_exception():
+            labelled_projects = self.get_labelled_projects(label_selector=label_name)
+            for project in labelled_projects.items:
                 api_response = self.ocp_projects.delete(name=project.metadata.name)
                 if self._watch_is_project_deleted(project.metadata.name):
                     deleted_projects.append(api_response)
-            except ApiException as e:
-                logger.exception(
-                    "Exception when calling method delete_labelled_projects: " "Project(s) with label '%s' %s\n",
-                    label_name,
-                    e.reason,
-                    exc_info=False,
-                )
-                self.handle_namespace_exception(e)
         return deleted_projects
 
     def get_labelled_projects(self, label_selector: str) -> Optional[ResourceInstance]:
@@ -177,7 +165,6 @@ class OcpProjects(OcpBase):
         :return: True if the project is Created, False if the project is not found or the
                  state cannot be determined.
         """
-        self._watch_project_flag = True
         field_selector = "status.phase=Active"
         with handle_exception():
             for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):
@@ -195,7 +182,6 @@ class OcpProjects(OcpBase):
         :param: project_name: (required | str) Name of project to be checked.
         :return: True if the project has been deleted, False if the project is not found.
         """
-        self._watch_project_flag = True
         field_selector = "status.phase=Terminating"
         with handle_exception():
             for event in self.ocp_projects.watch(namespace=project_name, field_selector=field_selector, timeout=600):

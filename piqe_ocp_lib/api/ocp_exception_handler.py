@@ -23,8 +23,8 @@ def handle_exception():
         # Parse the http response body to get relevant error message
         http_response_body = json.loads(exception.body.decode("utf-8"))
         exception_msg = http_response_body["message"]
-
         logger.info(exception_msg)
+
         if exception.status == HttpStatusCode.NotFound.value:
             raise ocp_exceptions.OcpResourceNotFoundException("Resource not found") from None
         if exception.status == HttpStatusCode.Conflict.value:
