@@ -26,11 +26,11 @@ def handle_exception():
         logger.info(exception_msg)
 
         if exception.status == HttpStatusCode.NotFound.value:
-            raise ocp_exceptions.OcpResourceNotFoundException("Resource not found") from None
+            raise ocp_exceptions.OcpResourceNotFoundException("Resource not found")
         if exception.status == HttpStatusCode.Conflict.value:
-            raise ocp_exceptions.OcpResourceAlreadyExistsException("Resource Already Exists") from None
+            raise ocp_exceptions.OcpResourceAlreadyExistsException("Resource Already Exists")
         if exception.status == HttpStatusCode.UnprocessableEntity.value:
-            raise ocp_exceptions.OcpInvalidParameterException("Invalid parameter") from None
+            raise ocp_exceptions.OcpInvalidParameterException("Invalid parameter")
         else:
             logger.error(exception_msg)
             raise exception
