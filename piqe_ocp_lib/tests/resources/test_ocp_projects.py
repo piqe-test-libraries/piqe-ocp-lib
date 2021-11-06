@@ -5,7 +5,6 @@ import pytest
 
 from piqe_ocp_lib import __loggername__
 from piqe_ocp_lib.api import ocp_exceptions
-from piqe_ocp_lib.api.ocp_exception_handler import handle_exception
 from piqe_ocp_lib.api.resources import OcpProjects
 
 logger = logging.getLogger(__loggername__)
