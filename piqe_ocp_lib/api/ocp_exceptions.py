@@ -2,7 +2,7 @@
 
 
 class ConfigError(Exception):
-    """ Raise this Exception for configuration errors """
+    """Raise this Exception for configuration errors"""
 
     def __init__(self, msg):
         Exception.__init__(self, msg)
@@ -10,7 +10,7 @@ class ConfigError(Exception):
 
 
 class ExecutionError(Exception):
-    """ Raise this Exception for command execution failures """
+    """Raise this Exception for command execution failures"""
 
     def __init__(self, msg):
         Exception.__init__(self, msg)

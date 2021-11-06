@@ -33,10 +33,9 @@ class TestOcpProjects:
         :return:
         """
         project_api_obj = setup_params["project_api_obj"]
-        with handle_exception():
-            api_response = project_api_obj.create_a_project(project_name)
-            assert api_response.metadata.name == project_name
-            logger.info("Project : {}, succesfully created".format(api_response.metadata.name))
+        api_response = project_api_obj.create_a_project(project_name)
+        assert api_response.metadata.name == project_name
+        logger.info("Project : {}, succesfully created".format(api_response.metadata.name))
 
     def __cleanup(self, setup_params, project_name):
         """
@@ -47,12 +46,11 @@ class TestOcpProjects:
         :return:
         """
         project_api_obj = setup_params["project_api_obj"]
-        with handle_exception():
-            if project_api_obj.does_project_exist(project_name):
-                project_api_obj.delete_a_project(project_name)
-                logger.info("Project : {}, successfully deleted".format(project_name))
-            is_deleted_project_present = project_api_obj.does_project_exist(project_name)
-            assert is_deleted_project_present is False
+        if project_api_obj.does_project_exist(project_name):
+            project_api_obj.delete_a_project(project_name)
+            logger.info("Project : {}, successfully deleted".format(project_name))
+        is_deleted_project_present = project_api_obj.does_project_exist(project_name)
+        assert is_deleted_project_present is False
 
     def __log_exception_formatted(self, message, exception):
         """

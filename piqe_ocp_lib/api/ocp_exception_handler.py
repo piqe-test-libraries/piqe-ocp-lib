@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import functools
 import json
 import logging
 
@@ -11,26 +12,34 @@ from piqe_ocp_lib.api.constants import HttpStatusCode
 logger = logging.getLogger(__loggername__)
 
 
-@contextmanager
-def handle_exception():
+def get_error_msg(exception) -> str:
+    """
+    Parse the http response body to get relevant error message
+    """
+    http_response_body = json.loads(exception.body.decode("utf-8"))
+    exception_msg = http_response_body["message"]
+    return exception_msg
+
+
+def handle_exception(func):
     """
     Raise and log relevant Ocp related exceptions
     """
-    try:
-        yield
-    except ApiException as exception:
 
-        # Parse the http response body to get relevant error message
-        http_response_body = json.loads(exception.body.decode("utf-8"))
-        exception_msg = http_response_body["message"]
-        logger.info(exception_msg)
+    @functools.wraps(func)
+    def exception_handler(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ApiException as exception:
+            logger.info(get_error_msg(exception))
+            if exception.status == HttpStatusCode.NotFound.value:
+                raise ocp_exceptions.OcpResourceNotFoundException("Resource not found")
+            if exception.status == HttpStatusCode.Conflict.value:
+                raise ocp_exceptions.OcpResourceAlreadyExistsException("Resource Already Exists")
+            if exception.status == HttpStatusCode.UnprocessableEntity.value:
+                raise ocp_exceptions.OcpInvalidParameterException("Invalid parameter")
+            else:
+                logger.error(get_error_msg(exception))
+                raise exception
 
-        if exception.status == HttpStatusCode.NotFound.value:
-            raise ocp_exceptions.OcpResourceNotFoundException("Resource not found")
-        if exception.status == HttpStatusCode.Conflict.value:
-            raise ocp_exceptions.OcpResourceAlreadyExistsException("Resource Already Exists")
-        if exception.status == HttpStatusCode.UnprocessableEntity.value:
-            raise ocp_exceptions.OcpInvalidParameterException("Invalid parameter")
-        else:
-            logger.error(exception_msg)
-            raise exception
+    return exception_handler
