@@ -60,9 +60,9 @@ class TestOcpProjects:
         :return:
         """
         logger.error(message)
-        logger.error("Status: %s" % exception.status)
-        logger.error("Reason: %s" % exception.reason)
-        logger.error("  Body: %s" % exception.body.decode("utf-8"))
+        logger.error(f"Status: {exception.status}")
+        logger.error(f"Reason: {exception.reason}")
+        logger.error(f"  Body: {exception.body.decode('utf-8')}")
 
     def test_create_a_project(self, setup_params):
         """
