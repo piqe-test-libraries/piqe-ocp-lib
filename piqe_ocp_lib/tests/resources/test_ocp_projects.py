@@ -59,10 +59,11 @@ class TestOcpProjects:
         :param exception: The raised Exception
         :return:
         """
+        http_response_body = exception.body.decode("utf-8")
         logger.error(message)
         logger.error(f"Status: {exception.status}")
         logger.error(f"Reason: {exception.reason}")
-        logger.error(f"  Body: {exception.body.decode('utf-8')}")
+        logger.error(f"  Body: {http_response_body}")
 
     def test_create_a_project(self, setup_params):
         """
