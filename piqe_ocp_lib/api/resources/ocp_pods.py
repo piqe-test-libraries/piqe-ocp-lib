@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from kubernetes import client
 from kubernetes.client.rest import ApiException
@@ -38,7 +39,7 @@ class OcpPods(OcpBase):
             print("Exception while creating pods: %s\n", e)
         return api_response
 
-    def list_pods_in_a_namespace(self, namespace, label_selector=""):
+    def list_pods_in_a_namespace(self, namespace, label_selector: Optional[str] = None):
         """
         Method to list details for all or a specific type of pod within
         a namespace. If no parameter is given, it defaults to listing
@@ -91,7 +92,7 @@ class OcpPods(OcpBase):
             ]
         return pods_in_dc
 
-    def list_all_pods_in_all_namespaces(self):
+    def list_all_pods_in_all_namespaces(self, label_selector: Optional[str] = None):
         """
         Method that returns a list of All Pods belonging to
         a Deployment Config in all namespaces
@@ -100,7 +101,7 @@ class OcpPods(OcpBase):
         """
         api_response = None
         try:
-            api_response = self.ocp_pods.get()
+            api_response = self.ocp_pods.get(label_selector=label_selector)
         except ApiException as e:
             logger.error("Exception while getting pods: %s\n", e)
         return api_response
@@ -183,3 +184,23 @@ class OcpPods(OcpBase):
             if api_response.spec["nodeName"]:
                 node_name = api_response.spec["nodeName"]
         return node_name
+
+    def list_of_pods_in_a_node(self, node_name, namespace: Optional[str] = None, label_selector: Optional[str] = None):
+        """
+        Method that returns a list of Pods belonging to a node
+        :param node_name: The name of the node
+        :param (optional)namespace:  The namespace where the pod is deployed
+        :param (optional)label_selector: label selector
+        :return: list of pods
+        """
+        pod_list = []
+        if namespace is None:
+            api_response = self.list_all_pods_in_all_namespaces(label_selector=label_selector)
+        else:
+            api_response = self.list_pods_in_a_namespace(namespace=namespace, label_selector=label_selector)
+        if api_response:
+            for item in api_response.items:
+                if node_name == item["spec"]["nodeName"]:
+                    pod_name = item["metadata"]["name"]
+                    pod_list.append(pod_name)
+        return pod_list
