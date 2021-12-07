@@ -384,3 +384,33 @@ class TestOcpNodes:
         if not total_allocatable_cpu:
             assert False, "Failed to get total allocatable cpu from cluster"
         assert isinstance(total_allocatable_cpu, int)
+
+    def test_get_total_allocatable_mem_cpu_worker_node(self, setup_params):
+        """
+        Verify that method returns total allocatable memory/cpu
+            of cluster by adding all allocatable memory/cpu from each worker nodes in the cluster
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        total_allocatable_memory, total_allocatable_cpu = node_api_obj.get_total_allocatable_mem_cpu("worker")
+        if not total_allocatable_memory:
+            assert False, "Failed to get total allocatable memory from worker nodes in the cluster"
+        assert isinstance(total_allocatable_memory, int)
+        if not total_allocatable_cpu:
+            assert False, "Failed to get total allocatable cpu from worker nodes in the cluster"
+        assert isinstance(total_allocatable_cpu, int)
+
+    def test_get_total_allocatable_mem_cpu_master_node(self, setup_params):
+        """
+        Verify that method returns total allocatable memory/cpu
+            of cluster by adding all allocatable memory/cpu from each master node in the cluster
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        total_allocatable_memory, total_allocatable_cpu = node_api_obj.get_total_allocatable_mem_cpu("master")
+        if not total_allocatable_memory:
+            assert False, "Failed to get total allocatable memory from worker nodes in the cluster"
+        assert isinstance(total_allocatable_memory, int)
+        if not total_allocatable_cpu:
+            assert False, "Failed to get total allocatable cpu from worker nodes in the cluster"
+        assert isinstance(total_allocatable_cpu, int)

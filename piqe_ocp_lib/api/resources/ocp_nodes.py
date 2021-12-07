@@ -379,27 +379,32 @@ class OcpNodes(OcpBase):
         else:
             return True
 
-    def get_total_allocatable_mem_cpu(self) -> int:
+    def get_total_allocatable_mem_cpu(self, node_type=None) -> int:
         """
         Get total cluster allocatable memory/cpu by adding memory/cpu from all Nodes
         :return: (int) Total memory in byte, cpu in m on success OR 0 on Failure
         """
         total_allocatable_memory_in_bytes = 0
         total_allocatable_cpu_in_m = 0
-        node_response = self.get_all_nodes()
+        if node_type == "worker":
+            node_response = self.get_all_nodes(label_selector="node-role.kubernetes.io/worker")
+        elif node_type == "master":
+            node_response = self.get_all_nodes(label_selector="node-role.kubernetes.io/master")
+        else:
+            node_response = self.get_all_nodes()
         if node_response:
             for node in node_response.items:
                 schedulable = self.is_node_schedulable(node["metadata"]["name"])
                 if schedulable:
                     if node["status"]["allocatable"]["memory"][-2:] == "Ki":
-                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * 1024
+                        total_allocatable_memory_in_bytes += int(node["status"]["allocatable"]["memory"][:-2]) * 1024
                     if node["status"]["allocatable"]["memory"][-2:] == "Mi":
-                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (
+                        total_allocatable_memory_in_bytes += int(node["status"]["allocatable"]["memory"][:-2]) * (
                             1024 * 1024
                         )
                     if node["status"]["allocatable"]["memory"][-2:] == "Gi":
-                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (
-                            1024 * 1024
+                        total_allocatable_memory_in_bytes += int(node["status"]["allocatable"]["memory"][:-2]) * (
+                            1024 * 1024 * 1024
                         )
                     if node["status"]["allocatable"]["cpu"][-1:] == "m":
                         total_allocatable_cpu_in_m += int(node["status"]["allocatable"]["cpu"][:-1])
