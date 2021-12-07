@@ -392,14 +392,14 @@ class OcpNodes(OcpBase):
                 schedulable = self.is_node_schedulable(node["metadata"]["name"])
                 if schedulable:
                     if node["status"]["allocatable"]["memory"][-2:] == "Ki":
-                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * 1024
+                        total_allocatable_memory_in_bytes += int(node["status"]["allocatable"]["memory"][:-2]) * 1024
                     if node["status"]["allocatable"]["memory"][-2:] == "Mi":
-                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (
+                        total_allocatable_memory_in_bytes += int(node["status"]["allocatable"]["memory"][:-2]) * (
                             1024 * 1024
                         )
                     if node["status"]["allocatable"]["memory"][-2:] == "Gi":
-                        total_allocatable_memory_in_bytes += int(node["status"]["capacity"]["memory"][:-2]) * (
-                            1024 * 1024
+                        total_allocatable_memory_in_bytes += int(node["status"]["allocatable"]["memory"][:-2]) * (
+                            1024 * 1024 * 1024
                         )
                     if node["status"]["allocatable"]["cpu"][-1:] == "m":
                         total_allocatable_cpu_in_m += int(node["status"]["allocatable"]["cpu"][:-1])
