@@ -340,6 +340,30 @@ class TestOcpNodes:
             api_response = node_api_obj.mark_node_schedulable(node_name=worker_node_name.metadata.name)
             assert api_response.kind == "Node"
 
+    def test_make_node_uncordon(self, setup_params):
+        """
+        Verify that a masters/worker nodes are maked uncordon
+        1. Call get_master_nodes method via a ocp_nodes instance
+        2. Call make_node_uncordon method
+        3. Verify that the response object has uncordon set to None
+        4. Call get_worker_nodes method via a ocp_nodes instance
+        5. Call make_node_uncordon method
+        6. Verify that the response object has uncordon set to True
+        :param setup_params:
+        :return:
+        """
+        node_api_obj = setup_params["node_api_obj"]
+        # Mark all master nodes uncordon
+        master_node_list = node_api_obj.get_master_nodes()
+        for master_node_name in master_node_list.items:
+            api_response = node_api_obj.make_node_uncordon(node_name=master_node_name.metadata.name)
+            assert api_response.kind == "Node"
+        # Mark all worker nodes uncordon
+        worker_node_list = node_api_obj.get_worker_nodes()
+        for worker_node_name in worker_node_list.items:
+            api_response = node_api_obj.make_node_uncordon(node_name=worker_node_name.metadata.name)
+            assert api_response.kind == "Node"
+
     def test_are_all_nodes_ready(self, setup_params):
         """
         Verify that all nodes status is Ready.

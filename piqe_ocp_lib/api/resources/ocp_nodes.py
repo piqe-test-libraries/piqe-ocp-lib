@@ -343,6 +343,22 @@ class OcpNodes(OcpBase):
                 logger.error("Exception encountered while marking node unschedulable: %s\n", e)
         return api_response
 
+    def make_node_uncordon(self, node_name: str) -> Optional[ResourceInstance]:
+        """
+        Return node which was make uncordon
+        :param node_name:
+        :return: A V1Node object. None on failure.
+        """
+        api_response = None
+        body = {"spec": {"taints": [{"effect": "NoSchedule","key": "node.kubernetes.io/unschedulable"}],"unschedulable": false}}
+        unschedulable_status = self.is_node_schedulable(node_name)
+        try:
+            api_response = self.ocp_nodes.patch(name=node_name, body=body)
+            logger.info("Node %s maked uncordon" % node_name)
+        except ApiException as e:
+            logger.error("Exception encountered while making node uncordon: %s\n", e)
+        return api_response
+
     def are_all_nodes_ready(self) -> bool:
         """
         Return the status of all node based on the condition type Ready.
