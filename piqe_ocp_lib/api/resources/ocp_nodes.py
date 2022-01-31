@@ -350,7 +350,12 @@ class OcpNodes(OcpBase):
         :return: A V1Node object. None on failure.
         """
         api_response = None
-        body = {"spec": {"taints": [{"effect": "NoSchedule","key": "node.kubernetes.io/unschedulable"}],"unschedulable": false}}
+        body = {
+            "spec": {
+                "taints": [{"effect": "NoSchedule", "key": "node.kubernetes.io/unschedulable"}],
+                "unschedulable": false,
+            }
+        }
         unschedulable_status = self.is_node_schedulable(node_name)
         try:
             api_response = self.ocp_nodes.patch(name=node_name, body=body)
