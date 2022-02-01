@@ -356,6 +356,7 @@ class OcpNodes(OcpBase):
                 "unschedulable": false,
             }
         }
+        try:
             api_response = self.ocp_nodes.patch(name=node_name, body=body)
             logger.info("Node %s maked uncordon" % node_name)
         except ApiException as e:
