@@ -353,7 +353,7 @@ class OcpNodes(OcpBase):
         body = {
             "spec": {
                 "taints": [{"effect": "NoSchedule", "key": "node.kubernetes.io/unschedulable"}],
-                          "unschedulable": false, 
+                "unschedulable": false,
             }
         }
         try:
