@@ -353,7 +353,9 @@ class OcpNodes(OcpBase):
         body = {
             "spec": {
                 "taints": [{"effect": "NoSchedule", "key": "node.kubernetes.io/unschedulable"}],
-                "unschedulable": false}}
+                "unschedulable": false
+            }
+        }
         try:
             api_response = self.ocp_nodes.patch(name=node_name, body=body)
             logger.info("Node %s maked uncordon" % node_name)
