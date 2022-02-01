@@ -350,12 +350,8 @@ class OcpNodes(OcpBase):
         :return: A V1Node object. None on failure.
         """
         api_response = None
-        body = {
-            "spec": {
-                "taints": [{"effect": "NoSchedule", "key": "node.kubernetes.io/unschedulable"}],
-                "unschedulable": false
-            }
-        }
+        body = {"spec": {"taints": [{"effect": "NoSchedule", "key": "node.kubernetes.io/unschedulable"}]\
+                "unschedulable": false}}
         try:
             api_response = self.ocp_nodes.patch(name=node_name, body=body)
             logger.info("Node %s maked uncordon" % node_name)
