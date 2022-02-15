@@ -345,9 +345,9 @@ class OcpNodes(OcpBase):
 
     def make_node_cordon(self, node_name: str) -> bool:
         """
-        Return node which was make uncordon
+        Make node cordon and return whether it's cordon or not
         :param node_name:
-        :return: A V1Node object. None on failure.
+        :return:
         """
         api_response = None
         body = {
@@ -365,6 +365,14 @@ class OcpNodes(OcpBase):
             made_cordon = True
         else:
             made_cordon = False
+        return made_cordon
+
+    def make_node_uncordon(self, node_name: str) -> bool:
+        """
+        Make node uncordon and return whether it's uncordon or not
+        :param node_name:
+        :return:
+        """
         body = {
             "spec": {
                 "taints": [{"effect": "NoSchedule", "key": "node.kubernetes.io/unschedulable"}],
@@ -380,7 +388,7 @@ class OcpNodes(OcpBase):
             made_uncordon = True
         else:
             made_uncordon = False
-        return made_cordon, made_uncordon
+        return made_uncordon
 
     def are_all_nodes_ready(self) -> bool:
         """
