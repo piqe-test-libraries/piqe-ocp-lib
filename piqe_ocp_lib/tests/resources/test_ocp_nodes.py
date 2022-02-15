@@ -348,15 +348,12 @@ class TestOcpNodes:
         :return:
         """
         node_api_obj = setup_params["node_api_obj"]
-        master_node_list = node_api_obj.get_master_nodes()
-        for master_node_name in master_node_list.items:
-            made_cordon, made_uncordon = node_api_obj.make_node_cordon(node_name=master_node_name.metadata.name)
-            assert made_cordon is True
-            assert made_uncordon is True
         worker_node_list = node_api_obj.get_worker_nodes()
         for worker_node_name in worker_node_list.items:
-            made_cordon, made_uncordon = node_api_obj.make_node_cordon(node_name=worker_node_name.metadata.name)
+            made_cordon = node_api_obj.make_node_cordon(node_name=worker_node_name.metadata.name)
             assert made_cordon is True
+        for worker_node_name in worker_node_list.items:
+            made_uncordon = node_api_obj.make_node_uncordon(node_name=worker_node_name.metadata.name)
             assert made_uncordon is True
 
     def test_are_all_nodes_ready(self, setup_params):
